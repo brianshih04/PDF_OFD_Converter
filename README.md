@@ -1,6 +1,6 @@
 # JPEG2PDF-OFD OCR CLI
 
-**Cross-platform OCR tool to convert JPEG images to searchable PDF/OFD documents.**
+**跨平台 OCR 工具：將 JPEG 圖片轉換為可搜尋的 PDF/OFD 文件**
 
 [![GitHub](https://img.shields.io/badge/GitHub-brianshih04%2Fjpeg2pdf--ofd--conveyor-blue)](https://github.com/brianshih04/jpeg2pdf-ofd-conveyor)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
@@ -8,42 +8,42 @@
 
 ---
 
-## Features
+## ✨ 功能特色
 
-- **Cross-platform support**: Windows, macOS (Intel/ARM), Linux
-- **Self-contained**: No Java installation required (Conveyor packaged)
-- **80+ OCR languages**: Chinese Traditional/Simplified, English, Japanese, Korean, etc.
-- **Multiple output formats**: PDF, OFD (China National Standard), TXT
-- **Single/Multi-page mode**: Flexible output options
-- **Auto-update**: Built-in update mechanism (Conveyor)
-- **Pure Java SE**: No Spring Boot dependencies, lightweight and fast
-
----
-
-## Version Comparison
-
-| Version | Size | Requirements | Platforms | Auto-update | Recommended |
-|---------|------|--------------|-----------|-------------|-------------|
-| **Conveyor** | ~78 MB | No Java needed | 4 platforms | Yes | **5 stars** |
-| **JAR** | 52 MB | Java 17+ | All platforms | No | 4 stars |
-| **jpackage** | 181 MB | No Java needed | Windows only | No | 3 stars |
+- ✅ **跨平台支援**：Windows、macOS (Intel/ARM)、Linux
+- ✅ **無需安裝 Java**：使用 Conveyor 打包，自包含執行環境
+- ✅ **80+ 種 OCR 語言**：支援繁中、簡中、英文、日文、韓文等
+- ✅ **多種輸出格式**：PDF、OFD（中國國家標準）、TXT
+- ✅ **單頁/多頁模式**：彈性的輸出選項
+- ✅ **自動更新**：內建更新機制（Conveyor）
+- ✅ **純 Java SE**：無 Spring Boot 依賴，輕量快速
 
 ---
 
-## Quick Start
+## 📊 版本比較
+
+| 版本 | 大小 | 需求 | 平台 | 自動更新 | 推薦度 |
+|------|------|------|------|----------|--------|
+| **Conveyor** | **~78 MB** | **無需 Java** | **4 個平台** | ✅ | **⭐⭐⭐⭐⭐** |
+| **JAR** | **52 MB** | **Java 17+** | 所有平台 | ❌ | ⭐⭐⭐ |
+| **jpackage** | **181 MB** | **無需 Java** | Windows only | ❌ | ⭐⭐ |
+
+---
+
+## 🚀 快速開始
 
 ### Windows
 
-**Method 1: Download MSIX (Recommended)**
+#### 方法 1：下載 MSIX（推薦）
 
-1. Download: [jpeg2pdf-ofd-cli-3.0.0.x64.msix](https://github.com/brianshih04/jpeg2pdf-ofd-conveyor/releases)
-2. Double-click to install
-3. Run in PowerShell:
+1. 下載：[jpeg2pdf-ofd-cli-3.0.0.x64.msix](https://github.com/brianshih04/jpeg2pdf-ofd-conveyor/releases)
+2. 雙擊安裝
+3. 在 PowerShell 中執行：
    ```powershell
    jpeg2pdf-ofd config.json
    ```
 
-**Method 2: PowerShell One-liner (Auto-update)**
+#### 方法 2：PowerShell 一鍵安裝（自動更新）
 
 ```powershell
 iex (irm https://brianshih04.github.io/jpeg2pdf-ofd-conveyor/install.ps1)
@@ -52,7 +52,7 @@ iex (irm https://brianshih04.github.io/jpeg2pdf-ofd-conveyor/install.ps1)
 ### macOS
 
 ```bash
-# Download appropriate version
+# 下載適合的版本
 # Intel Mac: jpeg2pdf-ofd-cli-3.0.0-mac-amd64.zip
 # Apple Silicon: jpeg2pdf-ofd-cli-3.0.0-mac-aarch64.zip
 
@@ -66,16 +66,16 @@ unzip jpeg2pdf-ofd-cli-3.0.0-mac-*.zip
 # DEB (Ubuntu/Debian)
 sudo dpkg -i brian-shih-jpeg2pdf-ofd-cli_3.0.0_amd64.deb
 
-# TAR.GZ (Universal)
+# TAR.GZ (通用)
 tar xzf jpeg2pdf-ofd-cli-3.0.0-linux-amd64.tar.gz
 ./jpeg2pdf-ofd-cli config.json
 ```
 
 ---
 
-## Configuration
+## ⚙️ 配置說明
 
-### Complete Configuration Example
+### 完整配置範例
 
 ```json
 {
@@ -95,53 +95,53 @@ tar xzf jpeg2pdf-ofd-cli-3.0.0-linux-amd64.tar.gz
 }
 ```
 
-### Configuration Parameters
+### 配置參數說明
 
-#### input Configuration
+#### input 配置
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `folder` | String | Yes | - | Input image folder path |
-| `file` | String | No | - | Single file path |
-| `pattern` | String | No | `*.jpg` | File filter pattern |
-| `extensions` | Array | No | `["jpg", "jpeg", "png"]` | Supported extensions |
+| 參數 | 類型 | 必填 | 預設值 | 說明 |
+|------|------|------|--------|------|
+| `folder` | String | ✅ | - | 輸入圖片資料夾路徑 |
+| `file` | String | ❌ | - | 單一檔案路徑 |
+| `pattern` | String | ❌ | `*.jpg` | 檔案過濾模式 |
+| `extensions` | Array | ❌ | `["jpg", "jpeg", "png"]` | 支援的副檔名 |
 
-#### output Configuration
+#### output 配置
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `folder` | String | Yes | - | **Output folder path** |
-| `formats` | Array | No | `["pdf"]` | Output formats |
-| `multiPage` | Boolean | No | `false` | Merge into multi-page document |
+| 參數 | 類型 | 必填 | 預設值 | 說明 |
+|------|------|------|--------|------|
+| `folder` | String | ✅ | - | 輸出資料夾路徑 |
+| `formats` | Array | ❌ | `["pdf"]` | 輸出格式：`"pdf"`, `"ofd"`, `"txt"` |
+| `multiPage` | Boolean | ❌ | `false` | 合併為多頁文件 |
 
-**formats Options:**
-- `["pdf"]` - PDF only
-- `["ofd"]` - OFD only (China National Standard)
-- `["txt"]` - Plain text only
+**formats 選項：**
+- `["pdf"]` - 僅 PDF
+- `["ofd"]` - 僅 OFD（中國國家標準）
+- `["txt"]` - 僅純文字
 - `["pdf", "ofd"]` - PDF + OFD
-- `["pdf", "ofd", "txt"]` - All formats
+- `["pdf", "ofd", "txt"]` - 所有格式
 
-#### ocr Configuration
+#### ocr 配置
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `language` | String | No | `chinese_cht` | OCR language |
-| `useGpu` | Boolean | No | `false` | Use GPU acceleration |
-| `cpuThreads` | Integer | No | `4` | CPU thread count |
+| 參數 | 類型 | 必填 | 預設值 | 說明 |
+|------|------|------|--------|------|
+| `language` | String | ❌ | `chinese_cht` | OCR 語言 |
+| `useGpu` | Boolean | ❌ | `false` | 使用 GPU 加速 |
+| `cpuThreads` | Integer | ❌ | `4` | CPU 執行緒數 |
 
-**Supported Languages (80+):**
-- `chinese_cht` - Chinese Traditional (default)
-- `ch` - Chinese Simplified
-- `en` - English
-- `japan` - Japanese
-- `korean` - Korean
-- And 75+ more...
+**支援的語言（80+ 種）：**
+- `chinese_cht` - 繁體中文（預設）
+- `ch` - 簡體中文
+- `en` - 英文
+- `japan` - 日文
+- `korean` - 韓文
+- 以及其他 75+ 種語言...
 
 ---
 
-## Usage Examples
+## 📖 使用範例
 
-### Example 1: Chinese Traditional Multi-Page
+### 範例 1：繁體中文多頁文件
 
 ```json
 {
@@ -160,12 +160,12 @@ tar xzf jpeg2pdf-ofd-cli-3.0.0-linux-amd64.tar.gz
 }
 ```
 
-**Output:**
-- 1 multi-page PDF (all pages merged)
-- 1 multi-page OFD (all pages merged)
-- 1 TXT file (all text extracted)
+**輸出：**
+- 1 個多頁 PDF（所有頁面合併）
+- 1 個多頁 OFD（所有頁面合併）
+- 1 個 TXT 檔案（所有文字提取）
 
-### Example 2: English Documents (Single-Page)
+### 範例 2：英文文件（單頁模式）
 
 ```json
 {
@@ -183,10 +183,10 @@ tar xzf jpeg2pdf-ofd-cli-3.0.0-linux-amd64.tar.gz
 }
 ```
 
-**Output:**
-- One PDF per image
+**輸出：**
+- 每張圖片一個 PDF 檔案
 
-### Example 3: Single File Processing
+### 範例 3：單一檔案處理
 
 ```json
 {
@@ -205,92 +205,140 @@ tar xzf jpeg2pdf-ofd-cli-3.0.0-linux-amd64.tar.gz
 
 ---
 
-## Test Results
+## ✅ 測試結果
 
-**Test Input:**
-- 8 JPEG images
-- Config: `config-multipage-example.json`
+**測試輸入：**
+- 8 張 JPEG 圖片（Computershare 匯款表單）
+- 位置：`P:\OCR\Sample\`
+- 配置：`config-multipage-example.json`
 
-**Test Output:**
+**測試輸出：**
 ```
-Success: multipage_20260323_203921.pdf (14.96 MB, 8 pages)
-Success: multipage_20260323_203921.ofd (14.60 MB, 8 pages)
+✅ multipage_20260323_203921.pdf (14.96 MB, 8 頁)
+✅ multipage_20260323_203921.ofd (14.60 MB, 8 頁)
 
-Processing time: ~60 seconds
-OCR detected: 543 text blocks
+處理時間：約 60 秒
+OCR 偵測：543 個文字區塊
 ```
 
 ---
 
-## Bug Fixes Applied
+## 🔧 已修復的問題
 
-### Issue 1: Configuration Parsing Error (FIXED)
+### 問題 1：配置解析錯誤 ✅ 已修復
 
-**Problem:** Only PDF generated, OFD and TXT not generated
+**問題：**
+- 只產生 PDF
+- OFD 和 TXT 未產生
 
-**Cause:** Configuration used "formats" (plural) but code only checked "format" (singular)
-
-**Fix:**
+**原因：**
 ```java
-// Support both "formats" and "format"
+// Main.java 只檢查 "format" 鍵
+if (outputConfig.containsKey("format"))
+
+// 但配置使用 "formats"（複數）
+"formats": ["pdf", "ofd"]
+```
+
+**修復：**
+```java
+// 同時支援 "formats"（複數）和 "format"（單數）
 Object formats = outputConfig.get("formats");
 if (formats == null) {
-    formats = outputConfig.get("format"); // Backward compatible
+    formats = outputConfig.get("format"); // 向後相容
 }
 ```
 
 ---
 
-### Issue 2: PDF Font Loading Failure (FIXED)
+### 問題 2：PDF 字體載入失敗 ✅ 已修復
 
-**Problem:** Warning: Cannot load font from C:/Windows/Fonts/msyh.ttc
+**問題：**
+```
+Warning: Cannot load font from C:/Windows/Fonts/msyh.ttc
+```
 
-**Fix:** Added fallback fonts (Arial, SimHei, SimSun)
+**修復：**
+```java
+// 嘗試多種字體
+String[] fonts = {
+    "C:/Windows/Fonts/arial.ttf",
+    "C:/Windows/Fonts/simhei.ttf",
+    "C:/Windows/Fonts/simsun.ttc",
+    "C:/Windows/Fonts/msyh.ttc"
+};
+for (String path : fonts) {
+    try {
+        return PDType0Font.load(document, new File(path));
+    } catch (Exception e) {
+        continue; // 嘗試下一個
+    }
+}
+return PDType1Font.HELVETICA; // 最終備援
+```
 
 ---
 
-### Issue 3: PDF Text Rendering Error (FIXED)
+### 問題 3：PDF 文字渲染錯誤 ✅ 已修復
 
-**Problem:** Error: Nested beginText() calls are not allowed
+**問題：**
+```
+Error: Nested beginText() calls are not allowed
+```
 
-**Fix:** Ensured beginText/endText pairing with try-finally
+**修復：**
+```java
+try {
+    contentStream.beginText();
+    contentStream.setFont(font, fontSize);
+    contentStream.showText(text);
+} finally {
+    contentStream.endText(); // 永遠會被呼叫
+}
+```
 
 ---
 
-### Issue 4: OFD Multi-Page Generation (FIXED)
+### 問題 4：OFD 多頁產生失敗 ✅ 已修復
 
-**Problem:** OFD file generated but size is 0
+**問題：**
+- OFD 檔案產生但大小為 0
 
-**Fix:** Configuration parsing fixed, OFD now generates correctly
+**修復：**
+- 配置解析修正
+- OFD 現在可以正確產生
 
 ---
 
-## Build from Source
+## 🔨 從原始碼建置
 
-### Prerequisites
+### 先決條件
 
 - JDK 17+
 - Maven 3.6+
-- Conveyor (for cross-platform packaging)
+- Conveyor（用於跨平台打包）
 
-### Build JAR
+### 建置 JAR
 
 ```bash
 mvn clean package
 ```
 
-Output: `target/jpeg2pdf-ofd-nospring-3.0.0-jar-with-dependencies.jar`
+輸出：`target/jpeg2pdf-ofd-nospring-3.0.0-jar-with-dependencies.jar`
 
-### Build Conveyor Cross-Platform Packages
+### 建置 Conveyor 跨平台套件
 
 ```bash
-# Install Conveyor from https://www.hydraulic.software/download
+# 安裝 Conveyor
+# Windows: choco install conveyor
+# macOS: brew install --cask conveyor
+# Linux: https://www.hydraulic.software/download
 
-# Build all platforms
+# 建置所有平台
 conveyor make site
 ```
 
-Output:
+輸出：
 - `output/jpeg2pdf-ofd-cli-3.0.0.x64.msix` (Windows)
 - `output/jpeg2pdf-ofd-cli-3.0.0-mac-amd64.zip` (macOS Intel)
 - `output/jpeg2pdf-ofd-cli-3.0.0-mac-aarch64.zip` (macOS ARM)
@@ -298,44 +346,44 @@ Output:
 
 ---
 
-## Documentation
+## 📚 文件
 
-- **README.md** - This file
-- **conveyor.conf** - Conveyor configuration
-- **CONVEYOR-GUIDE.md** - Complete Conveyor guide
-- **JSON-CONFIG-GUIDE.md** - JSON configuration guide
+- **README.md** - 本文件
+- **conveyor.conf** - Conveyor 配置
+- **CONVEYOR-GUIDE.md** - 完整 Conveyor 指南
+- **JSON-CONFIG-GUIDE.md** - JSON 配置指南
 
 ---
 
-## Summary
+## 📋 總結
 
-**Complete Features:**
-- OCR recognition (80+ languages)
-- PDF generation (PDFBox 2.0.29)
-- OFD generation (ofdrw 2.3.8)
-- TXT export
-- Single-page mode
-- Multi-page mode
+**完整功能：**
+- OCR 識別（80+ 種語言）
+- PDF 產生（PDFBox 2.0.29）
+- OFD 產生（ofdrw 2.3.8）
+- TXT 匯出
+- 單頁模式
+- 多頁模式
 
-**Cross-Platform Support:**
+**跨平台支援：**
 - Windows
 - macOS (Intel + ARM)
 - Linux (Debian + RPM)
 
-**Packaging Options:**
-- Conveyor (recommended)
-- jpackage (Windows only)
-- JAR (requires Java)
+**打包選項：**
+- Conveyor（推薦） ⭐⭐⭐⭐⭐
+- jpackage（僅 Windows）
+- JAR（需要 Java）
 
-**All Issues Fixed:**
-- Configuration parsing
-- PDF fonts
-- PDF text rendering
-- OFD multi-page generation
+**所有問題已修復：**
+- 配置解析
+- PDF 字體
+- PDF 文字渲染
+- OFD 多頁產生
 
-**Test Results:**
-- 8 images to 1 multi-page PDF + 1 multi-page OFD
+**測試結果：**
+- 8 張圖片 → 1 個多頁 PDF + 1 個多頁 OFD
 
 ---
 
-**GitHub:** https://github.com/brianshih04/jpeg2pdf-ofd-conveyor
+**GitHub：** https://github.com/brianshih04/jpeg2pdf-ofd-conveyor
