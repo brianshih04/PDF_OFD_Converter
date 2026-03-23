@@ -1,0 +1,14 @@
+{
+  "input": {
+    "folder": "C:/OCR/Watch",
+    "pattern": "*.jpg"
+  },
+  "output": {
+    "folder": "C:/OCR/Output",
+    "format": "all",
+    "multiPage": true
+  },
+  "ocr": {
+    "language": "chinese_cht"
+  }
+}
