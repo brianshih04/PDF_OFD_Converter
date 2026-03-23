@@ -344,10 +344,19 @@ public class Main {
     }
     
     private static String getOutputFormat(Map<String, Object> outputConfig) {
-        if (outputConfig != null && outputConfig.containsKey("format")) {
-            Object format = outputConfig.get("format");
-            if (format instanceof String) return (String) format;
-            if (format instanceof List) return String.join(",", (List<String>) format);
+        if (outputConfig != null) {
+            // 支持 "formats" 或 "format" 鍵
+            Object format = null;
+            if (outputConfig.containsKey("formats")) {
+                format = outputConfig.get("formats");
+            } else if (outputConfig.containsKey("format")) {
+                format = outputConfig.get("format");
+            }
+            
+            if (format != null) {
+                if (format instanceof String) return (String) format;
+                if (format instanceof List) return String.join(",", (List<String>) format);
+            }
         }
         return "pdf";
     }
