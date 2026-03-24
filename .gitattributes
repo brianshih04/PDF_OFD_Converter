@@ -1,0 +1,28 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Source code
+*.java text eol=lf
+*.xml text eol=lf
+*.json text eol=lf
+*.properties text eol=lf
+
+# Markdown files - force UTF-8
+*.md text eol=lf encoding=utf-8
+
+# Shell scripts
+*.sh text eol=lf
+*.ps1 text eol=crlf
+
+# Windows batch files
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary files
+*.jar binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary
+*.ofd binary
