@@ -1,0 +1,14 @@
+Architecture: amd64
+Built-With: Hydraulic Conveyor
+Depends: libasound2t64 | liboss4-salsa-asound2, libc6, libgcc-s1, libstdc++6, libx11-6, libxext6, libxi6, libxrender1, libxtst6, zlib1g
+Description: JPEG2PDF-OFD OCR CLI
+Installed-Size: 129451
+Maintainer: Brian Shih <nobody@nowhere>
+Package: brian-shih-jpeg2pdf-ofd-cli
+Priority: optional
+Provides: brian-shih-jpeg2pdf-ofd-cli
+Section: misc
+Version: 3.0.0
+Filename: debian/brian-shih-jpeg2pdf-ofd-cli_3.0.0_amd64.deb
+Size: 74468360
+SHA256: 9d6b4da8366600ee6aad398716c735c2360972781d794e315aba17a31029c171

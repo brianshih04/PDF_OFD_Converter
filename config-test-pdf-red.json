@@ -1,0 +1,16 @@
+{
+    "input": {
+        "folder": "D:/Projects/Sample",
+        "pattern": "Sample.jpg"
+    },
+    "ocr": {
+        "language": "chinese_cht"
+    },
+    "output": {
+        "folder": "P:/OCR/result-new",
+        "format": "pdf"
+    },
+    "textLayer": {
+        "color": "debug"
+    }
+}

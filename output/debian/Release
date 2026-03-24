@@ -1,0 +1,18 @@
+Architectures: amd64
+Components: main
+Date: Mon, 23 Mar 2026 12:37:56 GMT
+Description: Public archive for JPEG2PDF-OFD OCR CLI
+Origin: JPEG2PDF-OFD OCR CLI
+Suite: debian
+MD5Sum:
+ 3e1fbf7f58d05f11b2eaeb1fdc107265               556 Packages
+ 9d07d94a492db5d5aa0732634379c0e8               452 Packages.xz
+SHA1:
+ 6194006da203c63c12f77e3716134548e146a2aa               556 Packages
+ fd8c4ddf0c1a40c2e6071d7b4787dabfc6bf1c68               452 Packages.xz
+SHA256:
+ 94bce49542625ddd8fba09830ac4e5f70dbe59d05cb3e574dc0b2593d3f929ff               556 Packages
+ b340daf70c498d0bf33d0d6f800369f698f4a40ef927251cc5d1a74302ca1245               452 Packages.xz
+SHA512:
+ 46a7457acdcc776de01494ccee0a3f2bf9669308819fc6308cd7bb7a6a7a64da143c08cc1551b670d57130a2f73a36b788d88fb9b8c98d61380683d3bc4b1b8f               556 Packages
+ 837d55749468534cdb35408e33cf80a5adc51cd63bafe82b56d28f034a3c1a3691e917f28d154293fb2a3f862d96fa0c02c586e703b10b64bc2fbcd1ad29012d               452 Packages.xz

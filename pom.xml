@@ -47,6 +47,13 @@
             <version>0.0.7</version>
         </dependency>
         
+        <!-- OFD Converter - PDF 轉 OFD -->
+        <dependency>
+            <groupId>org.ofdrw</groupId>
+            <artifactId>ofdrw-converter</artifactId>
+            <version>${ofdrw.version}</version>
+        </dependency>
+        
         <!-- OFD Layout - OFD 生成 -->
         <dependency>
             <groupId>org.ofdrw</groupId>

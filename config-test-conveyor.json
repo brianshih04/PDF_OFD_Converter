@@ -1,0 +1,16 @@
+{
+    "input": {
+        "folder": "D:/Projects/Sample",
+        "pattern": "sample.jpg"
+    },
+    "ocr": {
+        "language": "chinese_cht"
+    },
+    "output": {
+        "folder": "D:/Projects/Sample/output_conveyor",
+        "format": "ofd"
+    },
+    "textLayer": {
+        "color": "debug"
+    }
+}

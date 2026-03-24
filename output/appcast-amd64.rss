@@ -1,0 +1,23 @@
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+    <channel>
+        <title>JPEG2PDF-OFD OCR CLI Changelog</title>
+        <link>https://brianshih04.github.io/jpeg2pdf-ofd-conveyor/appcast-amd64.rss</link>
+        <description>Most recent changes with links to updates.</description>
+        <language>en</language>
+        <item>
+            <title>Version 3.0.0</title>
+            <link>https://brianshih04.github.io/jpeg2pdf-ofd-conveyor/</link>
+            <sparkle:version>3.0.0.0</sparkle:version>
+            <sparkle:shortVersionString>3.0.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>11.0</sparkle:minimumSystemVersion>
+            <description>
+                <![CDATA[ New release: version 3.0.0 ]]>
+            </description>
+            <pubDate>Mon, 23 Mar 2026 12:42:39 GMT</pubDate>
+            <enclosure url="https://brianshih04.github.io/jpeg2pdf-ofd-conveyor/jpeg2pdf-ofd-cli-3.0.0-mac-amd64.zip" 
+                       length="81881898" 
+                       type="application/octet-stream" 
+                       sparkle:edSignature="z4cfj/FbOGHGj+2+JMu00BS0ZhsVAFYciAfQkIQja243jw/KdBrhNmkCFqUZvy5/3J5yE7QSSimmsdD8qqW0Cg=="/>
+        </item>
+    </channel>
+</rss>
