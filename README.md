@@ -73,8 +73,16 @@ tar xzf jpeg2pdf-ofd-cli-3.0.0-linux-amd64.tar.gz
 
 ---
 
-## ⚙️ 配置說明
+## 📚 相關文檔
 
+- **[JSON 配置完整指南](JSON-CONFIG-GUIDE.md)** - 所有 JSON 配置選項的詳細說明
+- **[Searchable OFD 完整產生方法](searchable_method.md)** - 如何生成可搜索的 OFD 文件
+- **[技術筆記](SEARCHABLE_OFD_NOTES.md)** - Searchable OFD 技術實現細節
+- **[textLayer 配置指南](TEXTLAYER-CONFIG-GUIDE.md)** - 如何配置文字層顏色和透明度
+
+---
+
+## ⚙️ 配置說明
 ### 完整配置範例
 
 ```json
