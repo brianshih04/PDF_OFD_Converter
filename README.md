@@ -76,6 +76,158 @@ tar xzf jpeg2pdf-ofd-cli-3.0.0-linux-amd64.tar.gz
 
 ---
 
+## 字體下載指南
+
+### 推薦字體：Noto Sans CJK（免費開源）
+
+**Noto Sans CJK** 是 Google 和 Adobe 合作開發的免費開源字體，支持**繁中、簡中、日文、韓文**四種語言。
+
+#### 下載連結
+
+| 語言 | GitHub Release | Google Fonts |
+|------|----------------|--------------|
+| **繁體中文 (TC)** | [NotoSansTC-hinted.zip](https://github.com/googlefonts/noto-cjk/releases) | [Google Fonts TC](https://fonts.google.com/noto/specimen/Noto+Sans+TC) |
+| **簡體中文 (SC)** | [NotoSansSC-hinted.zip](https://github.com/googlefonts/noto-cjk/releases) | [Google Fonts SC](https://fonts.google.com/noto/specimen/Noto+Sans+SC) |
+| **日文 (JP)** | [NotoSansJP-hinted.zip](https://github.com/googlefonts/noto-cjk/releases) | [Google Fonts JP](https://fonts.google.com/noto/specimen/Noto+Sans+JP) |
+| **韓文 (KR)** | [NotoSansKR-hinted.zip](https://github.com/googlefonts/noto-cjk/releases) | [Google Fonts KR](https://fonts.google.com/noto/specimen/Noto+Sans+KR) |
+| **所有語言 (OTF)** | [NotoSansCJK-Regular.ttc](https://github.com/googlefonts/noto-cjk/releases) | - |
+
+#### 下載方式
+
+##### 方式 1：從 GitHub Release 下載（推薦）
+
+```bash
+# 下載最新版本（所有語言）
+https://github.com/googlefonts/noto-cjk/releases
+
+# 或使用命令行下載
+wget https://github.com/googlefonts/noto-cjk/releases/download/Sans2.004/NotoSansCJK-Regular.ttc
+```
+
+##### 方式 2：從 Google Fonts 下載
+
+```
+https://fonts.google.com/noto/specimen/Noto+Sans+TC
+https://fonts.google.com/noto/specimen/Noto+Sans+SC
+https://fonts.google.com/noto/specimen/Noto+Sans+JP
+https://fonts.google.com/noto/specimen/Noto+Sans+KR
+```
+
+##### 方式 3：作業系統自帶字體
+
+| 作業系統 | 繁體中文 | 簡體中文 | 日文 | 韓文 |
+|---------|---------|---------|------|------|
+| **Windows** | `C:/Windows/Fonts/kaiu.ttf` (標楷體) | `C:/Windows/Fonts/simsun.ttc` (宋體) | - | - |
+| **Linux** | `/usr/share/fonts/noto/NotoSansCJK-Regular.ttc` | 同左 | 同左 | 同左 |
+| **macOS** | `/System/Library/Fonts/PingFang.ttc` (苹方) | 同左 | `/System/Library/Fonts/Hiragino.ttc` | - |
+
+#### 安裝字體
+
+##### Windows
+
+```powershell
+# 方法 1：雙擊 .ttf 或 .otf 文件，點擊「安裝」
+
+# 方法 2：複製到字體資料夾
+Copy-Item NotoSansTC-Regular.otf C:\Windows\Fonts\
+```
+
+##### Linux (Ubuntu/Debian)
+
+```bash
+# 安裝 Noto CJK 字體
+sudo apt-get install fonts-noto-cjk
+
+# 或手動安裝
+mkdir -p ~/.local/share/fonts
+cp NotoSansCJK-Regular.ttc ~/.local/share/fonts/
+fc-cache -fv
+```
+
+##### macOS
+
+```bash
+# 雙擊 .ttf 或 .otf 文件，點擊「安裝字體」
+
+# 或複製到字體資料夾
+cp NotoSansTC-Regular.otf ~/Library/Fonts/
+```
+
+#### 配置示例
+
+##### 繁體中文配置
+
+```json
+{
+  "ocr": {
+    "language": "chinese_cht"
+  },
+  "font": {
+    "path": "C:/Windows/Fonts/kaiu.ttf"
+  }
+}
+```
+
+##### 簡體中文配置
+
+```json
+{
+  "ocr": {
+    "language": "ch"
+  },
+  "font": {
+    "path": "C:/Windows/Fonts/simsun.ttc"
+  }
+}
+```
+
+##### 日文配置
+
+```json
+{
+  "ocr": {
+    "language": "japan"
+  },
+  "font": {
+    "path": "/usr/share/fonts/noto/NotoSansCJK-Regular.ttc"
+  }
+}
+```
+
+##### 韓文配置
+
+```json
+{
+  "ocr": {
+    "language": "korean"
+  },
+  "font": {
+    "path": "/usr/share/fonts/noto/NotoSansCJK-Regular.ttc"
+  }
+}
+```
+
+#### 自動字體選擇（無需配置）
+
+本工具支持**自動字體選擇**，根據 OCR 語言自動選擇對應的 Noto Sans CJK 字體：
+
+| OCR 語言 | 自動選擇字體 |
+|---------|-------------|
+| `chinese_cht` | NotoSansTC |
+| `ch` / `cn` | NotoSansSC |
+| `japan` | NotoSansJP |
+| `korean` | NotoSansKR |
+
+**注意**：自動選擇需要系統已安裝 Noto Sans CJK 字體。
+
+#### 授權
+
+- **Noto Sans CJK**: SIL Open Font License 1.1（免費商用）
+- 官方網站：https://fonts.google.com/noto
+- GitHub：https://github.com/googlefonts/noto-cjk
+
+---
+
 ## 相關文檔
 
 - **[JSON 配置完整指南](JSON-CONFIG-GUIDE.md)** - 所有 JSON 配置選項的詳細說明

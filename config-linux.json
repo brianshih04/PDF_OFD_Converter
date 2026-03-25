@@ -1,0 +1,21 @@
+{
+  "input": {
+    "folder": "/home/user/ocr/input",
+    "pattern": "*.jpg"
+  },
+  "output": {
+    "folder": "/home/user/ocr/output",
+    "format": "all",
+    "multiPage": true
+  },
+  "ocr": {
+    "language": "chinese_cht"
+  },
+  "font": {
+    "path": "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc"
+  },
+  "textLayer": {
+    "color": "white",
+    "opacity": 0.0001
+  }
+}

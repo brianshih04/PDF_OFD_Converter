@@ -1,0 +1,21 @@
+{
+  "input": {
+    "folder": "P:/OCR/input",
+    "pattern": "*.jpg"
+  },
+  "output": {
+    "folder": "P:/OCR/output",
+    "format": "all",
+    "multiPage": true
+  },
+  "ocr": {
+    "language": "chinese_cht"
+  },
+  "font": {
+    "path": "C:/Windows/Fonts/kaiu.ttf"
+  },
+  "textLayer": {
+    "color": "white",
+    "opacity": 0.0001
+  }
+}
