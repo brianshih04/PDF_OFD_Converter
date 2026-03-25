@@ -1,4 +1,4 @@
-# JSON 配置文件完整指南
+﻿# JSON 配置文件完整指南
 
 ## 📋 目錄
 
@@ -6,6 +6,7 @@
 - [input 配置](#input-配置)
 - [output 配置](#output-配置)
 - [ocr 配置](#ocr-配置)
+- [textConvert 配置](#textconvert-配置簡繁轉換)
 - [textLayer 配置](#textlayer-配置)
 - [font 配置](#font-配置)
 - [完整示例](#完整示例)
@@ -24,7 +25,7 @@
   },
   "output": {
     "folder": "C:/OCR/Output",
-    "formats": ["pdf", "ofd", "txt"],
+    "format": "all",
     "multiPage": false
   },
   "ocr": {
@@ -32,12 +33,13 @@
     "useGpu": false,
     "cpuThreads": 4
   },
+  "textConvert": "s2t",
   "textLayer": {
     "color": "white",
     "opacity": 0.0001
   },
   "font": {
-    "path": "C:/Windows/Fonts/msyh.ttc"
+    "path": "C:/Windows/Fonts/kaiu.ttf"
   }
 }
 ```
@@ -131,18 +133,21 @@
 | 參數 | 類型 | 必填 | 默認值 | 說明 |
 |------|------|------|--------|------|
 | `folder` | String | ✅ | - | 輸出文件存放的資料夾路徑 |
-| `formats` | Array | ⚪ | `["pdf"]` | 輸出格式列表 |
+| `format` | String | ⚪ | `"pdf"` | 輸出格式（字串，推薦） |
+| `formats` | Array | ⚪ | `["pdf"]` | 輸出格式列表（陣列，向下兼容） |
 | `multiPage` | Boolean | ⚪ | `false` | 是否合併為多頁文檔 |
 
-### formats 可選值
+> `format` 和 `formats` 二選一即可。`format` 使用字串，`formats` 使用陣列，效果相同。
+
+### format 可選值
 
 | 值 | 說明 | 輸出文件 |
 |----|------|---------|
 | `"pdf"` | 只生成 PDF | `output.pdf` |
 | `"ofd"` | 只生成 OFD（中國國家標準格式） | `output.ofd` |
 | `"txt"` | 只生成 TXT（純文字） | `output.txt` |
-| `["pdf", "ofd"]` | 生成 PDF 和 OFD | `output.pdf`, `output.ofd` |
-| `["pdf", "ofd", "txt"]` | 生成所有格式 | `output.pdf`, `output.ofd`, `output.txt` |
+| `"all"` | 生成所有格式 | `output.pdf`, `output.ofd`, `output.txt` |
+| `"pdf,ofd"` | 生成 PDF + OFD | `output.pdf`, `output.ofd` |
 
 ### 配置示例
 
@@ -152,7 +157,7 @@
 {
   "output": {
     "folder": "C:/OCR/Output",
-    "formats": ["pdf", "ofd", "txt"],
+    "format": "all",
     "multiPage": false
   }
 }
@@ -186,7 +191,7 @@ image3_20260323_130002.txt
 {
   "output": {
     "folder": "C:/OCR/Output",
-    "formats": ["pdf", "ofd", "txt"],
+    "format": "all",
     "multiPage": true
   }
 }
@@ -212,7 +217,7 @@ multipage_20260323_130000.txt  (包含所有文字)
 {
   "output": {
     "folder": "C:/OCR/Output",
-    "formats": ["pdf"],
+    "format": "pdf",
     "multiPage": false
   }
 }
@@ -230,7 +235,7 @@ multipage_20260323_130000.txt  (包含所有文字)
 {
   "output": {
     "folder": "C:/OCR/Output",
-    "formats": ["pdf", "ofd"],
+    "format": "pdf,ofd",
     "multiPage": true
   }
 }
@@ -337,6 +342,77 @@ multipage_20260323_130000.txt  (包含所有文字)
 
 ---
 
+## textConvert 配置（簡繁轉換）
+
+OCR 識別結果可能混合簡繁體中文。使用 OpenCC 可在生成 PDF/OFD 前自動轉換。
+
+### 參數說明
+
+| 參數 | 類型 | 必填 | 默認值 | 說明 |
+|------|------|------|--------|------|
+| `textConvert` | String | ⚪ | `null`（不轉換） | `"s2t"` 簡體→繁體，`"t2s"` 繁體→簡體 |
+
+### 為什麼需要此功能？
+
+即使 OCR 語言設為 `chinese_cht`（繁體中文），RapidOCR 的輸出仍可能混合簡體字：
+
+| 原始圖片 | OCR 輸出 | 問題 |
+|---------|---------|------|
+| 資產負債表 | 資產負**价**表 | 「債」變成簡體「价」 |
+| 帳戶 | **帐**戶 | 「帳」變成簡體「帐」 |
+| 流動資產 | **流动**資產 | 「動」變成簡体「动」 |
+| 金額 | 金**额** | 「額」變成簡体「额」 |
+
+加上 `"textConvert": "s2t"` 後，所有文字都會轉換為正確的繁體。
+
+### 配置示例
+
+#### 示例 1：簡體→繁體（最常用）
+
+```json
+{
+  "ocr": {
+    "language": "chinese_cht"
+  },
+  "textConvert": "s2t"
+}
+```
+
+**適用場景：**
+- 台灣/香港的繁體中文文件
+- OCR 輸出混合簡繁體
+
+#### 示例 2：繁體→簡體
+
+```json
+{
+  "ocr": {
+    "language": "ch"
+  },
+  "textConvert": "t2s"
+}
+```
+
+**適用場景：**
+- 需要統一為簡體中文的文件
+
+#### 示例 3：不轉換（默認）
+
+```json
+{
+  "ocr": {
+    "language": "chinese_cht"
+  }
+  // 不設定 textConvert，保持 OCR 原始輸出
+}
+```
+
+**適用場景：**
+- OCR 輸出已經正確
+- 不需要簡繁轉換
+
+---
+
 ## textLayer 配置（文字層設置）
 
 ### 參數說明
@@ -439,37 +515,70 @@ multipage_20260323_130000.txt  (包含所有文字)
 
 | 參數 | 類型 | 必填 | 默認值 | 說明 |
 |------|------|------|--------|------|
-| `path` | String | ⚪ | 系統默認 | TrueType 字體文件路徑 |
+| `path` | String | ⚪ | 系統默認 | TrueType 字體文件路徑（**只支援 .ttf**，不支援 .ttc） |
+
+### ⚠️ 重要：字體格式限制
+
+**只支援 `.ttf` 格式，不支援 `.ttc` 格式！**
+
+PDFBox 無法正確處理 TTC（TrueType Collection）字體。請使用 TTF 格式：
+
+| 字體 | 格式 | 支援 | 說明 |
+|------|------|------|------|
+| `kaiu.ttf`（標楷體） | TTF | ✅ | **推薦**，支援繁體中文 |
+| `simhei.ttf`（黑體） | TTF | ✅ | 支援簡體中文 |
+| `arial.ttf` | TTF | ✅ | 支援英文 |
+| `msyh.ttc`（微軟雅黑） | **TTC** | ❌ | **不支援！** |
+| `msjh.ttc`（正黑體） | **TTC** | ❌ | **不支援！** |
+| `simsun.ttc`（宋體） | **TTC** | ❌ | **不支援！** |
 
 ### 默認字體（按優先級自動選擇）
 
-| 系統 | 字體路徑 | 字體名稱 |
-|------|---------|---------|
-| Windows | `C:/Windows/Fonts/msjh.ttc` | 微軟正黑體 |
-| Windows | `C:/Windows/Fonts/msyh.ttc` | 微軟雅黑 |
-| Windows | `C:/Windows/Fonts/simhei.ttf` | 黑體 |
-| macOS | `/System/Library/Fonts/PingFang.ttc` | 蘋方字體 |
-| Linux | `/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc` | 文泉驛 |
+當未指定 `font.path` 時，程序會按以下順序尋找可用字體：
+
+| 優先級 | 系統 | 字體路徑 | 字體名稱 |
+|-------|------|---------|---------|
+| 1 | Windows | `C:/Windows/Fonts/simhei.ttf` | 黑體（TTF ✅） |
+| 2 | Windows | `C:/Windows/Fonts/arial.ttf` | Arial（TTF ✅） |
+| 3 | Windows | `C:/Windows/Fonts/meiryo.ttc` | Meiryo（TTC ❌） |
+| 4 | Windows | `C:/Windows/Fonts/msyh.ttc` | 微軟雅黑（TTC ❌） |
+
+> **建議**：CJK 文件請明確指定 `font.path`，避免使用默認字體。
 
 ### 配置示例
 
-#### 示例 1：使用 Arial 字體
+#### 示例 1：使用標楷體（繁體中文，推薦）
 
 ```json
 {
   "font": {
-    "path": "C:/Windows/Fonts/arial.ttf"
+    "path": "C:/Windows/Fonts/kaiu.ttf"
   }
 }
 ```
 
 **說明：**
-- 使用 Arial 字體
-- 適合英文文檔
+- 標楷體為 TTF 格式，支援繁體中文 + 英文
+- **推薦用於繁體中文文件**
 
 ---
 
-#### 示例 2：使用系統默認（不指定）
+#### 示例 2：使用黑體（簡體中文）
+
+```json
+{
+  "font": {
+    "path": "C:/Windows/Fonts/simhei.ttf"
+  }
+}
+```
+
+**說明：**
+- 黑體為 TTF 格式，支援簡體中文 + 英文
+
+---
+
+#### 示例 3：使用系統默認（不指定）
 
 ```json
 {
@@ -485,7 +594,7 @@ multipage_20260323_130000.txt  (包含所有文字)
 
 ## 完整示例
 
-### 示例 1：處理繁體中文文檔（多頁）
+### 示例 1：處理繁體中文文檔（多頁，含簡繁轉換）
 
 ```json
 {
@@ -495,12 +604,16 @@ multipage_20260323_130000.txt  (包含所有文字)
   },
   "output": {
     "folder": "C:/Output/Chinese",
-    "formats": ["pdf", "ofd", "txt"],
+    "format": "all",
     "multiPage": true
   },
   "ocr": {
     "language": "chinese_cht",
     "cpuThreads": 4
+  },
+  "textConvert": "s2t",
+  "font": {
+    "path": "C:/Windows/Fonts/kaiu.ttf"
   }
 }
 ```
@@ -530,7 +643,7 @@ C:/Output/Chinese/
   },
   "output": {
     "folder": "C:/Output/English",
-    "formats": ["pdf", "txt"],
+    "format": "pdf,txt",
     "multiPage": false
   },
   "ocr": {
@@ -565,7 +678,7 @@ C:/Output/English/
   },
   "output": {
     "folder": "C:/Output/Mixed",
-    "formats": ["pdf", "ofd"],
+    "format": "pdf,ofd",
     "multiPage": true
   },
   "ocr": {
@@ -573,7 +686,7 @@ C:/Output/English/
     "cpuThreads": 8
   },
   "font": {
-    "path": "C:/Windows/Fonts/msyh.ttc"
+    "path": "C:/Windows/Fonts/kaiu.ttf"
   }
 }
 ```
@@ -581,7 +694,7 @@ C:/Output/English/
 **適用場景：**
 - ✅ 繁體中文 + 英文混合文檔
 - ✅ 只生成 PDF + OFD（無 TXT）
-- ✅ 自定義字體
+- ✅ 使用標楷體
 
 **預期輸出：**
 ```
@@ -602,7 +715,7 @@ C:/Output/Mixed/
   },
   "output": {
     "folder": "C:/OCR/Output",
-    "formats": ["pdf", "ofd"],
+    "format": "pdf,ofd",
     "multiPage": true
   },
   "ocr": {
@@ -632,7 +745,7 @@ C:/Output/Mixed/
   },
   "output": {
     "folder": "C:/Output",
-    "formats": ["pdf", "ofd", "txt"],
+    "format": "all",
     "multiPage": false
   },
   "ocr": {
@@ -688,7 +801,7 @@ C:/Output/
 // ✅ 正確示例
 {
   "output": {
-    "formats": ["pdf", "ofd"],  // 最後一項無逗號
+    "format": "pdf,ofd",  // 最後一項無逗號
     "multiPage": true            // 最後一個屬性無逗號
   }
 }
@@ -732,7 +845,7 @@ C:/Output/
 ```json
 {
   "output": {
-    "formats": ["pdf", "ofd", "txt"]  // 確保包含所需格式
+    "format": "all"  // 確保包含所需格式
   },
   "font": {
     "path": "C:/Windows/Fonts/arial.ttf"  // 嘗試使用其他字體
@@ -740,22 +853,19 @@ C:/Output/
 }
 ```
 
-#### Q2: OCR 識別準確度低？
+#### Q2: OCR 識別出簡繁混合？
 
 **可能原因：**
-- 語言設置不正確
-- 圖片質量差
+- RapidOCR 的 `chinese_cht` 模型仍可能輸出簡體字
 
 **解決方法：**
 ```json
 {
-  "ocr": {
-    "language": "chinese_cht"  // 確認語言設置正確
-  }
+  "textConvert": "s2t"  // 自動將簡體轉為繁體
 }
 ```
 
-#### Q3: 處理速度慢？
+#### Q3: OCR 識別準確度低？
 
 **解決方法：**
 ```bash
@@ -779,6 +889,6 @@ java -Xmx4G -jar jpeg2pdf-ofd.jar config.json
 
 ---
 
-**GitHub:** https://github.com/brianshih04/jpeg2pdf-ofd-jpackage
+**GitHub:** https://github.com/brianshih04/jpeg2pdf-ofd-conveyor
 
-**更新時間：** 2026-03-23
+**更新時間：** 2026-03-25
