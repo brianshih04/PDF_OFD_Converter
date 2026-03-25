@@ -98,7 +98,8 @@ tar xzf jpeg2pdf-ofd-cli-3.0.0-linux-amd64.tar.gz
     "formats": ["pdf", "ofd", "txt"],
     "multiPage": true
   },
-  "ocr":  "language": "chinese_cht",
+  "ocr": {
+    "language": "chinese_cht",
     "cpuThreads": 4
   },
   "textLayer": {
@@ -200,7 +201,7 @@ tar xzf jpeg2pdf-ofd-cli-3.0.0-linux-amd64.tar.gz
     "pattern": "*.jpg"
   },
   "output": {
-    | `folder`: "C:/Output",
+    "folder": "C:/Output",
     "formats": ["pdf", "ofd", "txt"],
     "multiPage": true
   },
@@ -223,7 +224,7 @@ tar xzf jpeg2pdf-ofd-cli-3.0.0-linux-amd64.tar.gz
     "folder": "C:/Documents/English"
   },
   "output": {
-    "folder": "C/Output",
+    "folder": "C:/Output",
     "formats": ["pdf"],
     "multiPage": false
   },
@@ -302,10 +303,14 @@ mvn clean package
 ### 建置 Conveyor 跨平台套件
 
 ```bash
-# 安裝 Conveyor
-# Windows: choco install conveyor
-# macOS: brew install --cask conveyor
-# Linux: https://www.hydraulic.software/download
+# 安裝 Conveyor（Conveyor 22+）
+# Windows: winget install Hydraulic.Conveyor
+# macOS:   brew install --cask conveyor
+# Linux:   https://hydraulic.dev/downloads/
+
+# 首次打包需同意授權
+CONVEYOR_AGREE_TO_LICENSE=1 conveyor make windows-msix --overwrite   # macOS/Linux
+$env:CONVEYOR_AGREE_TO_LICENSE="1"; conveyor make windows-msix --overwrite  # Windows PowerShell
 
 # 建置所有平台
 conveyor make site
@@ -315,7 +320,10 @@ conveyor make site
 - `output/jpeg2pdf-ofd-cli-3.0.0.x64.msix` (Windows)
 - `output/jpeg2pdf-ofd-cli-3.0.0-mac-amd64.zip` (macOS Intel)
 - `output/jpeg2pdf-ofd-cli-3.0.0-mac-aarch64.zip` (macOS ARM)
-- `output/jpeg2pdf-ofd-cli-3.0.0-linux-amd64.tar.gz` (Linux)
+- `output/brian-shih-jpeg2pdf-ofd-cli_3.0.0_amd64.deb` (Linux DEB)
+
+> **注意：** Windows MSIX 若簽章不受信任，可將 `.msix` 改名為 `.zip` 後解壓使用。
+> 若僅修改 Java 程式碼而未改動依賴，可直接複製 JAR 到部署目錄的 `app/` 資料夾覆蓋，無需每次重新打包。
 
 ---
 

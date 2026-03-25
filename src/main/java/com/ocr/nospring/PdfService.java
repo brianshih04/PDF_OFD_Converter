@@ -122,15 +122,21 @@ public class PdfService {
      * 繪製透明文字層（使用與 OFD 相同的逐字符定位算法）
      */
     private void drawTransparentTextLayer(PDPageContentStream contentStream, List<OcrService.TextBlock> textBlocks, PDFont font, float width, float height) throws Exception {
+        // DEBUG: 印出文字層設定值
+        System.out.println("    [DEBUG] TextLayer color: R=" + config.getTextLayerRed() + " G=" + config.getTextLayerGreen() + " B=" + config.getTextLayerBlue() + " opacity=" + config.getTextLayerOpacity());
+        
         // 設置透明度（使用 ExtendedGraphicsState）
         org.apache.pdfbox.pdmodel.graphics.state.PDExtendedGraphicsState extGState = new org.apache.pdfbox.pdmodel.graphics.state.PDExtendedGraphicsState();
-        extGState.setNonStrokingAlphaConstant((float) config.getTextLayerOpacity());
-        extGState.setStrokingAlphaConstant((float) config.getTextLayerOpacity());
+        float opacity = (float) config.getTextLayerOpacity();
+        extGState.setNonStrokingAlphaConstant(opacity);
+        extGState.setStrokingAlphaConstant(opacity);
         contentStream.setGraphicsStateParameters(extGState);
+        System.out.println("    [DEBUG] ExtGState opacity set to: " + opacity);
         
         // 設置渲染模式和顏色
         contentStream.setRenderingMode(RenderingMode.FILL);
         contentStream.setNonStrokingColor(config.getTextLayerRed(), config.getTextLayerGreen(), config.getTextLayerBlue());
+        System.out.println("    [DEBUG] NonStrokingColor set to: R=" + config.getTextLayerRed() + " G=" + config.getTextLayerGreen() + " B=" + config.getTextLayerBlue());
         
         for (OcrService.TextBlock block : textBlocks) {
             try {

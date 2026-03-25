@@ -1,0 +1,13 @@
+target/
+output/
+*.class
+*.jar
+*.msix
+*.zip
+*.tar.gz
+*.deb
+*.rpm
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
