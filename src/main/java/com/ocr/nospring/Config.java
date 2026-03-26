@@ -53,6 +53,8 @@ public class Config {
         return fontPath;
     }
     
+    public String getOcrLanguage() { return null; }
+
     public void setFontPath(String fontPath) {
         if (fontPath != null && !fontPath.isEmpty()) {
             this.fontPath = fontPath;
