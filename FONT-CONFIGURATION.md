@@ -128,6 +128,27 @@ macOS 已內置中文字體，無需額外配置。
 | **Noto Sans CJK** | 全語言 | [Google Fonts](https://fonts.google.com/noto) |
 | **思源黑體** | 中文 | [GitHub](https://github.com/adobe-fonts/source-han-sans) |
 | **思源宋體** | 中文 | [GitHub](https://github.com/adobe-fonts/source-han-serif) |
+| **GoNotoKurrent** | **80+ 文字系統** | [GitHub Releases](https://github.com/satbyy/go-noto-universal/releases) |
+
+### 🌍 萬用字體推薦：GoNotoKurrent
+
+處理非 CJK 語言（泰文、阿拉伯文、希臘文、印地文、西里爾語系等）時，Noto Sans CJK 無法涵蓋這些文字。強烈推薦使用 **GoNotoKurrent**：
+
+- **檔案**：`GoNotoKurrent-Regular.ttf`（約 15.5 MB）
+- **覆蓋**：80+ 種現代文字系統（拉丁、CJK、泰文、阿拉伯文、希臘文、印地文、西里爾語系等）
+- **格式**：TTF ✅（PDFBox 支援）
+- **授權**：SIL OFL 1.1（免費商用）
+- **下載**：[GitHub Releases](https://github.com/satbyy/go-noto-universal/releases)
+
+```json
+{
+  "font": {
+    "path": "C:/Fonts/GoNotoKurrent-Regular.ttf"
+  }
+}
+```
+
+> 一個字體搞定所有語言，特別適合需要處理多國文件的場景。
 
 ### 系統內置字體
 

@@ -256,6 +256,61 @@ multipage_20260323_130000.txt  (包含所有文字)
 | `language` | String | ⚪ | `chinese_cht` | OCR 識別語言 |
 | `useGpu` | Boolean | ⚪ | `false` | 是否使用 GPU 加速 |
 | `cpuThreads` | Integer | ⚪ | `4` | CPU 線程數 |
+| `tesseractDataPath` | String | ⚪ | `./tessdata` | Tesseract 語言模型目錄路徑（僅 Tesseract 引擎使用） |
+
+### OCR 引擎自動切換
+
+本工具內建兩套 OCR 引擎，會根據語言自動選擇：
+
+- **RapidOCR（預設）**：適用於拉丁語系（德文、法文、西班牙文等）、中英日韓等語言，識別速度快。
+- **Tesseract OCR**：對 RapidOCR 識別不佳的語言自動啟用，包括泰文、俄文、西里爾語系、阿拉伯語系、希臘文、印地文等。
+
+> 程式會自動判斷，**無需手動切換引擎**。當語言匹配下方列表時，自動使用 Tesseract。
+
+### Tesseract 自動切換語言列表
+
+| 語言 | 語言代碼 | Tesseract 模型 |
+|------|---------|---------------|
+| Hebrew 希伯來文 | `he`, `hebrew` | heb+eng |
+| Thai 泰文 | `th`, `tha`, `thai` | tha+eng |
+| Russian 俄文 | `ru`, `rus`, `russian` | rus+eng |
+| Ukrainian 烏克蘭文 | `uk`, `ukr`, `ukrainian` | ukr+eng |
+| Bulgarian 保加利亞文 | `bg`, `bul`, `bulgarian` | bul+eng |
+| Serbian 塞爾維亞文 | `sr`, `srp`, `serbian` | srp+eng |
+| Macedonian 馬其頓文 | `mk`, `mkd`, `macedonian` | mkd+eng |
+| Belarusian 白俄羅斯文 | `be`, `bel`, `belarusian` | bel+eng |
+| Greek 希臘文 | `el`, `ell`, `gre`, `greek`, `grc` | ell+eng |
+| Hindi 印地文 | `hi`, `hin`, `hindi` | hin+eng |
+| Gujarati 古吉拉特文 | `gu`, `guj`, `gujarati` | guj+eng |
+| Persian 波斯文 | `fa`, `fas`, `persian`, `farsi` | ara+eng |
+| Arabic 阿拉伯文 | `ar`, `ara`, `arabic` | ara+eng |
+
+### Tesseract 語言模型安裝
+
+使用 Tesseract 引擎前，需下載對應的 tessdata（`.traineddata` 檔案）：
+
+1. 前往 [tessdata GitHub](https://github.com/tesseract-ocr/tessdata) 下載所需的語言模型
+2. 將 `.traineddata` 檔案放入 `tesseractDataPath` 指定的目錄（預設為 `./tessdata`）
+
+```bash
+# 建立 tessdata 目錄
+mkdir tessdata
+
+# 下載希伯來文 + 英文模型
+curl -L -o tessdata/heb.traineddata https://github.com/tesseract-ocr/tessdata/raw/main/heb.traineddata
+curl -L -o tessdata/eng.traineddata https://github.com/tesseract-ocr/tessdata/raw/main/eng.traineddata
+```
+
+### 配置示例（Tesseract）
+
+```json
+{
+  "ocr": {
+    "language": "he",
+    "tesseractDataPath": "./tessdata"
+  }
+}
+```
 
 ### 支持語言（PaddleOCR 80+ 種）
 

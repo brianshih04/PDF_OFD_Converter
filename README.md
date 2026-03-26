@@ -20,6 +20,7 @@
 - ✅ **可搜索 PDF/OFD**：使用逐字符定位算法，精確對齊文字層
 - ✅ **直列文字支援**：自動偵測並正確繪製直排文字
 - ✅ **智慧字型選擇**：根據 OCR 語言自動選擇對應 CJK 字型（NotoSans TC/SC）
+- ✅ **Tesseract OCR 支援**：對 RapidOCR 識別不佳的語言（泰文、俄文、西里爾語系、阿拉伯語系、希臘文、印地文等）自動切換到 Tesseract 引擎
 - ✅ **簡繁轉換**：使用 OpenCC 在生成前自動轉換簡體/繁體中文
 
 ---
@@ -208,6 +209,24 @@ cp NotoSansTC-Regular.otf ~/Library/Fonts/
 }
 ```
 
+#### 萬用字體推薦：GoNotoKurrent（支援所有語言）
+
+**[GoNotoKurrent](https://github.com/satbyy/go-noto-universal/releases)** 是一個整合型字體，單一 TTF 檔案即可支援 **80+ 種現代文字系統**，包括 CJK、泰文、阿拉伯文、希臘文、印地文、西里爾語系等。
+
+- 檔案：`GoNotoKurrent-Regular.ttf`（約 15.5 MB）
+- 授權：SIL OFL 1.1（免費商用）
+- 下載：[GitHub Releases](https://github.com/satbyy/go-noto-universal/releases)
+
+```json
+{
+  "font": {
+    "path": "C:/Fonts/GoNotoKurrent-Regular.ttf"
+  }
+}
+```
+
+> 💡 **提示**：如果需要處理多種非 CJK 語言（泰文、阿拉伯文、希臘文等），強烈推薦使用 GoNotoKurrent，免去逐一下載各語言字體的麻煩。
+
 #### 自動字體選擇（無需配置）
 
 本工具支持**自動字體選擇**，根據 OCR 語言自動選擇對應的 Noto Sans CJK 字體：
@@ -305,7 +324,25 @@ cp NotoSansTC-Regular.otf ~/Library/Fonts/
 - `en` - 英文
 - `japan` - 日文
 - `korean` - 韓文
-- 以及其他 75+ 種語言...
+- 以及其他 75+ 種語言（RapidOCR 引擎）
+
+**以下語言自動使用 Tesseract OCR 引擎（無需手動切換）：**
+
+| 語言 | 語言代碼 | Tesseract 模型 |
+|------|---------|---------------|
+| Hebrew 希伯來文 | `he`, `hebrew` | heb+eng |
+| Thai 泰文 | `th`, `tha`, `thai` | tha+eng |
+| Russian 俄文 | `ru`, `rus`, `russian` | rus+eng |
+| Ukrainian 烏克蘭文 | `uk`, `ukr`, `ukrainian` | ukr+eng |
+| Bulgarian 保加利亞文 | `bg`, `bul`, `bulgarian` | bul+eng |
+| Serbian 塞爾維亞文 | `sr`, `srp`, `serbian` | srp+eng |
+| Macedonian 馬其頓文 | `mk`, `mkd`, `macedonian` | mkd+eng |
+| Belarusian 白俄羅斯文 | `be`, `bel`, `belarusian` | bel+eng |
+| Greek 希臘文 | `el`, `ell`, `gre`, `greek`, `grc` | ell+eng |
+| Hindi 印地文 | `hi`, `hin`, `hindi` | hin+eng |
+| Gujarati 古吉拉特文 | `gu`, `guj`, `gujarati` | guj+eng |
+| Persian 波斯文 | `fa`, `fas`, `persian`, `farsi` | ara+eng |
+| Arabic 阿拉伯文 | `ar`, `ara`, `arabic` | ara+eng |
 
 #### textConvert 配置（簡繁轉換）
 
