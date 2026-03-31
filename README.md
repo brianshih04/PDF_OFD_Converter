@@ -1,8 +1,10 @@
-# JPEG2PDF-OFD OCR CLI
+# JPEG2PDF-OFD OCR
 
 **跨平台 OCR 工具：將 JPEG 圖片轉換為可搜索的 PDF/OFD 文件**
 
-[![GitHub](https://img.shields.io/badge/GitHub-brianshih04%2Fjpeg2pdf--ofd--conveyor-blue)](https://github.com/brianshih04/jpeg2pdf-ofd-conveyor)
+支援 **GUI（雙擊啟動）** 與 **CLI（命令行）** 兩種使用方式。
+
+[![GitHub](https://img.shields.io/badge/GitHub-brianshih04%2FPDF_OFD_Converter-blue)](https://github.com/brianshih04/PDF_OFD_Converter)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 [![Java](https://img.shields.io/badge/Java-17+-orange)](https://adoptium.net/)
 

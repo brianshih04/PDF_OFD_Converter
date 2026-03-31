@@ -170,6 +170,56 @@
                                         <exclude>META-INF/*.RSA</exclude>
                                     </excludes>
                                 </filter>
+                                <!-- 排除 JavaFX：由 Conveyor 打包的 JVM 模組提供 -->
+                                <filter>
+                                    <artifact>org.openjfx:*</artifact>
+                                    <excludes>
+                                        <exclude>**</exclude>
+                                    </excludes>
+                                </filter>
+                                <!-- Exclude JavaFX from fat JAR - Conveyor provides JavaFX via module-path -->
+                                <filter>
+                                    <artifact>org.openjfx:javafx-base</artifact>
+                                    <excludes>
+                                        <exclude>**</exclude>
+                                    </excludes>
+                                </filter>
+                                <filter>
+                                    <artifact>org.openjfx:javafx-controls</artifact>
+                                    <excludes>
+                                        <exclude>**</exclude>
+                                    </excludes>
+                                </filter>
+                                <filter>
+                                    <artifact>org.openjfx:javafx-fxml</artifact>
+                                    <excludes>
+                                        <exclude>**</exclude>
+                                    </excludes>
+                                </filter>
+                                <filter>
+                                    <artifact>org.openjfx:javafx-graphics</artifact>
+                                    <excludes>
+                                        <exclude>**</exclude>
+                                    </excludes>
+                                </filter>
+                                <filter>
+                                    <artifact>org.openjfx:javafx-media</artifact>
+                                    <excludes>
+                                        <exclude>**</exclude>
+                                    </excludes>
+                                </filter>
+                                <filter>
+                                    <artifact>org.openjfx:javafx-swing</artifact>
+                                    <excludes>
+                                        <exclude>**</exclude>
+                                    </excludes>
+                                </filter>
+                                <filter>
+                                    <artifact>org.openjfx:javafx-web</artifact>
+                                    <excludes>
+                                        <exclude>**</exclude>
+                                    </excludes>
+                                </filter>
                             </filters>
                         </configuration>
                     </execution>
