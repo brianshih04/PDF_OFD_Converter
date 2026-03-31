@@ -4,9 +4,9 @@
 
 # 技術棧、環境與版控限制
 - 語言/環境：Java 21, Maven。
-- 專案根目錄：`C:\Projects\master_ui_test\` (所有相對路徑皆以此為基準)。
+- 專案根目錄：`D:\Projects\master-ui-test2\` (所有相對路徑皆以此為基準)。
 - 外部依賴庫路徑：Tesseract 訓練資料庫固定位於 `C:\OCR\tessdata\`。
-- **Git 儲存庫與分支**：`https://github.com/brianshih04/jpeg2pdf-ofd-conveyor/tree/master_ui_test`。執行 Git 操作時，請確保目標為此 Repo 的 master_ui_test 分支。
+- **Git 儲存庫與分支**：`https://github.com/brianshih04/jpeg2pdf-ofd-conveyor/tree/master-Ui-test2`。執行 Git 操作時，請確保目標為此 Repo 的 master-Ui-test2 分支。
 
 # 絕對架構鐵則 (嚴禁破壞)
 1. **字體分流策略**：
