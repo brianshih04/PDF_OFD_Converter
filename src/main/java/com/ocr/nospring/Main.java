@@ -40,21 +40,20 @@ public class Main {
 
     public static void main(String[] args) {
         try {
+            // GUI mode: no args or --gui
+            if (args.length == 0 || (args.length == 1 && "--gui".equals(args[0]))) {
+                GuiApp.launchGui(args);
+                return;
+            }
+
             System.setProperty("java.awt.headless", "true");
 
-            if (args.length == 0) {
+            if (args[0].equals("--help") || args[0].equals("-h")) {
                 printUsage();
                 System.exit(0);
             }
 
-            String configFile = args[0];
-
-            if (configFile.equals("--help") || configFile.equals("-h")) {
-                printUsage();
-                System.exit(0);
-            }
-
-            if (configFile.equals("--version") || configFile.equals("-v")) {
+            if (args[0].equals("--version") || args[0].equals("-v")) {
                 log.info("{} v{}", APP_NAME, VERSION);
                 System.exit(0);
             }
@@ -63,6 +62,7 @@ public class Main {
             Config config = new Config();
 
             // 加載配置文件
+            String configFile = args[0];
             File file = new File(configFile);
             if (!file.exists()) {
                 log.error("ERROR: Config file not found: {}", configFile);

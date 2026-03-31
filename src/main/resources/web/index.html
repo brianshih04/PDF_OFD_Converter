@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JPEG2PDF-OFD OCR</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft YaHei", sans-serif;
+            background-color: #f5f6fa;
+            color: #333;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        /* Tab Navigation */
+        .tab-nav {
+            display: flex;
+            border-bottom: 2px solid #e0e0e0;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            border: none;
+            background: none;
+            font-size: 15px;
+            cursor: pointer;
+            color: #666;
+            position: relative;
+            transition: color 0.2s;
+        }
+
+        .tab-btn:hover {
+            color: #3498db;
+        }
+
+        .tab-btn.active {
+            color: #3498db;
+            font-weight: 500;
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #3498db;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 10px;
+        }
+
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .radio-item input[type="radio"] {
+            cursor: pointer;
+        }
+
+        .path-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .path-input {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            background: #f9f9f9;
+        }
+
+        .path-input:focus {
+            outline: none;
+            border-color: #3498db;
+            background: white;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-secondary {
+            background: #ecf0f1;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #dfe6e9;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #219a52;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .checkbox-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+
+        .start-btn {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .progress-section {
+            display: none;
+        }
+
+        .progress-section.active {
+            display: block;
+        }
+
+        .progress-bar-container {
+            height: 8px;
+            background: #ecf0f1;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: #3498db;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 13px;
+            color: #7f8c8d;
+            margin-bottom: 8px;
+        }
+
+        .log-area {
+            height: 150px;
+            overflow-y: auto;
+            background: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            padding: 12px;
+            font-family: "Consolas", "Monaco", monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .log-line {
+            margin-bottom: 2px;
+        }
+
+        .log-line.error {
+            color: #e74c3c;
+        }
+
+        .log-line.success {
+            color: #27ae60;
+        }
+
+        .success-message {
+            display: none;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 12px;
+        }
+
+        .success-message.active {
+            display: block;
+        }
+
+        .success-message h4 {
+            margin-bottom: 8px;
+        }
+
+        .file-list {
+            list-style: none;
+            font-size: 13px;
+        }
+
+        .file-list li {
+            padding: 4px 0;
+            border-bottom: 1px dashed #ccc;
+        }
+
+        .file-list li:last-child {
+            border-bottom: none;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Range Slider */
+        .range-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .range-slider {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: #e0e0e0;
+            outline: none;
+        }
+
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #3498db;
+            cursor: pointer;
+        }
+
+        .range-value {
+            min-width: 60px;
+            text-align: right;
+            font-size: 13px;
+            color: #666;
+            font-family: "Consolas", monospace;
+        }
+
+        /* Settings buttons */
+        .settings-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .settings-buttons .btn {
+            min-width: 120px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>JPEG2PDF-OFD OCR</h1>
+
+        <!-- Tab Navigation -->
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="switchTab('convert')">轉換</button>
+            <button class="tab-btn" onclick="switchTab('settings')">設定</button>
+        </div>
+
+        <!-- Tab 1: Convert -->
+        <div id="tab-convert" class="tab-content active">
+            <!-- Input Section -->
+            <div class="card">
+                <div class="card-title">輸入設置</div>
+
+                <div class="form-group">
+                    <label>輸入類型</label>
+                    <div class="radio-group">
+                        <label class="radio-item">
+                            <input type="radio" name="inputType" value="folder" checked onchange="updateInputType()">
+                            圖片資料夾
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="inputType" value="pdf" onchange="updateInputType()">
+                            PDF 檔案
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label id="inputLabel">選擇圖片資料夾</label>
+                    <div class="path-row">
+                        <input type="text" id="inputPath" class="path-input" placeholder="點擊瀏覽選擇..." readonly>
+                        <button class="btn btn-secondary" onclick="browseInput()">瀏覽</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OCR Settings -->
+            <div class="card">
+                <div class="card-title">OCR 設置</div>
+
+                <div class="form-group">
+                    <label>識別語言</label>
+                    <select id="language">
+                        <option value="chinese_cht">繁體中文</option>
+                        <option value="ch">简体中文</option>
+                        <option value="en">English</option>
+                        <option value="japan">日本語</option>
+                        <option value="korean">한국어</option>
+                        <option value="french">Français</option>
+                        <option value="german">Deutsch</option>
+                        <option value="spanish">Español</option>
+                        <option value="arabic">العربية</option>
+                        <option value="hebrew">עברית</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Output Settings -->
+            <div class="card">
+                <div class="card-title">輸出設置</div>
+
+                <div class="form-group">
+                    <label>輸出格式</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-item">
+                            <input type="checkbox" id="formatPdf" checked>
+                            PDF
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" id="formatOfd" checked>
+                            OFD
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" id="formatTxt">
+                            TXT
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="multiPage">
+                        多頁模式 (所有圖片合併為一個檔案)
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label>輸出資料夾</label>
+                    <div class="path-row">
+                        <input type="text" id="outputPath" class="path-input" placeholder="點擊瀏覽選擇..." readonly>
+                        <button class="btn btn-secondary" onclick="browseOutput()">瀏覽</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="card">
+                <button id="startBtn" class="btn btn-success start-btn" onclick="startConversion()">
+                    開始轉換
+                </button>
+                <button id="cancelBtn" class="btn btn-danger start-btn hidden" onclick="cancelConversion()">
+                    取消轉換
+                </button>
+                <div style="margin-top: 10px; text-align: right;">
+                    <button class="btn btn-secondary" onclick="resetAllSettings()">恢復預設設定</button>
+                </div>
+            </div>
+
+            <!-- Progress Section -->
+            <div id="progressSection" class="card progress-section">
+                <div class="card-title">轉換進度</div>
+
+                <div class="progress-text" id="progressText">準備中...</div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+
+                <div class="log-area" id="logArea"></div>
+
+                <div id="successMessage" class="success-message">
+                    <h4>轉換完成!</h4>
+                    <ul class="file-list" id="fileList"></ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Settings -->
+        <div id="tab-settings" class="tab-content">
+            <!-- OCR Engine Section -->
+            <div class="card">
+                <div class="card-title">OCR 引擎</div>
+
+                <div class="form-group">
+                    <label>引擎</label>
+                    <select id="settingOcrEngine">
+                        <option value="auto">自動</option>
+                        <option value="rapidocr">RapidOCR</option>
+                        <option value="tesseract">Tesseract</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Tesseract 資料路徑</label>
+                    <div class="path-row">
+                        <input type="text" id="settingTesseractDataPath" class="path-input" placeholder="tessdata 資料夾路徑...">
+                        <button class="btn btn-secondary" onclick="browseTesseractDataPath()">瀏覽</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Output Section -->
+            <div class="card">
+                <div class="card-title">輸出</div>
+
+                <div class="form-group">
+                    <label>預設輸出資料夾</label>
+                    <div class="path-row">
+                        <input type="text" id="settingDefaultOutputFolder" class="path-input" placeholder="預設輸出路徑...">
+                        <button class="btn btn-secondary" onclick="browseDefaultOutputFolder()">瀏覽</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>檔名格式</label>
+                    <select id="settingFilenameFormat">
+                        <option value="multipage_YYYYMMDD_HHmmss">multipage_YYYYMMDD_HHmmss</option>
+                        <option value="input_YYYYMMDD_HHmmss">input_YYYYMMDD_HHmmss</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>多頁模式</label>
+                    <select id="settingMultiPageMode">
+                        <option value="false">逐頁轉換</option>
+                        <option value="true">合併為多頁</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Font Section -->
+            <div class="card">
+                <div class="card-title">字體</div>
+
+                <div class="form-group">
+                    <label>字體模式</label>
+                    <select id="settingFontMode" onchange="updateFontModeVisibility()">
+                        <option value="auto">自動（依語言）</option>
+                        <option value="custom">自訂</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="customFontPathGroup" style="display: none;">
+                    <label>自訂字體路徑</label>
+                    <div class="path-row">
+                        <input type="text" id="settingCustomFontPath" class="path-input" placeholder="選擇 TTF 字體檔案...">
+                        <button class="btn btn-secondary" onclick="browseCustomFont()">瀏覽</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Text Layer Section -->
+            <div class="card">
+                <div class="card-title">文字層</div>
+
+                <div class="form-group">
+                    <label>顏色</label>
+                    <select id="settingTextColor">
+                        <option value="white">白色</option>
+                        <option value="black">黑色</option>
+                        <option value="red">紅色</option>
+                        <option value="blue">藍色</option>
+                        <option value="debug">調試模式</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>透明度</label>
+                    <div class="range-row">
+                        <input type="range" id="settingTextOpacity" class="range-slider"
+                               min="0" max="1" step="0.0001" value="0.0001"
+                               oninput="updateOpacityValue()">
+                        <span class="range-value" id="opacityValue">0.0001</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Text Conversion Section -->
+            <div class="card">
+                <div class="card-title">文字轉換</div>
+
+                <div class="form-group">
+                    <label>簡繁轉換</label>
+                    <select id="settingChineseConversion">
+                        <option value="null">不轉換</option>
+                        <option value="s2t">簡體→繁體</option>
+                        <option value="t2s">繁體→簡體</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Interface Section -->
+            <div class="card">
+                <div class="card-title">界面</div>
+
+                <div class="form-group">
+                    <label>UI 語言</label>
+                    <select id="settingUiLanguage">
+                        <option value="zh-TW">繁體中文</option>
+                        <option value="zh-CN">简体中文</option>
+                        <option value="en">English</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="settingNotifyOnComplete" checked>
+                        完成後通知
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="settingOpenFolderOnComplete" checked>
+                        完成後自動開啟資料夾
+                    </label>
+                </div>
+            </div>
+
+            <!-- Settings Buttons -->
+            <div class="card">
+                <div class="settings-buttons">
+                    <button class="btn btn-secondary" onclick="resetSettings()">恢復預設</button>
+                    <button class="btn btn-primary" onclick="saveSettings()">儲存設定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript bridge for Java callbacks
+        window.javaBridge = {
+            onProgress: function(current, total, message) {
+                console.log('Progress:', current, '/', total, message);
+                updateProgress(current, total, message);
+            },
+
+            onComplete: function(filesJson) {
+                console.log('Complete:', filesJson);
+                try {
+                    var files = JSON.parse(filesJson);
+                    showSuccess(files);
+                } catch (e) {
+                    showSuccess([filesJson]);
+                }
+            },
+
+            onError: function(message) {
+                console.error('Error:', message);
+                addLog(message, 'error');
+                resetUI();
+            },
+
+            onLog: function(message) {
+                console.log('Log:', message);
+                addLog(message);
+            }
+        };
+
+        // State
+        var isProcessing = false;
+        var currentSettings = {};
+
+        // Default settings
+        var defaultSettings = {
+            ocrEngine: 'auto',
+            tesseractDataPath: 'C:/OCR/tessdata',
+            defaultOutputFolder: '',
+            filenameFormat: 'multipage_YYYYMMDD_HHmmss',
+            multiPageMode: 'false',
+            fontMode: 'auto',
+            customFontPath: '',
+            textColor: 'white',
+            textOpacity: 0.0001,
+            chineseConversion: 'null',
+            uiLanguage: 'zh-TW',
+            notifyOnComplete: true,
+            openFolderOnComplete: true
+        };
+
+        // Switch tab
+        function switchTab(tabName) {
+            // Update tab buttons
+            var buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(function(btn) {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(function(content) {
+                content.classList.remove('active');
+            });
+            document.getElementById('tab-' + tabName).classList.add('active');
+        }
+
+        // Update input type label
+        function updateInputType() {
+            var isFolder = document.querySelector('input[name="inputType"]:checked').value === 'folder';
+            document.getElementById('inputLabel').textContent = isFolder ? '選擇圖片資料夾' : '選擇 PDF 檔案';
+            document.getElementById('inputPath').value = '';
+        }
+
+        // Browse input path
+        function browseInput() {
+            try {
+                var isFolder = document.querySelector('input[name="inputType"]:checked').value === 'folder';
+                var path;
+
+                if (isFolder) {
+                    path = window.javaApp.openDirectoryChooser();
+                } else {
+                    path = window.javaApp.openFileChooser();
+                }
+
+                if (path) {
+                    document.getElementById('inputPath').value = path;
+                }
+            } catch (e) {
+                alert('Error: ' + e.message + '\njavaApp exists: ' + (window.javaApp !== undefined));
+            }
+        }
+
+        // Browse output path
+        function browseOutput() {
+            var path = window.javaApp.openDirectoryChooser();
+            if (path) {
+                document.getElementById('outputPath').value = path;
+            }
+        }
+
+        // Browse Tesseract data path
+        function browseTesseractDataPath() {
+            var path = window.javaApp.openDirectoryChooser();
+            if (path) {
+                document.getElementById('settingTesseractDataPath').value = path;
+            }
+        }
+
+        // Browse default output folder
+        function browseDefaultOutputFolder() {
+            var path = window.javaApp.openDirectoryChooser();
+            if (path) {
+                document.getElementById('settingDefaultOutputFolder').value = path;
+            }
+        }
+
+        // Browse custom font
+        function browseCustomFont() {
+            var path = window.javaApp.openFontFileChooser();
+            if (path) {
+                document.getElementById('settingCustomFontPath').value = path;
+            }
+        }
+
+        // Update font mode visibility
+        function updateFontModeVisibility() {
+            var mode = document.getElementById('settingFontMode').value;
+            document.getElementById('customFontPathGroup').style.display = (mode === 'custom') ? 'block' : 'none';
+        }
+
+        // Update opacity value display
+        function updateOpacityValue() {
+            var value = document.getElementById('settingTextOpacity').value;
+            document.getElementById('opacityValue').textContent = parseFloat(value).toFixed(4);
+        }
+
+        // Load settings from Java
+        function loadSettings() {
+            try {
+                var settingsJson = window.javaApp.loadSettings();
+                if (settingsJson && settingsJson.trim() !== '') {
+                    currentSettings = JSON.parse(settingsJson);
+                    applySettings(currentSettings);
+                } else {
+                    applySettings(defaultSettings);
+                }
+            } catch (e) {
+                console.error('Error loading settings:', e);
+                applySettings(defaultSettings);
+            }
+        }
+
+        // Apply settings to UI
+        function applySettings(settings) {
+            if (settings.ocrEngine) document.getElementById('settingOcrEngine').value = settings.ocrEngine;
+            if (settings.tesseractDataPath !== undefined) document.getElementById('settingTesseractDataPath').value = settings.tesseractDataPath;
+            if (settings.defaultOutputFolder !== undefined) document.getElementById('settingDefaultOutputFolder').value = settings.defaultOutputFolder;
+            if (settings.filenameFormat) document.getElementById('settingFilenameFormat').value = settings.filenameFormat;
+            if (settings.multiPageMode) document.getElementById('settingMultiPageMode').value = settings.multiPageMode;
+            if (settings.fontMode) document.getElementById('settingFontMode').value = settings.fontMode;
+            if (settings.customFontPath !== undefined) document.getElementById('settingCustomFontPath').value = settings.customFontPath;
+            if (settings.textColor) document.getElementById('settingTextColor').value = settings.textColor;
+            if (settings.textOpacity !== undefined) {
+                document.getElementById('settingTextOpacity').value = settings.textOpacity;
+                document.getElementById('opacityValue').textContent = parseFloat(settings.textOpacity).toFixed(4);
+            }
+            if (settings.chineseConversion) document.getElementById('settingChineseConversion').value = settings.chineseConversion;
+            if (settings.uiLanguage) document.getElementById('settingUiLanguage').value = settings.uiLanguage;
+            if (settings.notifyOnComplete !== undefined) document.getElementById('settingNotifyOnComplete').checked = settings.notifyOnComplete;
+            if (settings.openFolderOnComplete !== undefined) document.getElementById('settingOpenFolderOnComplete').checked = settings.openFolderOnComplete;
+
+            updateFontModeVisibility();
+        }
+
+        // Get current settings from UI
+        function getSettingsFromUI() {
+            return {
+                ocrEngine: document.getElementById('settingOcrEngine').value,
+                tesseractDataPath: document.getElementById('settingTesseractDataPath').value,
+                defaultOutputFolder: document.getElementById('settingDefaultOutputFolder').value,
+                filenameFormat: document.getElementById('settingFilenameFormat').value,
+                multiPageMode: document.getElementById('settingMultiPageMode').value,
+                fontMode: document.getElementById('settingFontMode').value,
+                customFontPath: document.getElementById('settingCustomFontPath').value,
+                textColor: document.getElementById('settingTextColor').value,
+                textOpacity: parseFloat(document.getElementById('settingTextOpacity').value),
+                chineseConversion: document.getElementById('settingChineseConversion').value,
+                uiLanguage: document.getElementById('settingUiLanguage').value,
+                notifyOnComplete: document.getElementById('settingNotifyOnComplete').checked,
+                openFolderOnComplete: document.getElementById('settingOpenFolderOnComplete').checked
+            };
+        }
+
+        // Save settings
+        function saveSettings() {
+            var settings = getSettingsFromUI();
+            currentSettings = settings;
+
+            try {
+                var settingsJson = JSON.stringify(settings);
+                window.javaApp.saveSettings(settingsJson);
+                addLog('設定已儲存', 'success');
+            } catch (e) {
+                console.error('Error saving settings:', e);
+                alert('儲存設定失敗: ' + e.message);
+            }
+        }
+
+        // Reset settings to default (Settings tab)
+        function resetSettings() {
+            if (confirm('確定要恢復預設設定嗎？')) {
+                applySettings(defaultSettings);
+                currentSettings = defaultSettings;
+                // Also reset Tab 1 fields
+                resetTab1Fields();
+            }
+        }
+
+        // Reset all settings (from Tab 1 button) - resets everything including saved file
+        function resetAllSettings() {
+            if (confirm('確定要恢復所有預設設定嗎？\n這會清除所有已儲存的設定。')) {
+                applySettings(defaultSettings);
+                currentSettings = defaultSettings;
+                resetTab1Fields();
+                // Delete saved settings file
+                try {
+                    window.javaApp.deleteSettings();
+                } catch (e) {
+                    // ignore if file doesn't exist
+                }
+            }
+        }
+
+        // Reset Tab 1 form fields to defaults
+        function resetTab1Fields() {
+            document.getElementById('inputPath').value = '';
+            document.getElementById('outputPath').value = '';
+            document.querySelector('input[name="inputType"][value="folder"]').checked = true;
+            updateInputType();
+            document.getElementById('language').value = 'chinese_cht';
+            document.getElementById('formatPdf').checked = true;
+            document.getElementById('formatOfd').checked = true;
+            document.getElementById('formatTxt').checked = false;
+            document.getElementById('multiPage').checked = false;
+            document.getElementById('progressSection').classList.remove('active');
+            document.getElementById('logArea').innerHTML = '';
+            document.getElementById('successMessage').classList.remove('active');
+            document.getElementById('progressBar').style.width = '0%';
+        }
+
+        // Start conversion
+        function startConversion() {
+            // Get values
+            var inputType = document.querySelector('input[name="inputType"]:checked').value;
+            var inputPath = document.getElementById('inputPath').value;
+            var outputPath = document.getElementById('outputPath').value;
+            var language = document.getElementById('language').value;
+            var multiPage = document.getElementById('multiPage').checked;
+
+            // Get formats
+            var formats = [];
+            if (document.getElementById('formatPdf').checked) formats.push('pdf');
+            if (document.getElementById('formatOfd').checked) formats.push('ofd');
+            if (document.getElementById('formatTxt').checked) formats.push('txt');
+
+            // Validate
+            if (!inputPath) {
+                alert('請選擇輸入路徑');
+                return;
+            }
+            if (!outputPath) {
+                alert('請選擇輸出資料夾');
+                return;
+            }
+            if (formats.length === 0) {
+                alert('請至少選擇一種輸出格式');
+                return;
+            }
+
+            // Build config with settings
+            var config = {
+                inputType: inputType,
+                inputPath: inputPath,
+                outputPath: outputPath,
+                language: language,
+                formats: formats.join(','),
+                multiPage: multiPage
+            };
+
+            // Include settings values
+            if (currentSettings.ocrEngine) config.ocrEngine = currentSettings.ocrEngine;
+            if (currentSettings.tesseractDataPath) config.tesseractDataPath = currentSettings.tesseractDataPath;
+            if (currentSettings.fontMode) config.fontMode = currentSettings.fontMode;
+            if (currentSettings.customFontPath) config.customFontPath = currentSettings.customFontPath;
+            if (currentSettings.textColor) config.textColor = currentSettings.textColor;
+            if (currentSettings.textOpacity !== undefined) config.textOpacity = currentSettings.textOpacity;
+            if (currentSettings.chineseConversion && currentSettings.chineseConversion !== 'null') {
+                config.chineseConversion = currentSettings.chineseConversion;
+            }
+
+            // Update UI
+            isProcessing = true;
+            document.getElementById('startBtn').classList.add('hidden');
+            document.getElementById('cancelBtn').classList.remove('hidden');
+            document.getElementById('progressSection').classList.add('active');
+            document.getElementById('successMessage').classList.remove('active');
+            document.getElementById('logArea').innerHTML = '';
+            document.getElementById('progressBar').style.width = '0%';
+            document.getElementById('progressText').textContent = '準備中...';
+
+            // Call Java
+            var configJson = JSON.stringify(config);
+            addLog('開始轉換...');
+            addLog('配置: ' + configJson);
+
+            try {
+                window.javaApp.startConversion(configJson);
+            } catch (e) {
+                console.error('Error calling startConversion:', e);
+                addLog('錯誤: ' + e.message, 'error');
+                resetUI();
+            }
+        }
+
+        // Cancel conversion
+        function cancelConversion() {
+            try {
+                window.javaApp.cancelConversion();
+            } catch (e) {
+                console.error('Error calling cancelConversion:', e);
+            }
+            resetUI();
+        }
+
+        // Update progress
+        function updateProgress(current, total, message) {
+            var percent = total > 0 ? Math.round((current / total) * 100) : 0;
+            document.getElementById('progressBar').style.width = percent + '%';
+            document.getElementById('progressText').textContent = current + ' / ' + total + ' - ' + (message || '處理中...');
+            if (message) {
+                addLog(message);
+            }
+        }
+
+        // Add log entry
+        function addLog(message, type) {
+            var logArea = document.getElementById('logArea');
+            var line = document.createElement('div');
+            line.className = 'log-line';
+            if (type) {
+                line.classList.add(type);
+            }
+            var time = new Date().toLocaleTimeString();
+            line.textContent = '[' + time + '] ' + message;
+            logArea.appendChild(line);
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+
+        // Show success
+        function showSuccess(files) {
+            addLog('轉換完成!', 'success');
+            document.getElementById('progressBar').style.width = '100%';
+            document.getElementById('progressText').textContent = '轉換完成!';
+
+            var fileList = document.getElementById('fileList');
+            fileList.innerHTML = '';
+            files.forEach(function(file) {
+                var li = document.createElement('li');
+                li.textContent = file;
+                fileList.appendChild(li);
+            });
+
+            document.getElementById('successMessage').classList.add('active');
+            resetUI();
+        }
+
+        // Reset UI
+        function resetUI() {
+            isProcessing = false;
+            document.getElementById('startBtn').classList.remove('hidden');
+            document.getElementById('cancelBtn').classList.add('hidden');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Page loaded');
+            addLog('界面已載入，請選擇輸入和輸出路徑');
+            loadSettings();
+        });
+    </script>
+</body>
+</html>
