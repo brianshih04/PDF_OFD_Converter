@@ -176,7 +176,7 @@ float fontSizePt = (float) (fontSizeMm * 72.0 / 25.4);
 
 ## 參考文件
 - 原始成功實現：`JPEG2PDF_OFD_Java_2/src/main/java/com/ocr/jpeg2pdf/service/impl/OfdLayoutDirectServiceImpl.java`
-- 測試專案：`jpeg2pdf-ofd-jpackage-test`
+- 測試專案：`PDF_OFD_Converter`
 
 ## 測試方法
 1. 用 WPS 打開生成的 OFD 文件

@@ -2,7 +2,7 @@
 
 ## 概述
 
-從 `jpeg2pdf-ofd-jpackage-test` 應用過來的 Searchable OFD 優化現已整合到 `jpeg2pdf-ofd-conveyor` 專案。
+從 `PDF_OFD_Converter` 應用過來的 Searchable OFD 優化現已整合到 `jpeg2pdf-ofd-conveyor` 專案。
 
 ---
 

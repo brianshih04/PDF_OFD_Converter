@@ -31,9 +31,8 @@
 
 | 版本 | 大小 | 需求 | 平台 | 自動更新 | 推薦度 |
 |------|------|------|------|----------|--------|
-| **Conveyor** | **~78 MB** | **無需 Java** | **4 個平台** | ✅ | **⭐⭐⭐⭐⭐** |
-| **JAR** | **52 MB** | **Java 17+** | 所有平台 | ❌ | ⭐⯠⭐ |
-| **jpackage** | **181 MB** | **無需 Java** | Windows only | ❌ | ⭐⭐ |
+| **Conveyor (GUI+CLI)** | **~300 MB** | **無需 Java** | **Windows** | ✅ | **⭐⭐⭐⭐⭐** |
+| **JAR (CLI only)** | **82 MB** | **Java 17+** | 所有平台 | ❌ | ⭐⭐⭐ |
 
 ---
 
@@ -41,11 +40,13 @@
 
 ### Windows
 
-#### 方法 1：下載 MSIX（推薦）
+#### 方法 1：Conveyor Desktop App（推薦）
 
-1. 下載：[jpeg2pdf-ofd-cli-3.0.0.x64.msix](https://github.com/brianshih04/jpeg2pdf-ofd-conveyor/releases)
-2. 雙擊安裝
-3. 在 PowerShell 中執行：
+1. 下載並解壓 release 壓縮檔
+2. **GUI 模式**：雙擊 `JPEG2PDF-OFD OCR.exe`
+3. **CLI 模式**：在 PowerShell 中執行：
+   ```powershell
+   .\bin\JPEG2PDF-OFD OCR.exe config.json
    ```powershell
    jpeg2pdf-ofd config.json
    ```
@@ -53,7 +54,7 @@
 #### 方法 2：PowerShell 一鍵安裝（自動更新）
 
 ```powershell
-iex (irm https://brianshih04.jpeg2pdf-ofd-conveyor/install.ps1)
+iex (irm https://brianshih04.github.io/PDF_OFD_Converter/install.ps1)
 ```
 
 ### macOS
@@ -509,7 +510,7 @@ WPS 搜索：✅ 可搜索
 
 ### 先決條件
 
-- JDK 17+
+- JDK 21+（Conveyor 打包用，編譯用 JDK 17 亦可）
 - Maven 3.6+
 - Conveyor（用於跨平台打包）
 
@@ -519,7 +520,7 @@ WPS 搜索：✅ 可搜索
 mvn clean package
 ```
 
-輸出：`target/jpeg2pdf-ofd-nospring-3.0.0-jar-with-dependencies.jar`
+輸出：`target/jpeg2pdf-ofd-nospring-3.0.0.jar`
 
 ### 建置 Conveyor 跨平台套件
 
@@ -530,8 +531,8 @@ mvn clean package
 # Linux:   https://hydraulic.dev/downloads/
 
 # 首次打包需同意授權
-CONVEYOR_AGREE_TO_LICENSE=1 conveyor make windows-msix --overwrite   # macOS/Linux
-$env:CONVEYOR_AGREE_TO_LICENSE="1"; conveyor make windows-msix --overwrite  # Windows PowerShell
+CONVEYOR_AGREE_TO_LICENSE=1 conveyor make windows-msix --overwrite=HARD_REPLACE --rerun=all   # macOS/Linux
+$env:CONVEYOR_AGREE_TO_LICENSE="1"; conveyor make windows-msix --overwrite=HARD_REPLACE --rerun=all  # Windows PowerShell
 
 # 建置所有平台
 conveyor make site
@@ -592,10 +593,9 @@ conveyor make site
 - Linux (Debian + RPM)
 
 **打包選項：**
-- Conveyor（推薦） ⭐⭐⭐⭐⭐
-- jpackage（僅 Windows）
-- JAR（需要 Java）
+- Conveyor（推薦，含 GUI+CLI） ⭐⭐⭐⭐⭐
+- JAR（CLI only，需要 Java）
 
 ---
 
-**GitHub：** https://github.com/brianshih04/jpeg2pdf-ofd-conveyor
+**GitHub：** https://github.com/brianshih04/PDF_OFD_Converter

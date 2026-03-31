@@ -352,4 +352,4 @@ double mm = pixel * 25.4 / actualDPI;
 ---
 
 **最後更新**: 2026-03-24
-**GitHub**: https://github.com/brianshih04/jpeg2pdf-ofd-jpackage-test
+**GitHub**: https://github.com/brianshih04/PDF_OFD_Converter

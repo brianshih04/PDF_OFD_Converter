@@ -1,8 +1,11 @@
+# ⚠️ DEPRECATED - 此文件已被 README.md 取代
+
+本文件的內容已整合至主 README.md，請參考最新版本。
 # JPEG2PDF-OFD OCR CLI
 
 **跨平台 OCR 工具：將 JPEG 圖片轉換為可搜尋的 PDF/OFD 文件**
 
-[![GitHub](https://img.shields.io/badge/GitHub-brianshih04%2Fjpeg2pdf--ofd--conveyor-blue)](https://github.com/brianshih04/jpeg2pdf-ofd-conveyor)
+[![GitHub](https://img.shields.io/badge/GitHub-brianshih04%2FPDF_OFD_Converter-blue)](https://github.com/brianshih04/PDF_OFD_Converter)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 [![Java](https://img.shields.io/badge/Java-17+-orange)](https://adoptium.net/)
 
@@ -37,7 +40,7 @@
 
 #### Method 1: Download MSIX (Recommended)
 
-1. Download: [jpeg2pdf-ofd-cli-3.0.0.x64.msix](https://github.com/brianshih04/jpeg2pdf-ofd-conveyor/releases)
+1. Download: [jpeg2pdf-ofd-cli-3.0.0.x64.msix](https://github.com/brianshih04/PDF_OFD_Converter/releases)
 2. Double-click to install
 3. Run in PowerShell:
    ```powershell
@@ -47,7 +50,7 @@
 #### Method 2: PowerShell One-line Install (Auto-update)
 
 ```powershell
-iex (irm https://brianshih04.github.io/jpeg2pdf-ofd-conveyor/install.ps1)
+iex (irm https://brianshih04.github.io/PDF_OFD_Converter/install.ps1)
 ```
 
 ### macOS
@@ -298,7 +301,7 @@ WPS search: Searchable
 mvn clean package
 ```
 
-Output: `target/jpeg2pdf-ofd-nospring-3.0.0-jar-with-dependencies.jar`
+Output: `target/jpeg2pdf-ofd-nospring-3.0.0.jar`
 
 ### Build Conveyor Cross-platform Packages
 
@@ -356,4 +359,4 @@ Output:
 
 ---
 
-**GitHub:** https://github.com/brianshih04/jpeg2pdf-ofd-conveyor
+**GitHub:** https://github.com/brianshih04/PDF_OFD_Converter

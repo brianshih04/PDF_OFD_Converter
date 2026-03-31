@@ -1,8 +1,11 @@
+# ⚠️ DEPRECATED - 此文件已被 README.md 取代
+
+本文件的內容已整合至主 README.md，請參考最新版本。
 # JPEG2PDF-OFD OCR CLI
 
 **跨平台 OCR 工具：將 JPEG 圖片轉換為可搜索的 PDF/OFD 文件**
 
-[![GitHub](https://img.shields.io/badge/GitHub-brianshih04%2Fjpeg2pdf--ofd--conveyor-blue)](https://github.com/brianshih04/jpeg2pdf-ofd-conveyor)
+[![GitHub](https://img.shields.io/badge/GitHub-brianshih04%2Fjpeg2pdf--ofd--conveyor-blue)](https://github.com/brianshih04/PDF_OFD_Converter)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 [![Java](https://img.shields.io/badge/Java-17+-orange)](https://adoptium.net/)
 
@@ -37,7 +40,7 @@
 
 #### 方法 1：下載 MSIX（推薦）
 
-1. 下載：[jpeg2pdf-ofd-cli-3.0.0.x64.msix](https://github.com/brianshih04/jpeg2pdf-ofd-conveyor/releases)
+1. 下載：[jpeg2pdf-ofd-cli-3.0.0.x64.msix](https://github.com/brianshih04/PDF_OFD_Converter/releases)
 2. 雙擊安裝
 3. 在 PowerShell 中執行：
    ```powershell
@@ -297,7 +300,7 @@ WPS 搜索：✅ 可搜索
 mvn clean package
 ```
 
-輸出：`target/jpeg2pdf-ofd-nospring-3.0.0-jar-with-dependencies.jar`
+輸出：`target/jpeg2pdf-ofd-nospring-3.0.0.jar`
 
 ### 建置 Conveyor 跨平台套件
 
@@ -358,4 +361,4 @@ conveyor make site
 
 ---
 
-**GitHub：** https://github.com/brianshih04/jpeg2pdf-ofd-conveyor
+**GitHub：** https://github.com/brianshih04/PDF_OFD_Converter

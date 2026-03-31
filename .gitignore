@@ -21,3 +21,9 @@ dist-exe/*/runtime/
 output/
 
 tessdata/
+
+zulu-fx-21/
+*.zip
+hs_err_pid*.log
+output/
+*.bat
