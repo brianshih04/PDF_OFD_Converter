@@ -38,6 +38,7 @@ public class GuiApp extends Application {
     private Task<Void> currentTask;
     private Stage primaryStage;
     private File lastDirectory;
+    private JavaBridge javaBridge;  // Strong reference to prevent GC
 
     @Override
     public void start(Stage stage) {
@@ -116,7 +117,9 @@ public class GuiApp extends Application {
     private void setupJavaBridge() {
         try {
             JSObject window = (JSObject) webEngine.executeScript("window");
-            window.setMember("javaApp", new JavaBridge());
+            // Keep strong reference to prevent GC from collecting the bridge
+            javaBridge = new JavaBridge();
+            window.setMember("javaApp", javaBridge);
             System.out.println("Java bridge initialized");
         } catch (Exception e) {
             e.printStackTrace();
