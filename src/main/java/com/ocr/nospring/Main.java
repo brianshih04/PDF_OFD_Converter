@@ -37,87 +37,90 @@ public class Main {
             log.warn("Could not load version.properties, using default version");
         }
     }
-    
+
     public static void main(String[] args) {
         try {
             System.setProperty("java.awt.headless", "true");
-            
+
             if (args.length == 0) {
                 printUsage();
                 System.exit(0);
             }
-            
+
             String configFile = args[0];
-            
+
             if (configFile.equals("--help") || configFile.equals("-h")) {
                 printUsage();
                 System.exit(0);
             }
-            
+
             if (configFile.equals("--version") || configFile.equals("-v")) {
-                System.out.println(APP_NAME + " v" + VERSION);
+                log.info("{} v{}", APP_NAME, VERSION);
                 System.exit(0);
             }
-            
+
             // 創建配置
             Config config = new Config();
-            
+
             // 加載配置文件
             File file = new File(configFile);
             if (!file.exists()) {
-                System.err.println("ERROR: Config file not found: " + configFile);
-                System.err.println();
-                System.err.println("Please check the path or try one of the following .json files in current directory:");
+                log.error("ERROR: Config file not found: {}", configFile);
+                log.error("Please check the path or try one of the following .json files in current directory:");
 
                 // List available .json files
                 File currentDir = new File(".");
                 File[] jsonFiles = currentDir.listFiles((dir, name) -> name.toLowerCase().endsWith(".json"));
                 if (jsonFiles != null && jsonFiles.length > 0) {
                     for (File jsonFile : jsonFiles) {
-                        System.err.println("  - " + jsonFile.getName());
+                        log.error("  - {}", jsonFile.getName());
                     }
                 } else {
-                    System.err.println("  (No .json files found in current directory)");
+                    log.error("  (No .json files found in current directory)");
                 }
 
-                System.err.println();
-                System.err.println("Usage: java -jar jpeg2pdf-ofd-nospring.jar <config.json>");
-                System.err.println("Run with --help for more information.");
+                log.error("Usage: java -jar jpeg2pdf-ofd-nospring.jar <config.json>");
+                log.error("Run with --help for more information.");
                 System.exit(1);
             }
-            
+
             ObjectMapper mapper = new ObjectMapper();
             Map<String, Object> configMap = mapper.readValue(file, Map.class);
-            
-            System.out.println("========================================");
-            System.out.println("  " + APP_NAME + " v" + VERSION);
-            System.out.println("========================================");
-            System.out.println();
-            System.out.println("Config: " + configFile);
-            System.out.println("OK: Config loaded");
+
+            log.info("========================================");
+            log.info("  {} v{}", APP_NAME, VERSION);
+            log.info("========================================");
+            log.info("Config: {}", configFile);
+            log.info("OK: Config loaded");
 
             // Validate configuration
             try {
                 config.validate();
-                System.out.println("OK: Config validated");
+                log.info("OK: Config validated");
             } catch (IllegalArgumentException e) {
-                System.err.println("ERROR: Configuration validation failed: " + e.getMessage());
+                log.error("ERROR: Configuration validation failed: {}", e.getMessage());
                 System.exit(1);
             }
 
             log.info("Configuration loaded and validated from: {}", configFile);
-            
-            // 讀取字體配置
-            Map<String, Object> fontConfig = (Map<String, Object>) configMap.get("font");
-            if (fontConfig != null && fontConfig.containsKey("path")) {
-                String fontPath = (String) fontConfig.get("path");
-                config.setFontPath(fontPath);
-                System.out.println("Font: " + fontPath);
+
+            // 讀取字體配置 (NPE-safe cast)
+            Object fontRaw = configMap.get("font");
+            if (fontRaw instanceof Map) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> fontConfig = (Map<String, Object>) fontRaw;
+                if (fontConfig.containsKey("path")) {
+                    String fontPath = (String) fontConfig.get("path");
+                    config.setFontPath(fontPath);
+                    log.info("Font: {}", fontPath);
+                }
             }
-            
-            // 讀取文字層配置
-            Map<String, Object> textLayerConfig = (Map<String, Object>) configMap.get("textLayer");
-            if (textLayerConfig != null) {
+
+            // 讀取文字層配置 (NPE-safe cast)
+            Object textLayerRaw = configMap.get("textLayer");
+            if (textLayerRaw instanceof Map) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> textLayerConfig = (Map<String, Object>) textLayerRaw;
                 // 顏色設定（支持顏色名稱或 RGB）
                 if (textLayerConfig.containsKey("color")) {
                     String color = (String) textLayerConfig.get("color");
@@ -132,32 +135,35 @@ public class Main {
                 if (textLayerConfig.containsKey("blue")) {
                     config.setTextLayerBlue(((Number) textLayerConfig.get("blue")).intValue());
                 }
-                
+
                 // 透明度設定
                 if (textLayerConfig.containsKey("opacity")) {
                     config.setTextLayerOpacity(((Number) textLayerConfig.get("opacity")).doubleValue());
                 }
             }
-            
+
             // 讀取簡繁轉換配置
             if (configMap.containsKey("textConvert")) {
                 String textConvert = (String) configMap.get("textConvert");
                 config.setTextConvert(textConvert);
-                System.out.println("Text Convert: " + textConvert);
+                log.info("Text Convert: {}", textConvert);
             }
-            
+
             // 創建 Service 實例
             OcrService ocrService = new OcrService();
             PdfService pdfService = new PdfService(config);
             TextService textService = new TextService();
             OfdService ofdService = new OfdService(config);
             TesseractOcrService tesseractService = null;
-            
+
             // 獲取輸入配置
+            @SuppressWarnings("unchecked")
             Map<String, Object> inputConfig = (Map<String, Object>) configMap.get("input");
+            @SuppressWarnings("unchecked")
             Map<String, Object> outputConfig = (Map<String, Object>) configMap.get("output");
+            @SuppressWarnings("unchecked")
             Map<String, Object> ocrConfig = (Map<String, Object>) configMap.get("ocr");
-            
+
             // 檢查是否為 PDF 輸入模式（將 PDF 轉為 searchable）
             String inputType = "image"; // default
             if (inputConfig != null && inputConfig.containsKey("type")) {
@@ -171,67 +177,66 @@ public class Main {
             }
 
             List<File> inputFiles;
-            List<BufferedImage> preRenderedPages = null; // PDF 模式時已渲染的頁面
 
             if ("pdf".equals(inputType)) {
                 // PDF 輸入模式：提取輸入的 PDF 檔案
                 inputFiles = getInputFiles(inputConfig);
                 if (inputFiles.isEmpty()) {
-                    System.err.println("ERROR: No PDF files found.");
-                    System.err.println();
-                    System.err.println("Suggestions:");
-                    System.err.println("  - Check that the input folder contains PDF files");
-                    System.err.println("  - Verify the file pattern matches .pdf extension");
-                    System.err.println("  - Ensure the files have read permissions");
+                    log.error("ERROR: No PDF files found.");
+                    log.error("Suggestions:");
+                    log.error("  - Check that the input folder contains PDF files");
+                    log.error("  - Verify the file pattern matches .pdf extension");
+                    log.error("  - Ensure the files have read permissions");
                     return;
                 }
-                System.out.println("Mode: PDF to Searchable");
-                System.out.println("Found " + inputFiles.size() + " PDF file(s)");
+                log.info("Mode: PDF to Searchable");
+                log.info("Found {} PDF file(s)", inputFiles.size());
                 // 將在後面逐個渲染處理
             } else {
                 // 原有圖片輸入模式
                 inputFiles = getInputFiles(inputConfig);
-                System.out.println("Found " + inputFiles.size() + " file(s)");
+                log.info("Found {} file(s)", inputFiles.size());
             }
 
             if (inputFiles.isEmpty()) {
-                System.err.println("ERROR: No input files found matching the specified pattern.");
-                System.err.println();
-                System.err.println("Suggestions:");
-                System.err.println("  - Check that the input folder path is correct");
-                System.err.println("  - Verify the file pattern (e.g., *.jpg, *.png, *.pdf)");
-                System.err.println("  - Ensure the files exist in the specified location");
+                log.error("ERROR: No input files found matching the specified pattern.");
+                log.error("Suggestions:");
+                log.error("  - Check that the input folder path is correct");
+                log.error("  - Verify the file pattern (e.g., *.jpg, *.png, *.pdf)");
+                log.error("  - Ensure the files exist in the specified location");
                 return;
             }
-            
+
             // 獲取輸出配置
             String outputFolder = getOutputFolder(outputConfig);
             String format = getOutputFormat(outputConfig);
             String language = getOcrLanguage(ocrConfig);
             boolean multiPage = getMultiPageMode(outputConfig);
 
+            // Set OCR language on config for PdfService to use
+            config.setOcrLanguage(language);
+
             // 讀取 OCR 引擎選擇："auto"(預設), "rapidocr", "tesseract"
             String ocrEngine = "auto";
             if (ocrConfig != null && ocrConfig.containsKey("engine")) {
                 ocrEngine = ((String) ocrConfig.get("engine")).toLowerCase();
             }
-            System.out.println("OCR Engine: " + ocrEngine);
+            log.info("OCR Engine: {}", ocrEngine);
 
-            // Read Tesseract tessdata path (only needed for Hebrew)
+            // Read Tesseract tessdata path (only needed for non-RapidOCR languages)
             if (ocrConfig != null && ocrConfig.containsKey("tesseractDataPath")) {
                 config.setTesseractDataPath((String) ocrConfig.get("tesseractDataPath"));
             }
-            
+
             // 創建輸出目錄
             File outputDir = new File(outputFolder);
             if (!outputDir.exists()) {
                 outputDir.mkdirs();
             }
-            
-            System.out.println("Output: " + outputFolder);
-            System.out.println("Mode: " + (multiPage ? "Multi-Page" : "Per-Page"));
-            System.out.println();
-            
+
+            log.info("Output: {}", outputFolder);
+            log.info("Mode: {}", multiPage ? "Multi-Page" : "Per-Page");
+
             if ("pdf".equals(inputType)) {
                 // PDF 轉 searchable 模式
                 processPdfToSearchable(inputFiles, outputDir, format, language, ocrEngine,
@@ -245,122 +250,117 @@ public class Main {
                 processPerPage(inputFiles, outputDir, format, language, ocrEngine, config,
                              ocrService, pdfService, textService, ofdService, tesseractService);
             }
-            
-            System.out.println("========================================");
-            System.out.println("  Done!");
-            System.out.println("========================================");
-            
+
+            log.info("========================================");
+            log.info("  Done!");
+            log.info("========================================");
+
         } catch (Exception e) {
-            System.err.println("ERROR: " + e.getMessage());
-            e.printStackTrace();
+            log.error("ERROR: {}", e.getMessage(), e);
             System.exit(1);
         }
     }
-    
+
     /**
      * 多頁模式：所有圖片合併成一個 PDF/OFD
      */
-    private static void processMultiPage(List<File> inputFiles, File outputDir, 
+    private static void processMultiPage(List<File> inputFiles, File outputDir,
                                         String format, String language, String ocrEngine, Config config,
                                         OcrService ocrService, PdfService pdfService,
                                         TextService textService, OfdService ofdService,
                                         TesseractOcrService tesseractService) {
         try {
-            System.out.println("Processing " + inputFiles.size() + " images into multi-page document...");
-            System.out.println();
-            
+            log.info("Processing {} images into multi-page document...", inputFiles.size());
+
             // 存儲所有頁面的數據
             List<BufferedImage> images = new ArrayList<>();
             List<List<OcrService.TextBlock>> allTextBlocks = new ArrayList<>();
-            
+
             // 處理每個圖片
             for (int i = 0; i < inputFiles.size(); i++) {
                 File inputFile = inputFiles.get(i);
-                System.out.println("[" + (i+1) + "/" + inputFiles.size() + "] " + inputFile.getName());
-                
+                log.info("[{}/{}] {}", i + 1, inputFiles.size(), inputFile.getName());
+
                 try {
                     // 加載圖片
                     BufferedImage image = ImageIO.read(inputFile);
                     if (image == null) {
-                        System.err.println("  ERROR: Cannot read image");
+                        log.error("  ERROR: Cannot read image");
                         continue;
                     }
-                    
-                    System.out.println("  Image size: " + image.getWidth() + "x" + image.getHeight());
-                    
+
+                    log.info("  Image size: {}x{}", image.getWidth(), image.getHeight());
+
                     // OCR 識別
-                    System.out.println("  Running OCR...");
+                    log.info("  Running OCR...");
                     List<OcrService.TextBlock> textBlocks;
                     if (shouldUseTesseract(ocrEngine, language)) {
                         if (tesseractService == null) {
                             tesseractService = new TesseractOcrService(
                                 config.getTesseractDataPath(), getTesseractLanguage(language));
-                            System.out.println("  OCR Engine: Tesseract (" + getTesseractLabel(language) + ")");
+                            log.info("  OCR Engine: Tesseract ({})", getTesseractLabel(language));
                         }
                         textBlocks = tesseractService.recognize(image);
                     } else {
                         textBlocks = ocrService.recognize(image, language);
                     }
-                    
+
                     // 簡繁轉換
                     if (config.getTextConvert() != null && !config.getTextConvert().isEmpty()) {
                         convertTextBlocks(textBlocks, config.getTextConvert());
-                        System.out.println("  OK: Text converted (" + config.getTextConvert() + ")");
+                        log.info("  OK: Text converted ({})", config.getTextConvert());
                     }
-                    
-                    System.out.println("  OK: OCR completed (" + textBlocks.size() + " blocks)");
-                    
+
+                    log.info("  OK: OCR completed ({} blocks)", textBlocks.size());
+
                     // 保存數據
                     images.add(image);
                     allTextBlocks.add(textBlocks);
-                    
+
                 } catch (Exception e) {
-                    System.err.println("  ERROR: " + e.getMessage());
+                    log.error("  ERROR: {}", e.getMessage());
                 }
             }
-            
+
             if (images.isEmpty()) {
-                System.err.println("ERROR: No valid images processed");
+                log.error("ERROR: No valid images processed");
                 return;
             }
-            
-            System.out.println();
-            System.out.println("Generating multi-page output...");
-            
+
+            log.info("Generating multi-page output...");
+
             // 生成輸出文件名
             String timestamp = new java.text.SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
             String outputFilename = "multipage_" + timestamp;
-            
+
             // 生成多頁 PDF
             if (format.contains("pdf") || format.contains("all")) {
                 File pdfFile = new File(outputDir, outputFilename + ".pdf");
                 pdfService.generateMultiPagePdf(images, allTextBlocks, pdfFile);
-                System.out.println("  OK: Multi-page PDF -> " + pdfFile.getName());
+                log.info("  OK: Multi-page PDF -> {}", pdfFile.getName());
             }
-            
+
             // 生成 TXT（所有頁面的文字）
             if (format.contains("txt") || format.contains("all")) {
                 File txtFile = new File(outputDir, outputFilename + ".txt");
                 textService.generateMultiPageTxt(allTextBlocks, txtFile);
-                System.out.println("  OK: TXT -> " + txtFile.getName());
+                log.info("  OK: TXT -> {}", txtFile.getName());
             }
-            
+
             // 生成多頁 OFD
             if (format.contains("ofd") || format.contains("all")) {
                 File ofdFile = new File(outputDir, outputFilename + ".ofd");
                 ofdService.generateMultiPageOfd(images, allTextBlocks, ofdFile);
-                System.out.println("  OK: Multi-page OFD -> " + ofdFile.getName());
+                log.info("  OK: Multi-page OFD -> {}", ofdFile.getName());
             }
-            
-            System.out.println();
-            System.out.println("Total pages: " + images.size());
-            
+
+            log.info("Total pages: {}", images.size());
+
         } catch (Exception e) {
-            System.err.println("ERROR in multi-page processing: " + e.getMessage());
-            e.printStackTrace();
+            log.error("ERROR in multi-page processing: {}", e.getMessage(), e);
         }
     }
-    
+
     /**
      * 單頁模式：每個圖片生成一個 PDF/OFD
      */
@@ -371,92 +371,87 @@ public class Main {
                                       TesseractOcrService tesseractService) {
         int processed = 0;
         int failed = 0;
-        
+
         for (File inputFile : inputFiles) {
             processed++;
-            System.out.println("[" + processed + "/" + inputFiles.size() + "] Processing: " + inputFile.getName());
-            
+            log.info("[{}/{}] Processing: {}", processed, inputFiles.size(), inputFile.getName());
+
             try {
                 // 加載圖片
                 BufferedImage image = ImageIO.read(inputFile);
                 if (image == null) {
-                    System.err.println("  ERROR: Cannot read image");
+                    log.error("  ERROR: Cannot read image");
                     failed++;
                     continue;
                 }
-                
-                System.out.println("  Image size: " + image.getWidth() + "x" + image.getHeight());
-                
+
+                log.info("  Image size: {}x{}", image.getWidth(), image.getHeight());
+
                 // OCR 識別
-                System.out.println("  Running OCR...");
+                log.info("  Running OCR...");
                 List<OcrService.TextBlock> textBlocks;
                 if (shouldUseTesseract(ocrEngine, language)) {
                     if (tesseractService == null) {
                         tesseractService = new TesseractOcrService(
                             config.getTesseractDataPath(), getTesseractLanguage(language));
-                        System.out.println("  OCR Engine: Tesseract (" + getTesseractLabel(language) + ")");
+                        log.info("  OCR Engine: Tesseract ({})", getTesseractLabel(language));
                     }
                     textBlocks = tesseractService.recognize(image);
                 } else {
                     textBlocks = ocrService.recognize(image, language);
                 }
-                
+
                 // 簡繁轉換
                 if (config.getTextConvert() != null && !config.getTextConvert().isEmpty()) {
                     convertTextBlocks(textBlocks, config.getTextConvert());
-                    System.out.println("  OK: Text converted (" + config.getTextConvert() + ")");
+                    log.info("  OK: Text converted ({})", config.getTextConvert());
                 }
-                
-                System.out.println("  OK: OCR completed (" + textBlocks.size() + " blocks)");
-                
+
+                log.info("  OK: OCR completed ({} blocks)", textBlocks.size());
+
                 // 生成輸出
                 String timestamp = new java.text.SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
                 String baseName = getBaseName(inputFile.getName());
                 String outputFilename = baseName + "_" + timestamp;
-                
+
                 // 導出文件
                 if (format.contains("pdf") || format.contains("all")) {
                     File pdfFile = new File(outputDir, outputFilename + ".pdf");
                     pdfService.generatePdf(image, textBlocks, pdfFile);
-                    System.out.println("  OK: PDF -> " + pdfFile.getName());
+                    log.info("  OK: PDF -> {}", pdfFile.getName());
                 }
-                
+
                 if (format.contains("txt") || format.contains("all")) {
                     File txtFile = new File(outputDir, outputFilename + ".txt");
                     textService.generateTxt(textBlocks, txtFile);
-                    System.out.println("  OK: TXT -> " + txtFile.getName());
+                    log.info("  OK: TXT -> {}", txtFile.getName());
                 }
-                
+
                 if (format.contains("ofd") || format.contains("all")) {
                     File ofdFile = new File(outputDir, outputFilename + ".ofd");
                     ofdService.generateOfd(image, textBlocks, ofdFile);
-                    System.out.println("  OK: OFD -> " + ofdFile.getName());
+                    log.info("  OK: OFD -> {}", ofdFile.getName());
                 }
-                
-                System.out.println();
-                
+
             } catch (Exception e) {
-                System.err.println("  ERROR: " + e.getMessage());
-                e.printStackTrace();
+                log.error("  ERROR: {}", e.getMessage(), e);
                 failed++;
             }
         }
-        
-        System.out.println();
-        System.out.println("========================================");
-        System.out.println("  Summary");
-        System.out.println("========================================");
-        System.out.println("Processed: " + processed);
-        System.out.println("Failed:    " + failed);
-        System.out.println();
-        
+
+        log.info("========================================");
+        log.info("  Summary");
+        log.info("========================================");
+        log.info("Processed: {}", processed);
+        log.info("Failed:    {}", failed);
+
         if (failed == 0) {
-            System.out.println("SUCCESS: All files processed");
+            log.info("SUCCESS: All files processed");
         } else {
-            System.out.println("WARNING: Some files failed");
+            log.warn("WARNING: Some files failed");
         }
     }
-    
+
     /**
      * 簡繁轉換
      * @param textBlocks OCR 識別的文字區塊
@@ -466,17 +461,17 @@ public class Main {
         for (OcrService.TextBlock block : textBlocks) {
             String text = block.text;
             if (text == null || text.isEmpty()) continue;
-            
+
             if ("s2t".equalsIgnoreCase(mode)) {
                 text = ZhConverterUtil.toTraditional(text);
             } else if ("t2s".equalsIgnoreCase(mode)) {
                 text = ZhConverterUtil.toSimple(text);
             }
-            
+
             block.text = text;
         }
     }
-    
+
     /**
      * PDF 轉 searchable 模式
      * 將輸入的 PDF 文件渲染為圖片，OCR 後重新生成可搜索的 PDF/OFD
@@ -492,8 +487,7 @@ public class Main {
 
             for (int f = 0; f < pdfFiles.size(); f++) {
                 File pdfFile = pdfFiles.get(f);
-                System.out.println("[" + (f+1) + "/" + pdfFiles.size() + "] " + pdfFile.getName());
-                System.out.println();
+                log.info("[{}/{}] {}", f + 1, pdfFiles.size(), pdfFile.getName());
 
                 // 渲染 PDF 每一頁為圖片
                 List<BufferedImage> pages = pdfToImages.renderPages(pdfFile, dpi);
@@ -501,7 +495,7 @@ public class Main {
                 // OCR 每一頁
                 List<List<OcrService.TextBlock>> allTextBlocks = new ArrayList<>();
                 for (int i = 0; i < pages.size(); i++) {
-                    System.out.println("  [" + (i+1) + "/" + pages.size() + "] OCR...");
+                    log.info("  [{}/{}] OCR...", i + 1, pages.size());
                     List<OcrService.TextBlock> textBlocks;
                     if (shouldUseTesseract(ocrEngine, language)) {
                         if (tesseractService == null) {
@@ -510,10 +504,10 @@ public class Main {
                                     getTesseractLanguage(language));
                         }
                         textBlocks = tesseractService.recognize(pages.get(i));
-                        System.out.println("  OCR Engine: Tesseract (" + getTesseractLabel(language) + ")");
+                        log.info("  OCR Engine: Tesseract ({})", getTesseractLabel(language));
                     } else {
                         textBlocks = ocrService.recognize(pages.get(i), language);
-                        System.out.println("  OCR Engine: RapidOCR");
+                        log.info("  OCR Engine: RapidOCR");
                     }
 
                     // 簡繁轉換
@@ -522,7 +516,7 @@ public class Main {
                     }
 
                     allTextBlocks.add(textBlocks);
-                    System.out.println("  OK: " + textBlocks.size() + " blocks");
+                    log.info("  OK: {} blocks", textBlocks.size());
                 }
 
                 // 生成輸出
@@ -533,61 +527,58 @@ public class Main {
                     String outName = baseName + "_searchable_" + timestamp + ".pdf";
                     File outFile = new File(outputDir, outName);
                     pdfService.generateMultiPagePdf(pages, allTextBlocks, outFile);
-                    System.out.println("  OK: PDF -> " + outName);
+                    log.info("  OK: PDF -> {}", outName);
                 }
                 if (format.contains("ofd") || format.contains("all")) {
                     String outName = baseName + "_searchable_" + timestamp + ".ofd";
                     File outFile = new File(outputDir, outName);
                     ofdService.generateMultiPageOfd(pages, allTextBlocks, outFile);
-                    System.out.println("  OK: OFD -> " + outName);
+                    log.info("  OK: OFD -> {}", outName);
                 }
                 if (format.contains("txt") || format.contains("all")) {
                     String outName = baseName + "_searchable_" + timestamp + ".txt";
                     File outFile = new File(outputDir, outName);
                     textService.generateMultiPageTxt(allTextBlocks, outFile);
-                    System.out.println("  OK: TXT -> " + outName);
+                    log.info("  OK: TXT -> {}", outName);
                 }
-
-                System.out.println();
             }
 
         } catch (Exception e) {
-            System.err.println("ERROR: " + e.getMessage());
-            e.printStackTrace();
+            log.error("ERROR: {}", e.getMessage(), e);
         }
     }
 
     private static List<File> getInputFiles(Map<String, Object> inputConfig) {
         List<File> files = new ArrayList<>();
-        
+
         if (inputConfig == null) return files;
-        
+
         if (inputConfig.containsKey("file")) {
             String filePath = (String) inputConfig.get("file");
             File file = new File(filePath);
             if (file.exists()) files.add(file);
             return files;
         }
-        
+
         if (inputConfig.containsKey("folder")) {
             String folderPath = (String) inputConfig.get("folder");
-            String pattern = inputConfig.containsKey("pattern") 
-                ? (String) inputConfig.get("pattern") 
+            String pattern = inputConfig.containsKey("pattern")
+                ? (String) inputConfig.get("pattern")
                 : "*.jpg";
-            
+
             File folder = new File(folderPath);
             if (folder.exists() && folder.isDirectory()) {
                 findFiles(folder, pattern, files);
             }
         }
-        
+
         return files;
     }
-    
+
     private static void findFiles(File folder, String pattern, List<File> files) {
         File[] fileList = folder.listFiles();
         if (fileList == null) return;
-        
+
         for (File file : fileList) {
             if (file.isDirectory()) {
                 findFiles(file, pattern, files);
@@ -596,7 +587,7 @@ public class Main {
             }
         }
     }
-    
+
     private static boolean matchesPattern(String filename, String pattern) {
         if (pattern.equals("*") || pattern.equals("*.*")) return true;
         if (pattern.startsWith("*.")) {
@@ -605,14 +596,14 @@ public class Main {
         }
         return filename.equals(pattern);
     }
-    
+
     private static String getOutputFolder(Map<String, Object> outputConfig) {
         if (outputConfig != null && outputConfig.containsKey("folder")) {
             return (String) outputConfig.get("folder");
         }
         return ".";
     }
-    
+
     private static String getOutputFormat(Map<String, Object> outputConfig) {
         if (outputConfig != null) {
             // 支持 "formats" 或 "format" 鍵
@@ -622,7 +613,7 @@ public class Main {
             } else if (outputConfig.containsKey("format")) {
                 format = outputConfig.get("format");
             }
-            
+
             if (format != null) {
                 if (format instanceof String) return (String) format;
                 if (format instanceof List) return String.join(",", (List<String>) format);
@@ -630,14 +621,14 @@ public class Main {
         }
         return "pdf";
     }
-    
+
     private static String getOcrLanguage(Map<String, Object> ocrConfig) {
         if (ocrConfig != null && ocrConfig.containsKey("language")) {
             return (String) ocrConfig.get("language");
         }
         return "chinese_cht";
     }
-    
+
     /**
      * 獲取多頁模式配置
      * 默認為 false（單頁模式）
@@ -654,12 +645,27 @@ public class Main {
         }
         return false; // 默認為單頁模式
     }
-    
+
     private static String getBaseName(String filename) {
         int dotIndex = filename.lastIndexOf('.');
         return dotIndex > 0 ? filename.substring(0, dotIndex) : filename;
     }
-    
+
+    // --- OCR dual-engine detection (per architecture rule) ---
+
+    /**
+     * Explicit detection for chi_tra, chi_sim, eng to ensure RapidOCR is used.
+     * Per architecture rule: chi_tra, chi_sim, eng 優先使用 RapidOCR.
+     */
+    private static boolean isChineseOrEnglish(String language) {
+        if (language == null) return false;
+        String lower = language.toLowerCase();
+        return lower.equals("chi_tra") || lower.equals("chi_sim") || lower.equals("eng")
+            || lower.equals("chinese_cht") || lower.equals("chinese") || lower.equals("english")
+            || lower.equals("zh") || lower.equals("zh-tw") || lower.equals("zh-cn")
+            || lower.equals("en");
+    }
+
     private static boolean isHebrew(String language) {
         return "he".equalsIgnoreCase(language) || "hebrew".equalsIgnoreCase(language);
     }
@@ -747,6 +753,8 @@ public class Main {
     private static boolean shouldUseTesseract(String engine, String language) {
         if ("tesseract".equals(engine)) return true;
         if ("rapidocr".equals(engine)) return false;
+        // Explicit RapidOCR detection for chi_tra, chi_sim, eng (per architecture rule)
+        if (isChineseOrEnglish(language)) return false;
         return useTesseract(language);
     }
 
@@ -799,54 +807,54 @@ public class Main {
     }
 
     private static void printUsage() {
-        System.out.println();
-        System.out.println("========================================");
-        System.out.println("  JPEG2PDF-OFD v" + VERSION);
-        System.out.println("  Pure Java SE - No Spring Boot");
-        System.out.println("========================================");
-        System.out.println();
-        System.out.println("Usage:");
-        System.out.println("  java -jar jpeg2pdf-ofd-nospring.jar config.json");
-        System.out.println();
-        System.out.println("Options:");
-        System.out.println("  --help     Show help");
-        System.out.println("  --version  Show version");
-        System.out.println();
-        System.out.println("Config example (per-page mode):");
-        System.out.println("  {");
-        System.out.println("    \"input\": {");
-        System.out.println("      \"folder\": \"C:/OCR/Watch\",");
-        System.out.println("      \"pattern\": \"*.jpg\"");
-        System.out.println("    },");
-        System.out.println("    \"output\": {");
-        System.out.println("      \"folder\": \"C:/OCR/Output\",");
-        System.out.println("      \"format\": \"pdf\",");
-        System.out.println("      \"multiPage\": false");
-        System.out.println("    },");
-        System.out.println("    \"ocr\": {");
-        System.out.println("      \"language\": \"chinese_cht\"");
-        System.out.println("    }");
-        System.out.println("  }");
-        System.out.println();
-        System.out.println("Config example (multi-page mode):");
-        System.out.println("  {");
-        System.out.println("    \"input\": {");
-        System.out.println("      \"folder\": \"C:/OCR/Watch\",");
-        System.out.println("      \"pattern\": \"*.jpg\"");
-        System.out.println("    },");
-        System.out.println("    \"output\": {");
-        System.out.println("      \"folder\": \"C:/OCR/Output\",");
-        System.out.println("      \"format\": \"all\",");
-        System.out.println("      \"multiPage\": true");
-        System.out.println("    },");
-        System.out.println("    \"ocr\": {");
-        System.out.println("      \"language\": \"chinese_cht\"");
-        System.out.println("    }");
-        System.out.println("  }");
-        System.out.println();
-        System.out.println("Output modes:");
-        System.out.println("  multiPage: false - Each image generates one PDF/OFD (default)");
-        System.out.println("  multiPage: true  - All images merged into one multi-page PDF/OFD");
-        System.out.println();
+        log.info("");
+        log.info("========================================");
+        log.info("  JPEG2PDF-OFD v{}", VERSION);
+        log.info("  Pure Java SE - No Spring Boot");
+        log.info("========================================");
+        log.info("");
+        log.info("Usage:");
+        log.info("  java -jar jpeg2pdf-ofd-nospring.jar config.json");
+        log.info("");
+        log.info("Options:");
+        log.info("  --help     Show help");
+        log.info("  --version  Show version");
+        log.info("");
+        log.info("Config example (per-page mode):");
+        log.info("  {{");
+        log.info("    \"input\": {{");
+        log.info("      \"folder\": \"C:/OCR/Watch\",");
+        log.info("      \"pattern\": \"*.jpg\"");
+        log.info("    }},");
+        log.info("    \"output\": {{");
+        log.info("      \"folder\": \"C:/OCR/Output\",");
+        log.info("      \"format\": \"pdf\",");
+        log.info("      \"multiPage\": false");
+        log.info("    }},");
+        log.info("    \"ocr\": {{");
+        log.info("      \"language\": \"chinese_cht\"");
+        log.info("    }}");
+        log.info("  }}");
+        log.info("");
+        log.info("Config example (multi-page mode):");
+        log.info("  {{");
+        log.info("    \"input\": {{");
+        log.info("      \"folder\": \"C:/OCR/Watch\",");
+        log.info("      \"pattern\": \"*.jpg\"");
+        log.info("    }},");
+        log.info("    \"output\": {{");
+        log.info("      \"folder\": \"C:/OCR/Output\",");
+        log.info("      \"format\": \"all\",");
+        log.info("      \"multiPage\": true");
+        log.info("    }},");
+        log.info("    \"ocr\": {{");
+        log.info("      \"language\": \"chinese_cht\"");
+        log.info("    }}");
+        log.info("  }}");
+        log.info("");
+        log.info("Output modes:");
+        log.info("  multiPage: false - Each image generates one PDF/OFD (default)");
+        log.info("  multiPage: true  - All images merged into one multi-page PDF/OFD");
+        log.info("");
     }
 }

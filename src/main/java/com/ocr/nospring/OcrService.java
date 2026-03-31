@@ -24,7 +24,7 @@ public class OcrService {
         // 不在構造函數中初始化
     }
     
-    public void initialize() throws Exception {
+    public synchronized void initialize() throws Exception {
         if (initialized) return;
 
         log.info("  Initializing OCR engine...");

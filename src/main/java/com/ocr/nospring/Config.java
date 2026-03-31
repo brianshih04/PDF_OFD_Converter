@@ -1,117 +1,122 @@
 package com.ocr.nospring;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * 配置類 - 無 Spring Boot
  */
 public class Config {
-    
+
+    private static final Logger log = LoggerFactory.getLogger(Config.class);
+
     // 簡繁轉換：null(不轉換), "s2t"(簡→繁), "t2s"(繁→簡)
     private String textConvert;
-    
+
     private String fontPath;
-    
+
     // OCR 語言（從 config 讀取）
     private String ocrLanguage;
-    
+
     // Tesseract tessdata 路徑
     private String tesseractDataPath;
-    
+
     // 文字層顏色 (RGB)
     private int textLayerRed = 255;
     private int textLayerGreen = 255;
     private int textLayerBlue = 255;
-    
+
     // 文字層透明度 (0.0 - 1.0)
     private double textLayerOpacity = 0.0001;
-    
+
     public Config() {
         this.fontPath = getDefaultFontPath();
     }
-    
+
     private String getDefaultFontPath() {
-        String os = System.getProperty("os.name").toLowerCase();
+        // Primary: GoNotoKurrent-Regular.ttf (per architecture rule)
+        String[] primaryFonts = {
+            "fonts/GoNotoKurrent-Regular.ttf",
+        };
+        for (String font : primaryFonts) {
+            java.io.File fontFile = new java.io.File(font);
+            if (fontFile.exists()) {
+                return font;
+            }
+        }
 
-        if (os.contains("win")) {
-            // Only TTF fonts (PDFBox cannot handle TTC files)
-            String[] windowsFonts = {
-                "C:/Windows/Fonts/simhei.ttf",      // 黑體 (TTF, 優先)
-                "C:/Windows/Fonts/arial.ttf",       // Arial (TTF)
-                "C:/Windows/Fonts/ariblk.ttf",      // Arial Black (TTF)
-                "C:/Windows/Fonts/arialuni.ttf",    // Arial Unicode MS (TTF)
-                "C:/Windows/Fonts/times.ttf",       // Times New Roman (TTF)
-                "C:/Windows/Fonts/calibri.ttf"      // Calibri (TTF)
-                // TTC files removed: meiryo.ttc, msyh.ttc, msjh.ttc, simsun.ttc
-            };
-
-            for (String font : windowsFonts) {
-                java.io.File fontFile = new java.io.File(font);
-                if (fontFile.exists()) {
-                    return font;
-                }
+        // Fallback: wqy-ZenHei.ttf (per architecture rule)
+        String[] fallbackFonts = {
+            "fonts/wqy-ZenHei.ttf",
+        };
+        for (String font : fallbackFonts) {
+            java.io.File fontFile = new java.io.File(font);
+            if (fontFile.exists()) {
+                return font;
             }
         }
 
         return null;
     }
-    
+
     public String getFontPath() {
         return fontPath;
     }
-    
+
     public String getOcrLanguage() { return ocrLanguage; }
-    
+
     public void setOcrLanguage(String ocrLanguage) { this.ocrLanguage = ocrLanguage; }
-    
+
     public String getTesseractDataPath() { return tesseractDataPath; }
-    
+
     public void setTesseractDataPath(String path) { this.tesseractDataPath = path; }
-    
+
     public void setFontPath(String fontPath) {
         if (fontPath != null && !fontPath.isEmpty()) {
             this.fontPath = fontPath;
         }
     }
-    
+
     public String getTextConvert() {
         return textConvert;
     }
-    
+
     public void setTextConvert(String textConvert) {
         this.textConvert = textConvert;
     }
-    
+
     public int getTextLayerRed() {
         return textLayerRed;
     }
-    
+
     public void setTextLayerRed(int textLayerRed) {
         this.textLayerRed = textLayerRed;
     }
-    
+
     public int getTextLayerGreen() {
         return textLayerGreen;
     }
-    
+
     public void setTextLayerGreen(int textLayerGreen) {
         this.textLayerGreen = textLayerGreen;
     }
-    
+
     public int getTextLayerBlue() {
         return textLayerBlue;
     }
-    
+
     public void setTextLayerBlue(int textLayerBlue) {
         this.textLayerBlue = textLayerBlue;
     }
-    
+
     public double getTextLayerOpacity() {
         return textLayerOpacity;
     }
-    
+
     public void setTextLayerOpacity(double textLayerOpacity) {
         this.textLayerOpacity = textLayerOpacity;
     }
-    
+
     /**
      * 設定文字層顏色（支持顏色名稱或 RGB）
      * @param colorName 顏色名稱：white, red, black, blue, green, debug
@@ -156,12 +161,12 @@ public class Config {
             }
             // Check if it's a TTC file (not supported by PDFBox)
             if (fontPath.toLowerCase().endsWith(".ttc")) {
-                System.err.println("WARNING: Font path points to a TTC file (" + fontPath + ")");
-                System.err.println("         TTC files are not supported by PDFBox. Please use a TTF font.");
+                log.warn("WARNING: Font path points to a TTC file ({})", fontPath);
+                log.warn("         TTC files are not supported by PDFBox. Please use a TTF font.");
             }
         } else {
-            System.err.println("WARNING: No TTF font found. Using default system font (English only).");
-            System.err.println("         For CJK language support, please specify a TTF font in config.");
+            log.warn("WARNING: No TTF font found. Using default system font (English only).");
+            log.warn("         For CJK language support, please specify a TTF font in config.");
         }
 
         // Validate opacity range

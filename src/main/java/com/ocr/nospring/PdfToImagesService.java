@@ -2,6 +2,8 @@ package com.ocr.nospring;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.PDFRenderer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -15,6 +17,8 @@ import java.util.List;
  */
 public class PdfToImagesService {
 
+    private static final Logger log = LoggerFactory.getLogger(PdfToImagesService.class);
+
     /**
      * 將 PDF 每一頁渲染為 BufferedImage 列表
      * @param pdfFile PDF 檔案
@@ -26,10 +30,10 @@ public class PdfToImagesService {
         try (PDDocument document = PDDocument.load(pdfFile)) {
             PDFRenderer renderer = new PDFRenderer(document);
             int pageCount = document.getNumberOfPages();
-            System.out.println("  PDF pages: " + pageCount + " (DPI: " + (int) dpi + ")");
+            log.info("  PDF pages: {} (DPI: {})", pageCount, (int) dpi);
 
             for (int i = 0; i < pageCount; i++) {
-                System.out.println("  Rendering page " + (i + 1) + "/" + pageCount + "...");
+                log.info("  Rendering page {}/{}...", i + 1, pageCount);
                 BufferedImage image = renderer.renderImageWithDPI(i, dpi);
                 pages.add(image);
             }
