@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.List;
 import java.util.Map;
+import java.util.prefs.Preferences;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -37,6 +38,7 @@ public class GuiApp extends Application {
     private Config config;
     private Task<Void> currentTask;
     private Stage primaryStage;
+    private static final String PREFS_LAST_DIR = "lastDirectory";
     private File lastDirectory;
     private JavaBridge javaBridge;  // Strong reference to prevent GC
 
@@ -44,7 +46,7 @@ public class GuiApp extends Application {
     public void start(Stage stage) {
         this.primaryStage = stage;
         this.config = new Config();
-        this.lastDirectory = new File(System.getProperty("user.dir"));
+        this.lastDirectory = loadLastDirectory();
 
         WebView webView = new WebView();
         webEngine = webView.getEngine();
@@ -161,12 +163,12 @@ public class GuiApp extends Application {
         private String doOpenDirectoryChooser() {
             DirectoryChooser chooser = new DirectoryChooser();
             chooser.setTitle("選擇資料夾");
-            if (lastDirectory != null && lastDirectory.exists()) {
-                chooser.setInitialDirectory(lastDirectory);
-            }
+            File dir = (lastDirectory != null && lastDirectory.exists()) ? lastDirectory : new File(System.getProperty("user.home"));
+            chooser.setInitialDirectory(dir);
             File selected = chooser.showDialog(primaryStage);
             if (selected != null) {
                 lastDirectory = selected;
+                saveLastDirectory(selected);
                 return selected.getAbsolutePath();
             }
             return "";
@@ -195,15 +197,15 @@ public class GuiApp extends Application {
         private String doOpenFileChooser() {
             FileChooser chooser = new FileChooser();
             chooser.setTitle("選擇PDF檔案");
-            if (lastDirectory != null && lastDirectory.exists()) {
-                chooser.setInitialDirectory(lastDirectory);
-            }
+            File dir = (lastDirectory != null && lastDirectory.exists()) ? lastDirectory : new File(System.getProperty("user.home"));
+            chooser.setInitialDirectory(dir);
             chooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter("PDF Files", "*.pdf")
             );
             File selected = chooser.showOpenDialog(primaryStage);
             if (selected != null) {
                 lastDirectory = selected.getParentFile();
+                saveLastDirectory(lastDirectory);
                 return selected.getAbsolutePath();
             }
             return "";
@@ -379,15 +381,15 @@ public class GuiApp extends Application {
         private String doOpenFontFileChooser() {
             FileChooser chooser = new FileChooser();
             chooser.setTitle("選擇字體檔案");
-            if (lastDirectory != null && lastDirectory.exists()) {
-                chooser.setInitialDirectory(lastDirectory);
-            }
+            File dir = (lastDirectory != null && lastDirectory.exists()) ? lastDirectory : new File(System.getProperty("user.home"));
+            chooser.setInitialDirectory(dir);
             chooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter("Font Files", "*.ttf", "*.TTF")
             );
             File selected = chooser.showOpenDialog(primaryStage);
             if (selected != null) {
                 lastDirectory = selected.getParentFile();
+                saveLastDirectory(lastDirectory);
                 return selected.getAbsolutePath();
             }
             return "";
@@ -462,6 +464,39 @@ public class GuiApp extends Application {
      */
     private String getSettingsPath() {
         return System.getProperty("user.home") + "/.jpeg2pdf-ofd/settings.json";
+    }
+
+    /**
+     * Load lastDirectory from java.util.prefs, falling back to user.home.
+     */
+    private File loadLastDirectory() {
+        try {
+            Preferences prefs = Preferences.userNodeForPackage(GuiApp.class);
+            String path = prefs.get(PREFS_LAST_DIR, null);
+            if (path != null) {
+                File dir = new File(path);
+                if (dir.exists()) {
+                    return dir;
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error loading lastDirectory from preferences: " + e.getMessage());
+        }
+        return new File(System.getProperty("user.home"));
+    }
+
+    /**
+     * Persist lastDirectory to java.util.prefs.
+     */
+    private void saveLastDirectory(File dir) {
+        if (dir == null) return;
+        try {
+            Preferences prefs = Preferences.userNodeForPackage(GuiApp.class);
+            prefs.put(PREFS_LAST_DIR, dir.getAbsolutePath());
+            prefs.sync();
+        } catch (Exception e) {
+            System.err.println("Error saving lastDirectory to preferences: " + e.getMessage());
+        }
     }
 
     /**
