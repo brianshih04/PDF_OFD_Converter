@@ -57,7 +57,7 @@ public class GuiApp extends Application {
 
         // Create scene
         Scene scene = new Scene(webView, 900, 700);
-        stage.setTitle("JPEG2PDF-OFD OCR v" + VERSION);
+        stage.setTitle("JPEG2PDF-OFD-OCR v0.10");
         stage.setScene(scene);
         stage.setMinWidth(800);
         stage.setMinHeight(600);
