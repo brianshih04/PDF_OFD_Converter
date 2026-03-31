@@ -1,5 +1,25 @@
 # Changelog
 
+## [v0.10] - 2026-04-01
+
+### Changed
+- **打包方式從 MSIX 改為 ZIP 便攜版**：解壓即用，無需安裝
+- **應用程式更名**：`JPEG2PDF-OFD OCR` → `JPEG2PDF-OFD-OCR`
+- **UI 標題顯示版本號**：`conveyor.conf` display-name 設為 `JPEG2PDF-OFD-OCR v0.10`
+- **啟動方式改為 `start.bat`**：位於 ZIP 根目錄，自動 cd 進 bin/ 啟動 exe
+- **預設目錄選擇器**：開啟使用者家目錄，並在 session 間記住上次使用的路徑
+- **Conveyor 配置調整**：
+  - `machines` 僅保留 `windows.amd64`
+  - `sign = false`（移除自簽憑證設定）
+  - 使用 `azul.conf` + `from-jmods.conf` 提供 JavaFX 支援
+- **輸出檔名**：`JPEG2PDF-OFD-OCR-v0.10-windows-x64.zip`
+
+### Added
+- **`repack-into-zip.ps1`**：重新封裝腳本，重命名 exe、加入 start.bat、產出乾淨便攜 ZIP
+- **`start.bat`**：根目錄啟動腳本（由 repack 腳本自動產生）
+
+---
+
 ## [3.0.0] - 2026-03-31
 
 ### Added

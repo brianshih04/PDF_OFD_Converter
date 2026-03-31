@@ -1,4 +1,4 @@
-# JPEG2PDF-OFD OCR
+# JPEG2PDF-OFD-OCR
 
 **跨平台 OCR 工具：將 JPEG 圖片轉換為可搜索的 PDF/OFD 文件**
 
@@ -7,76 +7,56 @@
 [![GitHub](https://img.shields.io/badge/GitHub-brianshih04%2FPDF_OFD_Converter-blue)](https://github.com/brianshih04/PDF_OFD_Converter)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 [![Java](https://img.shields.io/badge/Java-17+-orange)](https://adoptium.net/)
+[![Version](https://img.shields.io/badge/Version-v0.10-blue)]()
 
 ---
 
 ## 功能特色
 
-- ✅ **跨平台支援**：Windows、macOS (Intel/ARM)、Linux
-- ✅ **無需安裝 Java**：使用 Conveyor 打包，自包含執行環境
-- ✅ **80+ 種 OCR 語言**：支援繁中、簡中、英文、日文、韓文等
-- ✅ **多種輸出格式**：PDF、OFD（中國國家標準）、TXT
-- ✅ **單頁/多頁模式**：彈性的輸出選項
-- ✅ **自動更新**：內建更新機制（Conveyor）
-- ✅ **純 Java SE**：無 Spring Boot 依賴，輕量快速
-- ✅ **可搜索 PDF/OFD**：使用逐字符定位算法，精確對齊文字層
-- ✅ **直列文字支援**：自動偵測並正確繪製直排文字
-- ✅ **智慧字型選擇**：根據 OCR 語言自動選擇對應 CJK 字型（NotoSans TC/SC）
-- ✅ **Tesseract OCR 支援**：對 RapidOCR 識別不佳的語言（泰文、俄文、西里爾語系、阿拉伯語系、希臘文、印地文等）自動切換到 Tesseract 引擎
-- ✅ **簡繁轉換**：使用 OpenCC 在生成前自動轉換簡體/繁體中文
+- **Windows 便攜版**：ZIP 解壓即用，無需安裝，雙擊 `start.bat` 啟動
+- **無需安裝 Java**：使用 Conveyor 打包，自包含 Azul Zulu FX 21 執行環境
+- **80+ 種 OCR 語言**：支援繁中、簡中、英文、日文、韓文等
+- **多種輸出格式**：PDF、OFD（中國國家標準）、TXT
+- **單頁/多頁模式**：彈性的輸出選項
+- **純 Java SE**：無 Spring Boot 依賴，輕量快速
+- **可搜索 PDF/OFD**：使用逐字符定位算法，精確對齊文字層
+- **直列文字支援**：自動偵測並正確繪製直排文字
+- **智慧字型選擇**：根據 OCR 語言自動選擇對應 CJK 字型（NotoSans TC/SC）
+- **Tesseract OCR 支援**：對 RapidOCR 識別不佳的語言（泰文、俄文、西里爾語系、阿拉伯語系、希臘文、印地文等）自動切換到 Tesseract 引擎
+- **簡繁轉換**：使用 OpenCC 在生成前自動轉換簡體/繁體中文
 
 ---
 
 ## 版本比較
 
-| 版本 | 大小 | 需求 | 平台 | 自動更新 | 推薦度 |
-|------|------|------|------|----------|--------|
-| **Conveyor (GUI+CLI)** | **~300 MB** | **無需 Java** | **Windows** | ✅ | **⭐⭐⭐⭐⭐** |
-| **JAR (CLI only)** | **82 MB** | **Java 17+** | 所有平台 | ❌ | ⭐⭐⭐ |
+| 版本 | 大小 | 需求 | 平台 | 說明 |
+|------|------|------|------|------|
+| **Conveyor ZIP (GUI+CLI)** | **~300 MB** | **無需 Java** | **Windows x64** | **便攜版，解壓即用** |
+| **JAR (CLI only)** | **82 MB** | **Java 17+** | 所有平台 | 純命令行模式 |
 
 ---
 
 ## 快速開始
 
-### Windows
+### Windows（推薦）
 
-#### 方法 1：Conveyor Desktop App（推薦）
-
-1. 下載並解壓 release 壓縮檔
-2. **GUI 模式**：雙擊 `JPEG2PDF-OFD OCR.exe`
-3. **CLI 模式**：在 PowerShell 中執行：
+1. 下載 `JPEG2PDF-OFD-OCR-v0.10-windows-x64.zip`
+2. 解壓縮到任意資料夾
+3. **GUI 模式**：雙擊 `start.bat`
+4. **CLI 模式**：開啟命令提示字元，執行：
    ```powershell
-   .\bin\JPEG2PDF-OFD OCR.exe config.json
-   ```powershell
-   jpeg2pdf-ofd config.json
+   cd bin
+   .\JPEG2PDF-OFD-OCR.exe config.json
    ```
 
-#### 方法 2：PowerShell 一鍵安裝（自動更新）
-
-```powershell
-iex (irm https://brianshih04.github.io/PDF_OFD_Converter/install.ps1)
-```
-
-### macOS
+### CLI (JAR) — 跨平台
 
 ```bash
-# 下載適合的版本
-# Intel Mac: jpeg2pdf-ofd-cli-3.0.0-mac-amd64.zip
-# Apple Silicon: jpeg2pdf-ofd-cli-3.0.0-mac-aarch64.zip
+# 建置
+mvn clean package
 
-unzip jpeg2pdf-ofd-cli-3.0.0-mac-*.zip
-./jpeg2pdf-ofd-cli config.json
-```
-
-### Linux
-
-```bash
-# DEB (Ubuntu/Debian)
-sudo dpkg -i brian-shih-jpeg2pdf-ofd-cli_3.0.0_amd64.deb
-
-# TAR.GZ (通用)
-tar xzf jpeg2pdf-ofd-cli-3.0.0-linux-amd64.tar.gz
-./jpeg2pdf-ofd-cli config.json
+# 執行
+java -jar target/jpeg2pdf-ofd-nospring-3.0.0.jar config.json
 ```
 
 ---
@@ -228,7 +208,7 @@ cp NotoSansTC-Regular.otf ~/Library/Fonts/
 }
 ```
 
-> 💡 **提示**：如果需要處理多種非 CJK 語言（泰文、阿拉伯文、希臘文等），強烈推薦使用 GoNotoKurrent，免去逐一下載各語言字體的麻煩。
+> **提示**：如果需要處理多種非 CJK 語言（泰文、阿拉伯文、希臘文等），強烈推薦使用 GoNotoKurrent，免去逐一下載各語言字體的麻煩。
 
 #### 自動字體選擇（無需配置）
 
@@ -371,9 +351,9 @@ OCR 識別結果可能混合簡繁體，可使用 OpenCC 自動轉換：
 }
 ```
 
-> 💡 **提示**：即使 OCR 語言設為 `chinese_cht`，RapidOCR 的輸出仍可能混合簡體字（如「价」→「價」、「帐」→「帳」）。加上 `"textConvert": "s2t"` 可確保所有文字都是繁體。
+> **提示**：即使 OCR 語言設為 `chinese_cht`，RapidOCR 的輸出仍可能混合簡體字（如「价」→「價」、「帐」→「帳」）。加上 `"textConvert": "s2t"` 可確保所有文字都是繁體。
 
-#### textLayer 配置（新功能）
+#### textLayer 配置
 
 | 參數 | 類型 | 必填 | 預設值 | 說明 |
 |------|------|------|--------|------|
@@ -384,7 +364,7 @@ OCR 識別結果可能混合簡繁體，可使用 OpenCC 自動轉換：
 | `opacity` | Double | ❌ | `0.0001` | 透明度 (0.0 - 1.0) |
 
 **支持的顏色名稱：**
-- `"white"` - 白色（默認，生產環境）
+- `"white"` - 白色（預設，生產環境）
 - `"debug"` - 調試模式（紅色不透明）
 - `"red"` - 紅色
 - `"black"` - 黑色
@@ -395,7 +375,7 @@ OCR 識別結果可能混合簡繁體，可使用 OpenCC 自動轉換：
 ```json
 {
   "textLayer": {
-    "color": "debug"  // 紅色 + 不透明，方便觀察文字定位
+    "color": "debug"
   }
 }
 ```
@@ -405,7 +385,7 @@ OCR 識別結果可能混合簡繁體，可使用 OpenCC 自動轉換：
 {
   "textLayer": {
     "color": "white",
-    "opacity": 0.0001  // 極低透明度，可搜索但幾乎看不見
+    "opacity": 0.0001
   }
 }
 ```
@@ -495,13 +475,13 @@ OCR 識別結果可能混合簡繁體，可使用 OpenCC 自動轉換：
 
 **測試輸出：**
 ```
-✅ Sample_20260324_093624.pdf (2.69 MB)
-✅ Sample_20260324_090839.ofd (2.64 MB)
+Sample_20260324_093624.pdf (2.69 MB)
+Sample_20260324_090839.ofd (2.64 MB)
 
 處理時間：約 30 秒
 OCR 偵測：52 個文字區塊
 文字層定位：精確對齊
-WPS 搜索：✅ 可搜索
+WPS 搜索：可搜索
 ```
 
 ---
@@ -512,7 +492,7 @@ WPS 搜索：✅ 可搜索
 
 - JDK 21+（Conveyor 打包用，編譯用 JDK 17 亦可）
 - Maven 3.6+
-- Conveyor（用於跨平台打包）
+- Conveyor（用於打包）
 
 ### 建置 JAR
 
@@ -522,37 +502,29 @@ mvn clean package
 
 輸出：`target/jpeg2pdf-ofd-nospring-3.0.0.jar`
 
-### 建置 Conveyor 跨平台套件
+### 建置 Windows 便攜版 (ZIP)
 
 ```bash
-# 安裝 Conveyor（Conveyor 22+）
+# 安裝 Conveyor
 # Windows: winget install Hydraulic.Conveyor
-# macOS:   brew install --cask conveyor
-# Linux:   https://hydraulic.dev/downloads/
 
-# 首次打包需同意授權
-CONVEYOR_AGREE_TO_LICENSE=1 conveyor make windows-msix --overwrite=HARD_REPLACE --rerun=all   # macOS/Linux
-$env:CONVEYOR_AGREE_TO_LICENSE="1"; conveyor make windows-msix --overwrite=HARD_REPLACE --rerun=all  # Windows PowerShell
+# 1. 打包為 ZIP（sign=false 跳過簽章）
+conveyor make windows-zip --overwrite=HARD_REPLACE --rerun=all
 
-# 建置所有平台
-conveyor make site
+# 2. 重新封裝為便攜 ZIP（重命名 exe、加入 start.bat）
+powershell -File repack-into-zip.ps1
 ```
 
-輸出：
-- `output/jpeg2pdf-ofd-cli-3.0.0.x64.msix` (Windows)
-- `output/jpeg2pdf-ofd-cli-3.0.0-mac-amd64.zip` (macOS Intel)
-- `output/jpeg2pdf-ofd-cli-3.0.0-mac-aarch64.zip` (macOS ARM)
-- `output/brian-shih-jpeg2pdf-ofd-cli_3.0.0_amd64.deb` (Linux DEB)
+輸出：`output/JPEG2PDF-OFD-OCR-v0.10-windows-x64.zip`
 
-> **注意：** Windows MSIX 若簽章不受信任，可將 `.msix` 改名為 `.zip` 後解壓使用。
-> 若僅修改 Java 程式碼而未改動依賴，可直接複製 JAR 到部署目錄的 `app/` 資料夾覆蓋，無需每次重新打包。
+> **注意：** 若僅修改 Java 程式碼而未改動依賴，可直接複製 JAR 到部署目錄的 `app/` 資料夾覆蓋，無需每次重新打包。
 
 ---
 
 ## 已知限制
 
 - **特殊符號缺字**：GoNotoKurrent 字體不包含 ≤ ≥ △ ℃ μ 等數學/科學符號，OCR 識別正常但 PDF 文字層會跳過這些字元。若需完整符號支援，可在 config.json 的 `fontPath` 指定包含符號的字體（如 Noto Sans CJK）。
-- **GUI 需 JavaFX**：CLI 模式（帶 config.json 參數）不需要 JavaFX，但 GUI 模式（雙擊或 `--gui`）需要 Conveyor 打包的 JVM 包含 JavaFX 模組（Azul Zulu FX 21）。
+- **GUI 需 JavaFX**：CLI 模式（帶 config.json 參數）不需要 JavaFX，但 GUI 模式（雙擊 `start.bat` 或 `--gui`）需要 Conveyor 打包的 JVM 包含 JavaFX 模組（Azul Zulu FX 21）。
 - **字體路徑**：CLI 從 JAR 目錄的相對路徑 `fonts/GoNotoKurrent-Regular.ttf` 載入字體，若 working directory 不在專案根目錄，請在 config.json 設定 `fontPath` 為絕對路徑。
 
 ---
@@ -561,14 +533,14 @@ conveyor make site
 
 - **README.md** - 本文件
 - **conveyor.conf** - Conveyor 配置
-- **CONVEYOR-GUIDE.md** - 完整 Conveyor 指南
+- **repack-into-zip.ps1** - 便攜 ZIP 重新封裝腳本
 - **JSON-CONFIG-GUIDE.md** - JSON 配置指南
 - **searchable_method.md** - Searchable PDF/OFD 完整產生方法
 - **SEARCHABLE_OFD_NOTES.md** - 技術筆記
 - **TEXTLAYER-CONFIG-GUIDE.md** - textLayer 配置指南
-- **CHINA-LINUX-GUIDE.md** - 中國國產 Linux 構建指南 (新)
-- **build-china-linux.sh** - Linux/macOS 構建腳本 (新)
-- **build-china-linux.ps1** - Windows PowerShell 構建腳本 (新)
+- **CHINA-LINUX-GUIDE.md** - 中國國產 Linux 構建指南
+- **build-china-linux.sh** - Linux/macOS 構建腳本
+- **build-china-linux.ps1** - Windows PowerShell 構建腳本
 
 ---
 
@@ -587,13 +559,8 @@ conveyor make site
 - 自定義文字層顏色和透明度
 - OpenCC 簡繁轉換（s2t/t2s）
 
-**跨平台支援：**
-- Windows
-- macOS (Intel + ARM)
-- Linux (Debian + RPM)
-
 **打包選項：**
-- Conveyor（推薦，含 GUI+CLI） ⭐⭐⭐⭐⭐
+- Conveyor ZIP（推薦，含 GUI+CLI，Windows 便攜版）
 - JAR（CLI only，需要 Java）
 
 ---
