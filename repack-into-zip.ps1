@@ -1,5 +1,5 @@
 # repack-into-zip.ps1
-# Takes Conveyor's output ZIP, copies the launcher exe to root level, and creates a clean portable ZIP.
+# Takes Conveyor's output ZIP, renames the launcher exe cleanly, adds a start.bat launcher, and creates a clean portable ZIP.
 # Usage: powershell -File repack-into-zip.ps1
 
 $ErrorActionPreference = "Stop"
@@ -45,12 +45,22 @@ if (-not $launcherExe) {
 
 $exeRawName = $launcherExe.Name
 # Conveyor uses display-name for the exe, which may contain %20 (URL-encoded space)
-# Rename to a clean filename for the root-level copy
+# Rename to a clean filename
 $exeCleanName = "JPEG2PDF-OFD-OCR.exe"
 Write-Host "Found launcher: $exeRawName -> $exeCleanName"
 
-# Copy the exe to root of extracted dir with a clean name
-Copy-Item $launcherExe.FullName -Destination (Join-Path $extractDir $exeCleanName) -Force
+# Rename the exe in-place within bin/
+Rename-Item -Path $launcherExe.FullName -NewName $exeCleanName -Force
+
+# Create start.bat at root level
+$startBatContent = @"
+@echo off
+cd /d "%~dp0bin"
+start "" "$exeCleanName"
+"@
+$startBatPath = Join-Path $extractDir "start.bat"
+Set-Content -Path $startBatPath -Value $startBatContent -Encoding ASCII
+Write-Host "Created start.bat at root level"
 
 # Build output ZIP name: use fsname + version from conveyor.conf
 $outputZipName = "JPEG2PDF-OFD-OCR-v0.10-windows-x64.zip"
