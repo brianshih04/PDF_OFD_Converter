@@ -27,3 +27,9 @@ zulu-fx-21/
 hs_err_pid*.log
 output/
 *.bat
+# Code signing certificates
+*.pfx
+*.cer
+*.pem
+*.key
+conveyor.local.conf
