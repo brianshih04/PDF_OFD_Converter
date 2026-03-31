@@ -548,6 +548,14 @@ conveyor make site
 
 ---
 
+## 已知限制
+
+- **特殊符號缺字**：GoNotoKurrent 字體不包含 ≤ ≥ △ ℃ μ 等數學/科學符號，OCR 識別正常但 PDF 文字層會跳過這些字元。若需完整符號支援，可在 config.json 的 `fontPath` 指定包含符號的字體（如 Noto Sans CJK）。
+- **GUI 需 JavaFX**：CLI 模式（帶 config.json 參數）不需要 JavaFX，但 GUI 模式（雙擊或 `--gui`）需要 Conveyor 打包的 JVM 包含 JavaFX 模組（Azul Zulu FX 21）。
+- **字體路徑**：CLI 從 JAR 目錄的相對路徑 `fonts/GoNotoKurrent-Regular.ttf` 載入字體，若 working directory 不在專案根目錄，請在 config.json 設定 `fontPath` 為絕對路徑。
+
+---
+
 ## 文件列表
 
 - **README.md** - 本文件
