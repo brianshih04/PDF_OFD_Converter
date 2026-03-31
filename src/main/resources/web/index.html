@@ -378,45 +378,45 @@
 
         <!-- Tab Navigation -->
         <div class="tab-nav">
-            <button class="tab-btn active" onclick="switchTab('convert')">轉換</button>
-            <button class="tab-btn" onclick="switchTab('settings')">設定</button>
+            <button class="tab-btn active" onclick="switchTab('convert')" data-i18n="tab_convert">轉換</button>
+            <button class="tab-btn" onclick="switchTab('settings')" data-i18n="tab_settings">設定</button>
         </div>
 
         <!-- Tab 1: Convert -->
         <div id="tab-convert" class="tab-content active">
             <!-- Input Section -->
             <div class="card">
-                <div class="card-title">輸入設置</div>
+                <div class="card-title" data-i18n="card_input">輸入設置</div>
 
                 <div class="form-group">
-                    <label>輸入類型</label>
+                    <label data-i18n="label_input_type">輸入類型</label>
                     <div class="radio-group">
                         <label class="radio-item">
                             <input type="radio" name="inputType" value="folder" checked onchange="updateInputType()">
-                            圖片資料夾
+                            <span data-i18n="label_image_folder">圖片資料夾</span>
                         </label>
                         <label class="radio-item">
                             <input type="radio" name="inputType" value="pdf" onchange="updateInputType()">
-                            PDF 檔案
+                            <span data-i18n="label_pdf_file">PDF 檔案</span>
                         </label>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label id="inputLabel">選擇圖片資料夾</label>
+                    <label id="inputLabel" data-i18n="label_select_image_folder">選擇圖片資料夾</label>
                     <div class="path-row">
-                        <input type="text" id="inputPath" class="path-input" placeholder="點擊瀏覽選擇..." readonly>
-                        <button class="btn btn-secondary" onclick="browseInput()">瀏覽</button>
+                        <input type="text" id="inputPath" class="path-input" data-i18n-placeholder="placeholder_browse" placeholder="點擊瀏覽選擇..." readonly>
+                        <button class="btn btn-secondary" onclick="browseInput()" data-i18n="btn_browse">瀏覽</button>
                     </div>
                 </div>
             </div>
 
             <!-- OCR Settings -->
             <div class="card">
-                <div class="card-title">OCR 設置</div>
+                <div class="card-title" data-i18n="card_ocr">OCR 設置</div>
 
                 <div class="form-group">
-                    <label>識別語言</label>
+                    <label data-i18n="label_ocr_language">識別語言</label>
                     <select id="language">
                         <option value="chinese_cht">繁體中文</option>
                         <option value="ch">简体中文</option>
@@ -434,10 +434,10 @@
 
             <!-- Output Settings -->
             <div class="card">
-                <div class="card-title">輸出設置</div>
+                <div class="card-title" data-i18n="card_output">輸出設置</div>
 
                 <div class="form-group">
-                    <label>輸出格式</label>
+                    <label data-i18n="label_output_format">輸出格式</label>
                     <div class="checkbox-group">
                         <label class="checkbox-item">
                             <input type="checkbox" id="formatPdf" checked>
@@ -457,37 +457,34 @@
                 <div class="form-group">
                     <label class="checkbox-item">
                         <input type="checkbox" id="multiPage">
-                        多頁模式 (所有圖片合併為一個檔案)
+                        <span data-i18n="label_multi_page_mode">多頁模式 (所有圖片合併為一個檔案)</span>
                     </label>
                 </div>
 
                 <div class="form-group">
-                    <label>輸出資料夾</label>
+                    <label data-i18n="label_output_folder">輸出資料夾</label>
                     <div class="path-row">
-                        <input type="text" id="outputPath" class="path-input" placeholder="點擊瀏覽選擇..." readonly>
-                        <button class="btn btn-secondary" onclick="browseOutput()">瀏覽</button>
+                        <input type="text" id="outputPath" class="path-input" data-i18n-placeholder="placeholder_browse" placeholder="點擊瀏覽選擇..." readonly>
+                        <button class="btn btn-secondary" onclick="browseOutput()" data-i18n="btn_browse">瀏覽</button>
                     </div>
                 </div>
             </div>
 
             <!-- Action Buttons -->
             <div class="card">
-                <button id="startBtn" class="btn btn-success start-btn" onclick="startConversion()">
+                <button id="startBtn" class="btn btn-success start-btn" onclick="startConversion()" data-i18n="btn_start">
                     開始轉換
                 </button>
-                <button id="cancelBtn" class="btn btn-danger start-btn hidden" onclick="cancelConversion()">
+                <button id="cancelBtn" class="btn btn-danger start-btn hidden" onclick="cancelConversion()" data-i18n="btn_cancel">
                     取消轉換
                 </button>
-                <div style="margin-top: 10px; text-align: right;">
-                    <button class="btn btn-secondary" onclick="resetAllSettings()">恢復預設設定</button>
-                </div>
             </div>
 
             <!-- Progress Section -->
             <div id="progressSection" class="card progress-section">
-                <div class="card-title">轉換進度</div>
+                <div class="card-title" data-i18n="card_progress">轉換進度</div>
 
-                <div class="progress-text" id="progressText">準備中...</div>
+                <div class="progress-text" id="progressText" data-i18n="text_preparing">準備中...</div>
                 <div class="progress-bar-container">
                     <div class="progress-bar" id="progressBar"></div>
                 </div>
@@ -495,7 +492,7 @@
                 <div class="log-area" id="logArea"></div>
 
                 <div id="successMessage" class="success-message">
-                    <h4>轉換完成!</h4>
+                    <h4 data-i18n="text_complete">轉換完成!</h4>
                     <ul class="file-list" id="fileList"></ul>
                 </div>
             </div>
@@ -505,40 +502,40 @@
         <div id="tab-settings" class="tab-content">
             <!-- OCR Engine Section -->
             <div class="card">
-                <div class="card-title">OCR 引擎</div>
+                <div class="card-title" data-i18n="card_ocr_engine">OCR 引擎</div>
 
                 <div class="form-group">
-                    <label>引擎</label>
+                    <label data-i18n="label_engine">引擎</label>
                     <select id="settingOcrEngine">
-                        <option value="auto">自動</option>
+                        <option value="auto" data-i18n="option_auto">自動</option>
                         <option value="rapidocr">RapidOCR</option>
                         <option value="tesseract">Tesseract</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label>Tesseract 資料路徑</label>
+                    <label data-i18n="label_tesseract_data_path">Tesseract 資料路徑</label>
                     <div class="path-row">
-                        <input type="text" id="settingTesseractDataPath" class="path-input" placeholder="tessdata 資料夾路徑...">
-                        <button class="btn btn-secondary" onclick="browseTesseractDataPath()">瀏覽</button>
+                        <input type="text" id="settingTesseractDataPath" class="path-input" data-i18n-placeholder="placeholder_tessdata" placeholder="tessdata 資料夾路徑...">
+                        <button class="btn btn-secondary" onclick="browseTesseractDataPath()" data-i18n="btn_browse">瀏覽</button>
                     </div>
                 </div>
             </div>
 
             <!-- Output Section -->
             <div class="card">
-                <div class="card-title">輸出</div>
+                <div class="card-title" data-i18n="card_output_settings">輸出</div>
 
                 <div class="form-group">
-                    <label>預設輸出資料夾</label>
+                    <label data-i18n="label_default_output_folder">預設輸出資料夾</label>
                     <div class="path-row">
-                        <input type="text" id="settingDefaultOutputFolder" class="path-input" placeholder="預設輸出路徑...">
-                        <button class="btn btn-secondary" onclick="browseDefaultOutputFolder()">瀏覽</button>
+                        <input type="text" id="settingDefaultOutputFolder" class="path-input" data-i18n-placeholder="placeholder_output" placeholder="預設輸出路徑...">
+                        <button class="btn btn-secondary" onclick="browseDefaultOutputFolder()" data-i18n="btn_browse">瀏覽</button>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label>檔名格式</label>
+                    <label data-i18n="label_filename_format">檔名格式</label>
                     <select id="settingFilenameFormat">
                         <option value="multipage_YYYYMMDD_HHmmss">multipage_YYYYMMDD_HHmmss</option>
                         <option value="input_YYYYMMDD_HHmmss">input_YYYYMMDD_HHmmss</option>
@@ -546,52 +543,52 @@
                 </div>
 
                 <div class="form-group">
-                    <label>多頁模式</label>
+                    <label data-i18n="label_multi_page_mode_settings">多頁模式</label>
                     <select id="settingMultiPageMode">
-                        <option value="false">逐頁轉換</option>
-                        <option value="true">合併為多頁</option>
+                        <option value="false" data-i18n-opt="option_page_by_page">逐頁轉換</option>
+                        <option value="true" data-i18n-opt="option_merge_multi_page">合併為多頁</option>
                     </select>
                 </div>
             </div>
 
             <!-- Font Section -->
             <div class="card">
-                <div class="card-title">字體</div>
+                <div class="card-title" data-i18n="card_font">字體</div>
 
                 <div class="form-group">
-                    <label>字體模式</label>
+                    <label data-i18n="label_font_mode">字體模式</label>
                     <select id="settingFontMode" onchange="updateFontModeVisibility()">
-                        <option value="auto">自動（依語言）</option>
-                        <option value="custom">自訂</option>
+                        <option value="auto" data-i18n-opt="option_font_auto">自動（依語言）</option>
+                        <option value="custom" data-i18n-opt="option_custom">自訂</option>
                     </select>
                 </div>
 
                 <div class="form-group" id="customFontPathGroup" style="display: none;">
-                    <label>自訂字體路徑</label>
+                    <label data-i18n="label_custom_font_path">自訂字體路徑</label>
                     <div class="path-row">
-                        <input type="text" id="settingCustomFontPath" class="path-input" placeholder="選擇 TTF 字體檔案...">
-                        <button class="btn btn-secondary" onclick="browseCustomFont()">瀏覽</button>
+                        <input type="text" id="settingCustomFontPath" class="path-input" data-i18n-placeholder="placeholder_font" placeholder="選擇 TTF 字體檔案...">
+                        <button class="btn btn-secondary" onclick="browseCustomFont()" data-i18n="btn_browse">瀏覽</button>
                     </div>
                 </div>
             </div>
 
             <!-- Text Layer Section -->
             <div class="card">
-                <div class="card-title">文字層</div>
+                <div class="card-title" data-i18n="card_text_layer">文字層</div>
 
                 <div class="form-group">
-                    <label>顏色</label>
+                    <label data-i18n="label_color">顏色</label>
                     <select id="settingTextColor">
-                        <option value="white">白色</option>
-                        <option value="black">黑色</option>
-                        <option value="red">紅色</option>
-                        <option value="blue">藍色</option>
-                        <option value="debug">調試模式</option>
+                        <option value="white" data-i18n-opt="option_white">白色</option>
+                        <option value="black" data-i18n-opt="option_black">黑色</option>
+                        <option value="red" data-i18n-opt="option_red">紅色</option>
+                        <option value="blue" data-i18n-opt="option_blue">藍色</option>
+                        <option value="debug" data-i18n-opt="option_debug_mode">調試模式</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label>透明度</label>
+                    <label data-i18n="label_opacity">透明度</label>
                     <div class="range-row">
                         <input type="range" id="settingTextOpacity" class="range-slider"
                                min="0" max="1" step="0.0001" value="0.0001"
@@ -603,25 +600,25 @@
 
             <!-- Text Conversion Section -->
             <div class="card">
-                <div class="card-title">文字轉換</div>
+                <div class="card-title" data-i18n="card_text_conversion">文字轉換</div>
 
                 <div class="form-group">
-                    <label>簡繁轉換</label>
+                    <label data-i18n="label_chinese_conversion">簡繁轉換</label>
                     <select id="settingChineseConversion">
-                        <option value="null">不轉換</option>
-                        <option value="s2t">簡體→繁體</option>
-                        <option value="t2s">繁體→簡體</option>
+                        <option value="null" data-i18n-opt="option_no_conversion">不轉換</option>
+                        <option value="s2t" data-i18n-opt="option_s2t">簡體→繁體</option>
+                        <option value="t2s" data-i18n-opt="option_t2s">繁體→簡體</option>
                     </select>
                 </div>
             </div>
 
             <!-- Interface Section -->
             <div class="card">
-                <div class="card-title">界面</div>
+                <div class="card-title" data-i18n="card_interface">界面</div>
 
                 <div class="form-group">
-                    <label>UI 語言</label>
-                    <select id="settingUiLanguage">
+                    <label data-i18n="label_ui_language">UI 語言</label>
+                    <select id="settingUiLanguage" onchange="changeUiLanguage()">
                         <option value="zh-TW">繁體中文</option>
                         <option value="zh-CN">简体中文</option>
                         <option value="en">English</option>
@@ -631,14 +628,14 @@
                 <div class="form-group">
                     <label class="checkbox-item">
                         <input type="checkbox" id="settingNotifyOnComplete" checked>
-                        完成後通知
+                        <span data-i18n="label_notify_on_complete">完成後通知</span>
                     </label>
                 </div>
 
                 <div class="form-group">
                     <label class="checkbox-item">
                         <input type="checkbox" id="settingOpenFolderOnComplete" checked>
-                        完成後自動開啟資料夾
+                        <span data-i18n="label_open_folder_on_complete">完成後自動開啟資料夾</span>
                     </label>
                 </div>
             </div>
@@ -646,8 +643,8 @@
             <!-- Settings Buttons -->
             <div class="card">
                 <div class="settings-buttons">
-                    <button class="btn btn-secondary" onclick="resetSettings()">恢復預設</button>
-                    <button class="btn btn-primary" onclick="saveSettings()">儲存設定</button>
+                    <button class="btn btn-secondary" onclick="resetSettings()" data-i18n="btn_reset">恢復預設</button>
+                    <button class="btn btn-primary" onclick="saveSettings()" data-i18n="btn_save">儲存設定</button>
                 </div>
             </div>
         </div>
@@ -687,11 +684,338 @@
         var isProcessing = false;
         var currentSettings = {};
 
+        // i18n translations
+        var i18n = {
+            'zh-TW': {
+                // Tab navigation
+                'tab_convert': '轉換',
+                'tab_settings': '設定',
+                // Input section
+                'card_input': '輸入設置',
+                'label_input_type': '輸入類型',
+                'label_image_folder': '圖片資料夾',
+                'label_pdf_file': 'PDF 檔案',
+                'label_select_image_folder': '選擇圖片資料夾',
+                'label_select_pdf_file': '選擇 PDF 檔案',
+                'btn_browse': '瀏覽',
+                'placeholder_browse': '點擊瀏覽選擇...',
+                // OCR section
+                'card_ocr': 'OCR 設置',
+                'label_ocr_language': '識別語言',
+                // Output section
+                'card_output': '輸出設置',
+                'label_output_format': '輸出格式',
+                'label_multi_page_mode': '多頁模式 (所有圖片合併為一個檔案)',
+                'label_output_folder': '輸出資料夾',
+                // Action buttons
+                'btn_start': '開始轉換',
+                'btn_cancel': '取消轉換',
+                // Progress section
+                'card_progress': '轉換進度',
+                'text_preparing': '準備中...',
+                'text_processing': '處理中...',
+                'text_complete': '轉換完成!',
+                // Settings - OCR Engine
+                'card_ocr_engine': 'OCR 引擎',
+                'label_engine': '引擎',
+                'option_auto': '自動',
+                'label_tesseract_data_path': 'Tesseract 資料路徑',
+                'placeholder_tessdata': 'tessdata 資料夾路徑...',
+                // Settings - Output
+                'card_output_settings': '輸出',
+                'label_default_output_folder': '預設輸出資料夾',
+                'placeholder_output': '預設輸出路徑...',
+                'label_filename_format': '檔名格式',
+                'label_multi_page_mode_settings': '多頁模式',
+                'option_page_by_page': '逐頁轉換',
+                'option_merge_multi_page': '合併為多頁',
+                // Settings - Font
+                'card_font': '字體',
+                'label_font_mode': '字體模式',
+                'option_font_auto': '自動（依語言）',
+                'option_custom': '自訂',
+                'label_custom_font_path': '自訂字體路徑',
+                'placeholder_font': '選擇 TTF 字體檔案...',
+                // Settings - Text layer
+                'card_text_layer': '文字層',
+                'label_color': '顏色',
+                'option_white': '白色',
+                'option_black': '黑色',
+                'option_red': '紅色',
+                'option_blue': '藍色',
+                'option_debug_mode': '調試模式',
+                'label_opacity': '透明度',
+                // Settings - Text conversion
+                'card_text_conversion': '文字轉換',
+                'label_chinese_conversion': '簡繁轉換',
+                'option_no_conversion': '不轉換',
+                'option_s2t': '簡體→繁體',
+                'option_t2s': '繁體→簡體',
+                // Settings - Interface
+                'card_interface': '界面',
+                'label_ui_language': 'UI 語言',
+                'label_notify_on_complete': '完成後通知',
+                'label_open_folder_on_complete': '完成後自動開啟資料夾',
+                // Settings buttons
+                'btn_reset': '恢復預設',
+                'btn_save': '儲存設定',
+                // Messages
+                'msg_settings_saved': '設定已儲存',
+                'msg_confirm_reset': '確定要恢復預設設定嗎？',
+                'msg_confirm_reset_all': '確定要恢復所有預設設定嗎？\n這會清除所有已儲存的設定。',
+                'msg_select_input': '請選擇輸入路徑',
+                'msg_select_output': '請選擇輸出資料夾',
+                'msg_select_format': '請至少選擇一種輸出格式',
+                'msg_save_failed': '儲存設定失敗: ',
+                'msg_start_conversion': '開始轉換...',
+                'msg_config': '配置: ',
+                'msg_error': '錯誤: ',
+                'msg_interface_loaded': '界面已載入，請選擇輸入和輸出路徑',
+                // Language names
+                'lang_zh_tw': '繁體中文',
+                'lang_zh_cn': '简体中文',
+                'lang_en': 'English'
+            },
+            'zh-CN': {
+                // Tab navigation
+                'tab_convert': '转换',
+                'tab_settings': '设置',
+                // Input section
+                'card_input': '输入设置',
+                'label_input_type': '输入类型',
+                'label_image_folder': '图片文件夹',
+                'label_pdf_file': 'PDF 文件',
+                'label_select_image_folder': '选择图片文件夹',
+                'label_select_pdf_file': '选择 PDF 文件',
+                'btn_browse': '浏览',
+                'placeholder_browse': '点击浏览选择...',
+                // OCR section
+                'card_ocr': 'OCR 设置',
+                'label_ocr_language': '识别语言',
+                // Output section
+                'card_output': '输出设置',
+                'label_output_format': '输出格式',
+                'label_multi_page_mode': '多页模式 (所有图片合并为一个文件)',
+                'label_output_folder': '输出文件夹',
+                // Action buttons
+                'btn_start': '开始转换',
+                'btn_cancel': '取消转换',
+                // Progress section
+                'card_progress': '转换进度',
+                'text_preparing': '准备中...',
+                'text_processing': '处理中...',
+                'text_complete': '转换完成!',
+                // Settings - OCR Engine
+                'card_ocr_engine': 'OCR 引擎',
+                'label_engine': '引擎',
+                'option_auto': '自动',
+                'label_tesseract_data_path': 'Tesseract 数据路径',
+                'placeholder_tessdata': 'tessdata 文件夹路径...',
+                // Settings - Output
+                'card_output_settings': '输出',
+                'label_default_output_folder': '默认输出文件夹',
+                'placeholder_output': '默认输出路径...',
+                'label_filename_format': '文件名格式',
+                'label_multi_page_mode_settings': '多页模式',
+                'option_page_by_page': '逐页转换',
+                'option_merge_multi_page': '合并为多页',
+                // Settings - Font
+                'card_font': '字体',
+                'label_font_mode': '字体模式',
+                'option_font_auto': '自动（依语言）',
+                'option_custom': '自定义',
+                'label_custom_font_path': '自定义字体路径',
+                'placeholder_font': '选择 TTF 字体文件...',
+                // Settings - Text layer
+                'card_text_layer': '文字层',
+                'label_color': '颜色',
+                'option_white': '白色',
+                'option_black': '黑色',
+                'option_red': '红色',
+                'option_blue': '蓝色',
+                'option_debug_mode': '调试模式',
+                'label_opacity': '透明度',
+                // Settings - Text conversion
+                'card_text_conversion': '文字转换',
+                'label_chinese_conversion': '简繁转换',
+                'option_no_conversion': '不转换',
+                'option_s2t': '简体→繁体',
+                'option_t2s': '繁体→简体',
+                // Settings - Interface
+                'card_interface': '界面',
+                'label_ui_language': 'UI 语言',
+                'label_notify_on_complete': '完成后通知',
+                'label_open_folder_on_complete': '完成后自动打开文件夹',
+                // Settings buttons
+                'btn_reset': '恢复默认',
+                'btn_save': '保存设置',
+                // Messages
+                'msg_settings_saved': '设置已保存',
+                'msg_confirm_reset': '确定要恢复默认设置吗？',
+                'msg_confirm_reset_all': '确定要恢复所有默认设置吗？\n这会清除所有已保存的设置。',
+                'msg_select_input': '请选择输入路径',
+                'msg_select_output': '请选择输出文件夹',
+                'msg_select_format': '请至少选择一种输出格式',
+                'msg_save_failed': '保存设置失败: ',
+                'msg_start_conversion': '开始转换...',
+                'msg_config': '配置: ',
+                'msg_error': '错误: ',
+                'msg_interface_loaded': '界面已加载，请选择输入和输出路径',
+                // Language names
+                'lang_zh_tw': '繁體中文',
+                'lang_zh_cn': '简体中文',
+                'lang_en': 'English'
+            },
+            'en': {
+                // Tab navigation
+                'tab_convert': 'Convert',
+                'tab_settings': 'Settings',
+                // Input section
+                'card_input': 'Input Settings',
+                'label_input_type': 'Input Type',
+                'label_image_folder': 'Image Folder',
+                'label_pdf_file': 'PDF File',
+                'label_select_image_folder': 'Select Image Folder',
+                'label_select_pdf_file': 'Select PDF File',
+                'btn_browse': 'Browse',
+                'placeholder_browse': 'Click to browse...',
+                // OCR section
+                'card_ocr': 'OCR Settings',
+                'label_ocr_language': 'Recognition Language',
+                // Output section
+                'card_output': 'Output Settings',
+                'label_output_format': 'Output Format',
+                'label_multi_page_mode': 'Multi-page mode (merge all images into one file)',
+                'label_output_folder': 'Output Folder',
+                // Action buttons
+                'btn_start': 'Start Conversion',
+                'btn_cancel': 'Cancel Conversion',
+                // Progress section
+                'card_progress': 'Conversion Progress',
+                'text_preparing': 'Preparing...',
+                'text_processing': 'Processing...',
+                'text_complete': 'Conversion Complete!',
+                // Settings - OCR Engine
+                'card_ocr_engine': 'OCR Engine',
+                'label_engine': 'Engine',
+                'option_auto': 'Auto',
+                'label_tesseract_data_path': 'Tesseract Data Path',
+                'placeholder_tessdata': 'tessdata folder path...',
+                // Settings - Output
+                'card_output_settings': 'Output',
+                'label_default_output_folder': 'Default Output Folder',
+                'placeholder_output': 'Default output path...',
+                'label_filename_format': 'Filename Format',
+                'label_multi_page_mode_settings': 'Multi-page Mode',
+                'option_page_by_page': 'Page by Page',
+                'option_merge_multi_page': 'Merge to Multi-page',
+                // Settings - Font
+                'card_font': 'Font',
+                'label_font_mode': 'Font Mode',
+                'option_font_auto': 'Auto (by language)',
+                'option_custom': 'Custom',
+                'label_custom_font_path': 'Custom Font Path',
+                'placeholder_font': 'Select TTF font file...',
+                // Settings - Text layer
+                'card_text_layer': 'Text Layer',
+                'label_color': 'Color',
+                'option_white': 'White',
+                'option_black': 'Black',
+                'option_red': 'Red',
+                'option_blue': 'Blue',
+                'option_debug_mode': 'Debug Mode',
+                'label_opacity': 'Opacity',
+                // Settings - Text conversion
+                'card_text_conversion': 'Text Conversion',
+                'label_chinese_conversion': 'Chinese Conversion',
+                'option_no_conversion': 'No Conversion',
+                'option_s2t': 'Simplified→Traditional',
+                'option_t2s': 'Traditional→Simplified',
+                // Settings - Interface
+                'card_interface': 'Interface',
+                'label_ui_language': 'UI Language',
+                'label_notify_on_complete': 'Notify on Complete',
+                'label_open_folder_on_complete': 'Open Folder on Complete',
+                // Settings buttons
+                'btn_reset': 'Reset to Default',
+                'btn_save': 'Save Settings',
+                // Messages
+                'msg_settings_saved': 'Settings saved',
+                'msg_confirm_reset': 'Are you sure to reset to default settings?',
+                'msg_confirm_reset_all': 'Are you sure to reset all settings?\nThis will clear all saved settings.',
+                'msg_select_input': 'Please select input path',
+                'msg_select_output': 'Please select output folder',
+                'msg_select_format': 'Please select at least one output format',
+                'msg_save_failed': 'Failed to save settings: ',
+                'msg_start_conversion': 'Starting conversion...',
+                'msg_config': 'Config: ',
+                'msg_error': 'Error: ',
+                'msg_interface_loaded': 'Interface loaded, please select input and output paths',
+                // Language names
+                'lang_zh_tw': '繁體中文',
+                'lang_zh_cn': '简体中文',
+                'lang_en': 'English'
+            }
+        };
+
+        // Current UI language
+        var currentUiLanguage = 'zh-TW';
+
+        // Get i18n text
+        function t(key) {
+            var lang = i18n[currentUiLanguage];
+            if (lang && lang[key]) {
+                return lang[key];
+            }
+            return key;
+        }
+
+        // Apply i18n to all elements with data-i18n attribute
+        function applyI18n() {
+            var elements = document.querySelectorAll('[data-i18n]');
+            elements.forEach(function(el) {
+                var key = el.getAttribute('data-i18n');
+                var text = t(key);
+                // Handle different element types
+                if (el.tagName === 'INPUT' && (el.type === 'submit' || el.type === 'button')) {
+                    el.value = text;
+                } else {
+                    el.textContent = text;
+                }
+            });
+            // Update placeholders (data-i18n-placeholder)
+            var placeholders = document.querySelectorAll('[data-i18n-placeholder]');
+            placeholders.forEach(function(el) {
+                var key = el.getAttribute('data-i18n-placeholder');
+                el.placeholder = t(key);
+            });
+            // Update select options (data-i18n-opt)
+            var options = document.querySelectorAll('[data-i18n-opt]');
+            options.forEach(function(el) {
+                var key = el.getAttribute('data-i18n-opt');
+                el.textContent = t(key);
+            });
+            // Update language select options text
+            updateLanguageSelectOptions();
+        }
+
+        // Update language select dropdown options
+        function updateLanguageSelectOptions() {
+            var select = document.getElementById('settingUiLanguage');
+            if (select) {
+                select.options[0].text = t('lang_zh_tw');
+                select.options[1].text = t('lang_zh_cn');
+                select.options[2].text = t('lang_en');
+            }
+        }
+
         // Default settings
         var defaultSettings = {
             ocrEngine: 'auto',
-            tesseractDataPath: 'C:/OCR/tessdata',
-            defaultOutputFolder: '',
+            tesseractDataPath: 'C:\\OCR\\tessdata',
+            inputPath: 'C:\\OCR\\Sample',
+            outputPath: 'C:\\OCR\\Output',
+            defaultOutputFolder: 'C:\\OCR\\Output',
             filenameFormat: 'multipage_YYYYMMDD_HHmmss',
             multiPageMode: 'false',
             fontMode: 'auto',
@@ -741,6 +1065,7 @@
 
                 if (path) {
                     document.getElementById('inputPath').value = path;
+                    saveCurrentPaths();
                 }
             } catch (e) {
                 alert('Error: ' + e.message + '\njavaApp exists: ' + (window.javaApp !== undefined));
@@ -752,7 +1077,8 @@
             var path = window.javaApp.openDirectoryChooser();
             if (path) {
                 document.getElementById('outputPath').value = path;
-            }
+                saveCurrentPaths();
+                }
         }
 
         // Browse Tesseract data path
@@ -791,6 +1117,33 @@
             document.getElementById('opacityValue').textContent = parseFloat(value).toFixed(4);
         }
 
+        // Save current input/output paths to settings
+        function saveCurrentPaths() {
+            var settings = getSettingsFromUI();
+            settings.inputPath = document.getElementById('inputPath').value;
+            settings.outputPath = document.getElementById('outputPath').value;
+            currentSettings = settings;
+            try {
+                window.javaApp.saveSettings(JSON.stringify(settings));
+            } catch (e) { /* ignore */ }
+        }
+
+        // Change UI language
+        function changeUiLanguage() {
+            var select = document.getElementById('settingUiLanguage');
+            var newLang = select.value;
+            // Map select value to i18n key
+            var langMap = {
+                'zh-TW': 'zh-TW',
+                'zh-CN': 'zh-CN',
+                'en': 'en'
+            };
+            currentUiLanguage = langMap[newLang] || 'zh-TW';
+            applyI18n();
+            // Save settings after language change
+            saveSettings();
+        }
+
         // Load settings from Java
         function loadSettings() {
             try {
@@ -822,11 +1175,20 @@
                 document.getElementById('opacityValue').textContent = parseFloat(settings.textOpacity).toFixed(4);
             }
             if (settings.chineseConversion) document.getElementById('settingChineseConversion').value = settings.chineseConversion;
-            if (settings.uiLanguage) document.getElementById('settingUiLanguage').value = settings.uiLanguage;
+            if (settings.uiLanguage) {
+                document.getElementById('settingUiLanguage').value = settings.uiLanguage;
+                // Apply UI language
+                var langMap = { 'zh-TW': 'zh-TW', 'zh-CN': 'zh-CN', 'en': 'en' };
+                currentUiLanguage = langMap[settings.uiLanguage] || 'zh-TW';
+                applyI18n();
+            }
             if (settings.notifyOnComplete !== undefined) document.getElementById('settingNotifyOnComplete').checked = settings.notifyOnComplete;
             if (settings.openFolderOnComplete !== undefined) document.getElementById('settingOpenFolderOnComplete').checked = settings.openFolderOnComplete;
 
             updateFontModeVisibility();
+            // 還原 tab1 的輸入/輸出路徑
+            if (settings.inputPath) document.getElementById('inputPath').value = settings.inputPath;
+            if (settings.outputPath) document.getElementById('outputPath').value = settings.outputPath;
         }
 
         // Get current settings from UI
