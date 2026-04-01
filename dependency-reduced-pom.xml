@@ -53,48 +53,6 @@
                     <exclude>**</exclude>
                   </excludes>
                 </filter>
-                <filter>
-                  <artifact>org.openjfx:javafx-base</artifact>
-                  <excludes>
-                    <exclude>**</exclude>
-                  </excludes>
-                </filter>
-                <filter>
-                  <artifact>org.openjfx:javafx-controls</artifact>
-                  <excludes>
-                    <exclude>**</exclude>
-                  </excludes>
-                </filter>
-                <filter>
-                  <artifact>org.openjfx:javafx-fxml</artifact>
-                  <excludes>
-                    <exclude>**</exclude>
-                  </excludes>
-                </filter>
-                <filter>
-                  <artifact>org.openjfx:javafx-graphics</artifact>
-                  <excludes>
-                    <exclude>**</exclude>
-                  </excludes>
-                </filter>
-                <filter>
-                  <artifact>org.openjfx:javafx-media</artifact>
-                  <excludes>
-                    <exclude>**</exclude>
-                  </excludes>
-                </filter>
-                <filter>
-                  <artifact>org.openjfx:javafx-swing</artifact>
-                  <excludes>
-                    <exclude>**</exclude>
-                  </excludes>
-                </filter>
-                <filter>
-                  <artifact>org.openjfx:javafx-web</artifact>
-                  <excludes>
-                    <exclude>**</exclude>
-                  </excludes>
-                </filter>
               </filters>
             </configuration>
           </execution>
@@ -105,10 +63,10 @@
   <properties>
     <ofdrw.version>2.3.8</ofdrw.version>
     <pdfbox.version>2.0.29</pdfbox.version>
-    <java.version>17</java.version>
-    <maven.compiler.source>17</maven.compiler.source>
+    <java.version>21</java.version>
+    <maven.compiler.source>21</maven.compiler.source>
     <jackson.version>2.15.3</jackson.version>
-    <maven.compiler.target>17</maven.compiler.target>
+    <maven.compiler.target>21</maven.compiler.target>
     <slf4j.version>2.0.9</slf4j.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <javafx.version>21.0.2</javafx.version>

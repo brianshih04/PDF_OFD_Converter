@@ -172,9 +172,13 @@ public class OfdService {
         } finally {
             // 在文檔完全生成後，再清理所有臨時圖片
             for (Path tempImage : tempImages) {
-                Files.deleteIfExists(tempImage);
+                if (!Files.deleteIfExists(tempImage)) {
+                    log.warn("Failed to delete temp image: {}", tempImage);
+                }
             }
-            Files.deleteIfExists(tempDir);
+            if (!Files.deleteIfExists(tempDir)) {
+                log.warn("Failed to delete temp directory: {}", tempDir);
+            }
         }
     }
     
@@ -299,7 +303,11 @@ public class OfdService {
         }
         
         // 清理臨時文件
-        Files.deleteIfExists(tempImage);
-        Files.deleteIfExists(tempDir);
+        if (!Files.deleteIfExists(tempImage)) {
+            log.warn("Failed to delete temp image: {}", tempImage);
+        }
+        if (!Files.deleteIfExists(tempDir)) {
+            log.warn("Failed to delete temp directory: {}", tempDir);
+        }
     }
 }

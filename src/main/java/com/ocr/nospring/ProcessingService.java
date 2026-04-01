@@ -1,6 +1,8 @@
 package com.ocr.nospring;
 
 import com.github.houbb.opencc4j.util.ZhConverterUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -13,6 +15,8 @@ import java.util.List;
  * Extracts processing logic from Main.java into reusable methods.
  */
 public class ProcessingService {
+
+    private static final Logger log = LoggerFactory.getLogger(ProcessingService.class);
 
     /**
      * Callback interface for progress updates.
@@ -67,8 +71,7 @@ public class ProcessingService {
         List<String> outputFiles = new ArrayList<>();
 
         try {
-            System.out.println("Processing " + inputFiles.size() + " images into multi-page document...");
-            System.out.println();
+            log.info("Processing {} images into multi-page document...", inputFiles.size());
 
             // Store all page data
             List<BufferedImage> images = new ArrayList<>();
@@ -80,27 +83,27 @@ public class ProcessingService {
 
                 File inputFile = inputFiles.get(i);
                 String msg = "[" + (i + 1) + "/" + inputFiles.size() + "] " + inputFile.getName();
-                System.out.println(msg);
+                log.info(msg);
                 if (callback != null) callback.onProgress(i + 1, inputFiles.size(), msg);
 
                 try {
                     // Load image
                     BufferedImage image = ImageIO.read(inputFile);
                     if (image == null) {
-                        System.err.println("  ERROR: Cannot read image");
+                        log.error("  ERROR: Cannot read image");
                         continue;
                     }
 
-                    System.out.println("  Image size: " + image.getWidth() + "x" + image.getHeight());
+                    log.info("  Image size: {}x{}", image.getWidth(), image.getHeight());
 
                     // OCR recognition
-                    System.out.println("  Running OCR...");
+                    log.info("  Running OCR...");
                     List<OcrService.TextBlock> textBlocks;
                     if (TesseractLanguageHelper.shouldUseTesseract(ocrEngine, language)) {
                         if (tesseractService == null) {
                             tesseractService = new TesseractOcrService(
                                 config.getTesseractDataPath(), TesseractLanguageHelper.getTesseractLanguage(language));
-                            System.out.println("  OCR Engine: Tesseract (" + TesseractLanguageHelper.getTesseractLabel(language) + ")");
+                            log.info("  OCR Engine: Tesseract ({})", TesseractLanguageHelper.getTesseractLabel(language));
                         }
                         textBlocks = tesseractService.recognize(image);
                     } else {
@@ -110,29 +113,28 @@ public class ProcessingService {
                     // Text conversion
                     if (config.getTextConvert() != null && !config.getTextConvert().isEmpty()) {
                         convertTextBlocks(textBlocks, config.getTextConvert());
-                        System.out.println("  OK: Text converted (" + config.getTextConvert() + ")");
+                        log.info("  OK: Text converted ({})", config.getTextConvert());
                     }
 
-                    System.out.println("  OK: OCR completed (" + textBlocks.size() + " blocks)");
+                    log.info("  OK: OCR completed ({} blocks)", textBlocks.size());
 
                     // Save data
                     images.add(image);
                     allTextBlocks.add(textBlocks);
 
                 } catch (Exception e) {
-                    System.err.println("  ERROR: " + e.getMessage());
+                    log.error("  ERROR: {}", e.getMessage());
                 }
             }
 
             if (images.isEmpty()) {
                 String errorMsg = "No valid images processed";
-                System.err.println("ERROR: " + errorMsg);
+                log.error("ERROR: {}", errorMsg);
                 if (callback != null) callback.onError(errorMsg);
                 return;
             }
 
-            System.out.println();
-            System.out.println("Generating multi-page output...");
+            log.info("Generating multi-page output...");
 
             // Generate output filename
             String timestamp = new java.text.SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
@@ -143,7 +145,7 @@ public class ProcessingService {
                 checkCancelled();
                 File pdfFile = new File(outputDir, outputFilename + ".pdf");
                 pdfService.generateMultiPagePdf(images, allTextBlocks, pdfFile);
-                System.out.println("  OK: Multi-page PDF -> " + pdfFile.getName());
+                log.info("  OK: Multi-page PDF -> {}", pdfFile.getName());
                 outputFiles.add(pdfFile.getAbsolutePath());
             }
 
@@ -152,7 +154,7 @@ public class ProcessingService {
                 checkCancelled();
                 File txtFile = new File(outputDir, outputFilename + ".txt");
                 textService.generateMultiPageTxt(allTextBlocks, txtFile);
-                System.out.println("  OK: TXT -> " + txtFile.getName());
+                log.info("  OK: TXT -> {}", txtFile.getName());
                 outputFiles.add(txtFile.getAbsolutePath());
             }
 
@@ -161,22 +163,20 @@ public class ProcessingService {
                 checkCancelled();
                 File ofdFile = new File(outputDir, outputFilename + ".ofd");
                 ofdService.generateMultiPageOfd(images, allTextBlocks, ofdFile);
-                System.out.println("  OK: Multi-page OFD -> " + ofdFile.getName());
+                log.info("  OK: Multi-page OFD -> {}", ofdFile.getName());
                 outputFiles.add(ofdFile.getAbsolutePath());
             }
 
-            System.out.println();
-            System.out.println("Total pages: " + images.size());
+            log.info("Total pages: {}", images.size());
 
             if (callback != null) callback.onComplete(outputFiles);
 
         } catch (InterruptedException e) {
-            System.out.println("Processing cancelled");
+            log.info("Processing cancelled");
             if (callback != null) callback.onError("Cancelled by user");
         } catch (Exception e) {
             String errorMsg = "Error in multi-page processing: " + e.getMessage();
-            System.err.println("ERROR: " + errorMsg);
-            e.printStackTrace();
+            log.error("ERROR: {}", errorMsg, e);
             if (callback != null) callback.onError(errorMsg);
         }
     }
@@ -197,28 +197,28 @@ public class ProcessingService {
                 File inputFile = inputFiles.get(i);
                 processed++;
                 String msg = "[" + processed + "/" + inputFiles.size() + "] Processing: " + inputFile.getName();
-                System.out.println(msg);
+                log.info(msg);
                 if (callback != null) callback.onProgress(processed, inputFiles.size(), msg);
 
                 try {
                     // Load image
                     BufferedImage image = ImageIO.read(inputFile);
                     if (image == null) {
-                        System.err.println("  ERROR: Cannot read image");
+                        log.error("  ERROR: Cannot read image");
                         failed++;
                         continue;
                     }
 
-                    System.out.println("  Image size: " + image.getWidth() + "x" + image.getHeight());
+                    log.info("  Image size: {}x{}", image.getWidth(), image.getHeight());
 
                     // OCR recognition
-                    System.out.println("  Running OCR...");
+                    log.info("  Running OCR...");
                     List<OcrService.TextBlock> textBlocks;
                     if (TesseractLanguageHelper.shouldUseTesseract(ocrEngine, language)) {
                         if (tesseractService == null) {
                             tesseractService = new TesseractOcrService(
                                 config.getTesseractDataPath(), TesseractLanguageHelper.getTesseractLanguage(language));
-                            System.out.println("  OCR Engine: Tesseract (" + TesseractLanguageHelper.getTesseractLabel(language) + ")");
+                            log.info("  OCR Engine: Tesseract ({})", TesseractLanguageHelper.getTesseractLabel(language));
                         }
                         textBlocks = tesseractService.recognize(image);
                     } else {
@@ -228,10 +228,10 @@ public class ProcessingService {
                     // Text conversion
                     if (config.getTextConvert() != null && !config.getTextConvert().isEmpty()) {
                         convertTextBlocks(textBlocks, config.getTextConvert());
-                        System.out.println("  OK: Text converted (" + config.getTextConvert() + ")");
+                        log.info("  OK: Text converted ({})", config.getTextConvert());
                     }
 
-                    System.out.println("  OK: OCR completed (" + textBlocks.size() + " blocks)");
+                    log.info("  OK: OCR completed ({} blocks)", textBlocks.size());
 
                     // Generate output
                     String timestamp = new java.text.SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
@@ -243,7 +243,7 @@ public class ProcessingService {
                         checkCancelled();
                         File pdfFile = new File(outputDir, outputFilename + ".pdf");
                         pdfService.generatePdf(image, textBlocks, pdfFile);
-                        System.out.println("  OK: PDF -> " + pdfFile.getName());
+                        log.info("  OK: PDF -> {}", pdfFile.getName());
                         outputFiles.add(pdfFile.getAbsolutePath());
                     }
 
@@ -251,7 +251,7 @@ public class ProcessingService {
                         checkCancelled();
                         File txtFile = new File(outputDir, outputFilename + ".txt");
                         textService.generateTxt(textBlocks, txtFile);
-                        System.out.println("  OK: TXT -> " + txtFile.getName());
+                        log.info("  OK: TXT -> {}", txtFile.getName());
                         outputFiles.add(txtFile.getAbsolutePath());
                     }
 
@@ -259,42 +259,37 @@ public class ProcessingService {
                         checkCancelled();
                         File ofdFile = new File(outputDir, outputFilename + ".ofd");
                         ofdService.generateOfd(image, textBlocks, ofdFile);
-                        System.out.println("  OK: OFD -> " + ofdFile.getName());
+                        log.info("  OK: OFD -> {}", ofdFile.getName());
                         outputFiles.add(ofdFile.getAbsolutePath());
                     }
 
-                    System.out.println();
-
                 } catch (Exception e) {
-                    System.err.println("  ERROR: " + e.getMessage());
-                    e.printStackTrace();
+                    log.error("  ERROR: {}", e.getMessage(), e);
                     failed++;
                 }
             }
 
-            System.out.println();
-            System.out.println("========================================");
-            System.out.println("  Summary");
-            System.out.println("========================================");
-            System.out.println("Processed: " + processed);
-            System.out.println("Failed:    " + failed);
-            System.out.println();
+            log.info("");
+            log.info("========================================");
+            log.info("  Summary");
+            log.info("========================================");
+            log.info("Processed: {}", processed);
+            log.info("Failed:    {}", failed);
 
             if (failed == 0) {
-                System.out.println("SUCCESS: All files processed");
+                log.info("SUCCESS: All files processed");
             } else {
-                System.out.println("WARNING: Some files failed");
+                log.warn("WARNING: Some files failed");
             }
 
             if (callback != null) callback.onComplete(outputFiles);
 
         } catch (InterruptedException e) {
-            System.out.println("Processing cancelled");
+            log.info("Processing cancelled");
             if (callback != null) callback.onError("Cancelled by user");
         } catch (Exception e) {
             String errorMsg = "Error in per-page processing: " + e.getMessage();
-            System.err.println("ERROR: " + errorMsg);
-            e.printStackTrace();
+            log.error("ERROR: {}", errorMsg, e);
             if (callback != null) callback.onError(errorMsg);
         }
     }
@@ -316,9 +311,8 @@ public class ProcessingService {
 
                 File pdfFile = pdfFiles.get(f);
                 String msg = "[" + (f + 1) + "/" + pdfFiles.size() + "] " + pdfFile.getName();
-                System.out.println(msg);
+                log.info(msg);
                 if (callback != null) callback.onProgress(f + 1, pdfFiles.size(), msg);
-                System.out.println();
 
                 // Render each PDF page to image
                 List<BufferedImage> pages = pdfToImages.renderPages(pdfFile, dpi);
@@ -328,7 +322,7 @@ public class ProcessingService {
                 for (int i = 0; i < pages.size(); i++) {
                     checkCancelled();
 
-                    System.out.println("  [" + (i + 1) + "/" + pages.size() + "] OCR...");
+                    log.info("  [{}/{}] OCR...", i + 1, pages.size());
                     List<OcrService.TextBlock> textBlocks;
                     if (TesseractLanguageHelper.shouldUseTesseract(ocrEngine, language)) {
                         if (tesseractService == null) {
@@ -337,10 +331,10 @@ public class ProcessingService {
                                     TesseractLanguageHelper.getTesseractLanguage(language));
                         }
                         textBlocks = tesseractService.recognize(pages.get(i));
-                        System.out.println("  OCR Engine: Tesseract (" + TesseractLanguageHelper.getTesseractLabel(language) + ")");
+                        log.info("  OCR Engine: Tesseract ({})", TesseractLanguageHelper.getTesseractLabel(language));
                     } else {
                         textBlocks = ocrService.recognize(pages.get(i), language);
-                        System.out.println("  OCR Engine: RapidOCR");
+                        log.info("  OCR Engine: RapidOCR");
                     }
 
                     // Text conversion
@@ -349,7 +343,7 @@ public class ProcessingService {
                     }
 
                     allTextBlocks.add(textBlocks);
-                    System.out.println("  OK: " + textBlocks.size() + " blocks");
+                    log.info("  OK: {} blocks", textBlocks.size());
                 }
 
                 // Generate output
@@ -361,7 +355,7 @@ public class ProcessingService {
                     String outName = baseName + "_searchable_" + timestamp + ".pdf";
                     File outFile = new File(outputDir, outName);
                     pdfService.generateMultiPagePdf(pages, allTextBlocks, outFile);
-                    System.out.println("  OK: PDF -> " + outName);
+                    log.info("  OK: PDF -> {}", outName);
                     outputFiles.add(outFile.getAbsolutePath());
                 }
                 if (format.contains("ofd") || format.contains("all")) {
@@ -369,7 +363,7 @@ public class ProcessingService {
                     String outName = baseName + "_searchable_" + timestamp + ".ofd";
                     File outFile = new File(outputDir, outName);
                     ofdService.generateMultiPageOfd(pages, allTextBlocks, outFile);
-                    System.out.println("  OK: OFD -> " + outName);
+                    log.info("  OK: OFD -> {}", outName);
                     outputFiles.add(outFile.getAbsolutePath());
                 }
                 if (format.contains("txt") || format.contains("all")) {
@@ -377,22 +371,20 @@ public class ProcessingService {
                     String outName = baseName + "_searchable_" + timestamp + ".txt";
                     File outFile = new File(outputDir, outName);
                     textService.generateMultiPageTxt(allTextBlocks, outFile);
-                    System.out.println("  OK: TXT -> " + outName);
+                    log.info("  OK: TXT -> {}", outName);
                     outputFiles.add(outFile.getAbsolutePath());
                 }
 
-                System.out.println();
             }
 
             if (callback != null) callback.onComplete(outputFiles);
 
         } catch (InterruptedException e) {
-            System.out.println("Processing cancelled");
+            log.info("Processing cancelled");
             if (callback != null) callback.onError("Cancelled by user");
         } catch (Exception e) {
             String errorMsg = "Error in PDF to searchable processing: " + e.getMessage();
-            System.err.println("ERROR: " + errorMsg);
-            e.printStackTrace();
+            log.error("ERROR: {}", errorMsg, e);
             if (callback != null) callback.onError(errorMsg);
         }
     }

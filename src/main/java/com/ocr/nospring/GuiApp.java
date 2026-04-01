@@ -11,6 +11,8 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import netscape.javascript.JSObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -31,7 +33,29 @@ import java.util.concurrent.CountDownLatch;
  */
 public class GuiApp extends Application {
 
-    private static final String VERSION = "3.0.0 (GUI)";
+    private static final Logger log = LoggerFactory.getLogger(GuiApp.class);
+    private static String VERSION = "3.0.0 (GUI)";
+    private static String APP_NAME = "JPEG2PDF-OFD-OCR";
+
+    static {
+        // Load version from properties file
+        try (InputStream is = GuiApp.class.getClassLoader().getResourceAsStream("version.properties")) {
+            if (is != null) {
+                java.util.Properties props = new java.util.Properties();
+                props.load(is);
+                String ver = props.getProperty("app.version", VERSION);
+                if (ver != null && !ver.startsWith("${")) {
+                    VERSION = ver + " (GUI)";
+                }
+                String name = props.getProperty("app.name", APP_NAME);
+                if (name != null && !name.startsWith("${")) {
+                    APP_NAME = name;
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Could not load version.properties, using default version");
+        }
+    }
 
     private WebEngine webEngine;
     private ProcessingService processingService;
@@ -59,7 +83,7 @@ public class GuiApp extends Application {
 
         // Create scene
         Scene scene = new Scene(webView, 900, 700);
-        stage.setTitle("JPEG2PDF-OFD-OCR v0.10");
+        stage.setTitle(APP_NAME + " v" + VERSION);
         stage.setScene(scene);
         stage.setMinWidth(800);
         stage.setMinHeight(600);
@@ -91,14 +115,14 @@ public class GuiApp extends Application {
                 webEngine.loadContent(getFallbackHtml(), "text/html");
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Error loading HTML from resources", e);
             webEngine.loadContent(getFallbackHtml(), "text/html");
         }
 
         // Primary mechanism: use loadWorker state listener to detect when page is ready
         webEngine.getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue == javafx.concurrent.Worker.State.SUCCEEDED) {
-                System.out.println("LoadWorker SUCCEEDED - setting up bridge");
+                log.debug("LoadWorker SUCCEEDED - setting up bridge");
                 setupJavaBridge();
             }
         });
@@ -107,7 +131,7 @@ public class GuiApp extends Application {
         // This handles cases where loadWorker might not fire SUCCEEDED consistently
         javafx.animation.PauseTransition delay = new javafx.animation.PauseTransition(javafx.util.Duration.millis(500));
         delay.setOnFinished(e -> {
-            System.out.println("PauseTransition fallback - setting up bridge");
+            log.debug("PauseTransition fallback - setting up bridge");
             setupJavaBridge();
         });
         delay.play();
@@ -122,9 +146,9 @@ public class GuiApp extends Application {
             // Keep strong reference to prevent GC from collecting the bridge
             javaBridge = new JavaBridge();
             window.setMember("javaApp", javaBridge);
-            System.out.println("Java bridge initialized");
+            log.info("Java bridge initialized");
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Error setting up Java bridge", e);
         }
     }
 
@@ -145,7 +169,7 @@ public class GuiApp extends Application {
          * Handles both FX thread and non-FX thread calls.
          */
         public String openDirectoryChooser() {
-            System.out.println("openDirectoryChooser called, isFxThread=" + Platform.isFxApplicationThread());
+            log.debug("openDirectoryChooser called, isFxThread={}", Platform.isFxApplicationThread());
             if (Platform.isFxApplicationThread()) {
                 return doOpenDirectoryChooser();
             } else {
@@ -179,7 +203,7 @@ public class GuiApp extends Application {
          * Handles both FX thread and non-FX thread calls.
          */
         public String openFileChooser() {
-            System.out.println("openFileChooser called, isFxThread=" + Platform.isFxApplicationThread());
+            log.debug("openFileChooser called, isFxThread={}", Platform.isFxApplicationThread());
             if (Platform.isFxApplicationThread()) {
                 return doOpenFileChooser();
             } else {
@@ -216,7 +240,7 @@ public class GuiApp extends Application {
          * @param configJson JSON configuration string from frontend
          */
         public void startConversion(String configJson) {
-            System.out.println("Starting conversion with config: " + configJson);
+            log.info("Starting conversion with config: {}", configJson);
 
             // Cancel any existing task
             if (currentTask != null && currentTask.isRunning()) {
@@ -281,12 +305,12 @@ public class GuiApp extends Application {
                     return;
                 }
 
-                System.out.println("Input type: " + inputType);
-                System.out.println("Input files: " + inputFiles.size());
-                System.out.println("Output: " + outputPath);
-                System.out.println("Format: " + formats);
-                System.out.println("Language: " + language);
-                System.out.println("MultiPage: " + multiPage);
+                log.info("Input type: {}", inputType);
+                log.info("Input files: {}", inputFiles.size());
+                log.info("Output: {}", outputPath);
+                log.info("Format: {}", formats);
+                log.info("Language: {}", language);
+                log.info("MultiPage: {}", multiPage);
 
                 // Create ProcessingService
                 processingService = new ProcessingService(appConfig);
@@ -338,7 +362,7 @@ public class GuiApp extends Application {
                 thread.start();
 
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("Configuration parsing error", e);
                 callJsOnError("配置解析错误: " + e.getMessage());
             }
         }
@@ -349,7 +373,7 @@ public class GuiApp extends Application {
         public void cancelConversion() {
             if (processingService != null) {
                 processingService.cancel();
-                System.out.println("Conversion cancelled");
+                log.info("Conversion cancelled");
             }
             if (currentTask != null) {
                 currentTask.cancel();
@@ -363,7 +387,7 @@ public class GuiApp extends Application {
          * @return selected file path or empty string if cancelled
          */
         public String openFontFileChooser() {
-            System.out.println("openFontFileChooser called, isFxThread=" + Platform.isFxApplicationThread());
+            log.debug("openFontFileChooser called, isFxThread={}", Platform.isFxApplicationThread());
             if (Platform.isFxApplicationThread()) {
                 return doOpenFontFileChooser();
             } else {
@@ -410,10 +434,9 @@ public class GuiApp extends Application {
                 try (FileOutputStream fos = new FileOutputStream(settingsFile)) {
                     fos.write(settingsJson.getBytes(StandardCharsets.UTF_8));
                 }
-                System.out.println("Settings saved to: " + settingsFile.getAbsolutePath());
+                log.info("Settings saved to: {}", settingsFile.getAbsolutePath());
             } catch (Exception e) {
-                e.printStackTrace();
-                System.err.println("Error saving settings: " + e.getMessage());
+                log.error("Error saving settings", e);
             }
         }
 
@@ -425,19 +448,18 @@ public class GuiApp extends Application {
             try {
                 File settingsFile = new File(getSettingsPath());
                 if (!settingsFile.exists()) {
-                    System.out.println("Settings file not found, using defaults");
+                    log.debug("Settings file not found, using defaults");
                     return "";
                 }
 
                 try (FileInputStream fis = new FileInputStream(settingsFile)) {
                     byte[] bytes = fis.readAllBytes();
                     String json = new String(bytes, StandardCharsets.UTF_8);
-                    System.out.println("Settings loaded from: " + settingsFile.getAbsolutePath());
+                    log.info("Settings loaded from: {}", settingsFile.getAbsolutePath());
                     return json;
                 }
             } catch (Exception e) {
-                e.printStackTrace();
-                System.err.println("Error loading settings: " + e.getMessage());
+                log.error("Error loading settings", e);
                 return "";
             }
         }
@@ -450,10 +472,10 @@ public class GuiApp extends Application {
                 File settingsFile = new File(getSettingsPath());
                 if (settingsFile.exists()) {
                     settingsFile.delete();
-                    System.out.println("Settings file deleted");
+                    log.info("Settings file deleted");
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("Error deleting settings", e);
             }
         }
     }
@@ -480,7 +502,7 @@ public class GuiApp extends Application {
                 }
             }
         } catch (Exception e) {
-            System.err.println("Error loading lastDirectory from preferences: " + e.getMessage());
+            log.warn("Error loading lastDirectory from preferences: {}", e.getMessage());
         }
         return new File(System.getProperty("user.home"));
     }
@@ -495,7 +517,7 @@ public class GuiApp extends Application {
             prefs.put(PREFS_LAST_DIR, dir.getAbsolutePath());
             prefs.sync();
         } catch (Exception e) {
-            System.err.println("Error saving lastDirectory to preferences: " + e.getMessage());
+            log.warn("Error saving lastDirectory to preferences: {}", e.getMessage());
         }
     }
 
@@ -541,7 +563,7 @@ public class GuiApp extends Application {
             String json = new ObjectMapper().writeValueAsString(outputFiles);
             callJsBridgeMethod("onComplete", json);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Error serializing output files", e);
         }
     }
 
@@ -583,7 +605,7 @@ public class GuiApp extends Application {
             sb.append(");}");
             webEngine.executeScript(sb.toString());
         } catch (Exception e) {
-            System.err.println("Error calling JS " + methodName + ": " + e.getMessage());
+            log.error("Error calling JS {}: {}", methodName, e.getMessage());
         }
     }
 

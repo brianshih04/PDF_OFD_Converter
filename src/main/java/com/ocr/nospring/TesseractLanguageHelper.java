@@ -91,6 +91,19 @@ public final class TesseractLanguageHelper {
         return "am".equalsIgnoreCase(language) || "amh".equalsIgnoreCase(language) || "amharic".equalsIgnoreCase(language);
     }
 
+    /**
+     * Explicit detection for chi_tra, chi_sim, eng to ensure RapidOCR is used.
+     * Per architecture rule: chi_tra, chi_sim, eng 優先使用 RapidOCR.
+     */
+    public static boolean isChineseOrEnglish(String language) {
+        if (language == null) return false;
+        String lower = language.toLowerCase();
+        return lower.equals("chi_tra") || lower.equals("chi_sim") || lower.equals("eng")
+            || lower.equals("chinese_cht") || lower.equals("chinese") || lower.equals("english")
+            || lower.equals("zh") || lower.equals("zh-tw") || lower.equals("zh-cn")
+            || lower.equals("en");
+    }
+
     public static boolean useTesseract(String language) {
         return isHebrew(language) || isThai(language) || isRussian(language) || isPersian(language) || isArabic(language) || isUkrainian(language) || isBulgarian(language) || isSerbian(language) || isMacedonian(language) || isBelarusian(language) || isGreek(language) || isHindi(language) || isGujarati(language) || isBengali(language) || isTamil(language) || isTelugu(language) || isMarathi(language) || isUrdu(language) || isPashto(language) || isAmharic(language);
     }
@@ -98,6 +111,8 @@ public final class TesseractLanguageHelper {
     public static boolean shouldUseTesseract(String engine, String language) {
         if ("tesseract".equals(engine)) return true;
         if ("rapidocr".equals(engine)) return false;
+        // Explicit RapidOCR detection for chi_tra, chi_sim, eng (per architecture rule)
+        if (isChineseOrEnglish(language)) return false;
         return useTesseract(language);
     }
 
