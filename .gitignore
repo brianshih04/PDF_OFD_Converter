@@ -1,31 +1,42 @@
+# Build output
 target/
 output/
+dist-exe/
+
+# Maven shade plugin artifact
+dependency-reduced-pom.xml
+
+# Archive configs (moved from root)
+configs/
+
+# Java
 *.class
 *.jar
 *.msix
+
+# Archives
 *.zip
 *.tar.gz
 *.deb
 *.rpm
+
+# IDE
 .idea/
 *.iml
 .DS_Store
 Thumbs.db
 
-# Test configs and logs
+# Test logs
 test-*.json
 test-log*.txt
+*.log
 
 # JPackage runtime (use conveyor or jpackage to rebuild)
 dist-exe/*/runtime/
-output/
 
 tessdata/
-
 zulu-fx-21/
-*.zip
 hs_err_pid*.log
-output/
 *.bat
 
 # Code signing certificates
@@ -34,9 +45,9 @@ output/
 *.pem
 *.key
 conveyor.local.conf
-dist-test/
 
+# Test build outputs
+dist-test/
 test-fixed/
 test-fixed-v2/
 test-output/
-output/
