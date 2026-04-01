@@ -269,7 +269,7 @@ chmod +x /usr/bin/jpeg2pdf-ofd
 **文檔:**
 - [README.md](README.md) - 完整文檔
 - [JSON-CONFIG-GUIDE.md](JSON-CONFIG-GUIDE.md) - JSON 配置指南
-- [searchable_method.md](searchable_method.md) - 可搜索 PDF/OFD 生成方法
+- [SEARCHABLE_OFD_NOTES.md](SEARCHABLE_OFD_NOTES.md) - 可搜索 PDF/OFD 技術筆記
 
 ---
 

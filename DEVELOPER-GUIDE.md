@@ -60,6 +60,8 @@ mvn -version   # 應顯示 3.9.x
 
 ### 2.3 Conveyor 安裝
 
+**Windows**：
+
 ```powershell
 # 方式 1：Chocolatey（推薦）
 choco install conveyor
@@ -72,6 +74,22 @@ winget install Hydraulic.Conveyor
 
 # 驗證
 conveyor --version
+```
+
+**macOS**：
+
+```bash
+# 使用 Homebrew
+brew install --cask conveyor
+```
+
+**Linux**：
+
+```bash
+# 下載並安裝
+wget https://downloads.hydraulic.dev/conveyor/head/Conveyor%20Head.tar
+tar xf Conveyor\ Head.tar
+sudo ./conveyor/bin/install-conveyor.sh
 ```
 
 ### 2.4 Tesseract OCR 安裝（選用）
@@ -94,7 +112,7 @@ tesseract --list-langs
 
 ## 3. 字體設定 (Font Setup)
 
-程式使用字體來渲染 PDF/OFD 中的文字層。詳見 [FONT-CONFIGURATION.md](FONT-CONFIGURATION.md)。
+程式使用字體來渲染 PDF/OFD 中的文字層。
 
 ### 3.1 推薦字體
 
@@ -102,6 +120,26 @@ tesseract --list-langs
 |------|---------|------|------|--------|
 | **GoNotoKurrent** | 80+ 文字系統（含 CJK） | ~15.5 MB | TTF | **最推薦**（一個搞定） |
 | Noto Sans CJK TC/SC/JP/KR | 各自語言 | 各 ~16 MB | OTF/TTF | 依語言分開安裝 |
+
+#### 萬用字體推薦：GoNotoKurrent
+
+處理非 CJK 語言（泰文、阿拉伯文、希臘文、印地文、西里爾語系等）時，Noto Sans CJK 無法涵蓋這些文字。強烈推薦使用 **GoNotoKurrent**：
+
+- **檔案**：`GoNotoKurrent-Regular.ttf`（約 15.5 MB）
+- **覆蓋**：80+ 種現代文字系統（拉丁、CJK、泰文、阿拉伯文、希臘文、印地文、西里爾語系等）
+- **格式**：TTF ✅（PDFBox 支援）
+- **授權**：SIL OFL 1.1（免費商用）
+- **下載**：[GitHub Releases](https://github.com/satbyy/go-noto-universal/releases)
+
+```json
+{
+  "font": {
+    "path": "C:/Fonts/GoNotoKurrent-Regular.ttf"
+  }
+}
+```
+
+> 一個字體搞定所有語言，特別適合需要處理多國文件的場景。
 
 ### 3.2 字體安裝
 
@@ -116,9 +154,28 @@ Copy-Item GoNotoKurrent-Regular.ttf C:\Windows\Fonts\
 **Linux**：
 
 ```bash
+# 方式 1：安裝系統字體套件
+# Ubuntu/Debian
+sudo apt-get install fonts-noto-cjk
+
+# CentOS/RHEL
+sudo yum install google-noto-sans-cjk-fonts
+
+# 方式 2：手動安裝自訂字體
 sudo mkdir -p /usr/share/fonts/truetype/custom
 sudo cp GoNotoKurrent-Regular.ttf /usr/share/fonts/truetype/custom/
 fc-cache -fv
+```
+
+**macOS**：
+
+```bash
+# macOS 已內置中文字體，無需額外配置
+# 內建字體路徑：
+# /System/Library/Fonts/PingFang.ttc
+# /System/Library/Fonts/STHeiti Light.ttf
+
+# 安裝自訂字體：雙擊 .ttf 檔 → 點擊「安裝字體」
 ```
 
 ### 3.3 字體偵測機制
@@ -126,11 +183,21 @@ fc-cache -fv
 程式按以下優先順序選擇字體：
 
 1. `config.json` 中 `font.path` 指定的路徑
-2. 根據 OCR 語言自動選擇（`chinese_cht` → NotoSansTC、`ch` → NotoSansSC 等）
-3. 系統字體回退
+2. 根據 OCR 語言自動選擇（`chinese_cht` → NotoSansTC、`ch` → NotoSansSC、`japan` → NotoSansJP、`korean` → NotoSansKR、其他 → Arial）
+3. 系統字體回退（Windows: `C:/Windows/Fonts/`、Linux: `/usr/share/fonts/`、macOS: `/System/Library/Fonts/`）
 4. JAR 內嵌的 Noto Sans 字體
 
 > **TTC 格式不支援**：PDFBox 不支援 TTC (TrueType Collection)。請使用 TTF 格式。
+
+### 3.4 字體格式支持
+
+| 格式 | 支持狀態 | 說明 |
+|------|---------|------|
+| **TTF** | ✅ 支持 | TrueType Font（推薦） |
+| **OTF** | ✅ 支持 | OpenType Font |
+| **TTC** | ❌ 不支持 | TrueType Collection |
+
+> 如遇 `Cannot load font: 'head' table is mandatory` 錯誤，表示字體格式不支援，請改用 TTF 格式。
 
 ---
 
@@ -203,10 +270,13 @@ mvn clean package -DskipTests
 # Step 1: 建置 JAR
 mvn clean package -DskipTests
 
-# Step 2: Conveyor 打包為 Windows ZIP
+# Step 2: 驗證 Conveyor 配置
+conveyor validate
+
+# Step 3: Conveyor 打包為 Windows ZIP
 conveyor make windows-amd64
 
-# Step 3: 重新封裝為便攜版（重新命名 exe、加入 start.bat）
+# Step 4: 重新封裝為便攜版（重新命名 exe、加入 start.bat）
 powershell -File repack-into-zip.ps1
 ```
 
@@ -242,7 +312,88 @@ app.windows {
 }
 ```
 
-> **詳情**：參見 [CONVEYOR-GUIDE.md](CONVEYOR-GUIDE.md)
+#### 重要參數
+
+| 參數 | 說明 |
+|------|------|
+| `display-name` | 用戶看到的名稱 |
+| `fsname` | 安裝目錄名稱（無空格） |
+| `jvm.gui.main-class` | Main Class 完整路徑 |
+| `site.base-url` | 自動更新伺服器 URL |
+| `jvm.options` | JVM 選項（如 `-Xmx2G`） |
+
+### 6.5 進階 Conveyor 配置
+
+#### JVM 選項
+
+```hocon
+app {
+    jvm.options = [
+        "-Xmx4G",                        // 最大堆內存 4GB
+        "-Djava.awt.headless=true",     // 無頭模式
+        "-Dfile.encoding=UTF-8"         // 編碼
+    ]
+}
+```
+
+#### 命令行別名
+
+```hocon
+app {
+    cli {
+        jpeg2pdf = ${app.jvm.gui.main-class}
+        ocr-tool = ${app.jvm.gui.main-class}
+    }
+}
+```
+
+安裝後，用戶可以輸入：
+```bash
+jpeg2pdf config.json
+ocr-tool config.json
+```
+
+#### 數位簽章
+
+目前專案使用自簽名憑證，測試安裝沒問題，但發布給他人會出現安全警告。若需正式簽章：
+
+```hocon
+app.windows {
+    signing-certificate = "path/to/cert.pfx"
+    signing-password = "YOUR_PASSWORD"
+}
+```
+
+> Windows 需購買 EV Code Signing Certificate；macOS 需 Apple Developer Program。
+
+#### 授權
+
+- **開源專案**：✅ 免費使用 Conveyor
+- **商業專案**：需購買商業授權，查詢 https://www.hydraulic.software/pricing
+
+### 6.6 工作目錄注意事項
+
+CLI 工具可能從任何目錄執行，必須確保使用絕對路徑：
+
+```java
+// ✅ 正確：使用絕對路徑
+Path configPath = Paths.get(configPathString).toAbsolutePath();
+
+// ❌ 錯誤：相對於 jar 位置
+Path configPath = Paths.get("config.json");  // 可能找不到
+```
+
+### 6.7 Conveyor 快取
+
+首次運行需要下載 JDK，Conveyor 會緩存：
+
+```bash
+# 查看緩存
+conveyor cache list
+
+# 清理緩存（重新下載）
+conveyor cache purge
+```
 
 ---
 
@@ -375,6 +526,83 @@ refactor: 重構
 docs: 文件更新
 chore: 雜務（建置、依賴等）
 ```
+
+---
+
+## 附錄 A：GitHub Pages 發布
+
+Conveyor 的自動更新功能依賴靜態網頁託管，可使用 GitHub Pages（免費）：
+
+```bash
+# 1. 創建 gh-pages 分支
+git checkout -b gh-pages
+
+# 2. 複製 output/ 內容
+cp -r output/* .
+
+# 3. 提交並推送
+git add .
+git commit -m "Add Conveyor output"
+git push origin gh-pages
+```
+
+然後前往 GitHub 倉庫設定 → Pages → Source → 選擇 `gh-pages` 分支。
+
+> **其他託管選項**：AWS S3、Netlify、Vercel。
+
+---
+
+## 附錄 B：常見問題
+
+### Conveyor 相關
+
+**Q1: Conveyor 找不到 JAR？**
+
+```bash
+mvn clean package
+ls target/*.jar
+```
+
+**Q2: 首次生成速度慢？**
+
+Conveyor 首次運行需下載 JDK，後續會使用緩存。見 [6.7 節](#67-conveyor-快取)。
+
+**Q3: Windows 安裝失敗（SmartScreen 阻擋）？**
+
+```powershell
+# 臨時關閉 SmartScreen（僅測試用）
+Set-MpPreference -EnableControlledFolderAccess Disabled
+```
+
+**Q4: macOS Gatekeeper 阻擋？**
+
+```bash
+xattr -cr jpeg2pdf-ofd-cli.app
+```
+
+**Q5: Linux 套件安裝問題？**
+
+```bash
+# DEB 套件
+sudo dpkg -i jpeg2pdf-ofd-cli_*.deb
+sudo apt-get install -f
+
+# RPM 套件
+sudo rpm -i jpeg2pdf-ofd-cli-*.rpm
+```
+
+### 字體相關
+
+**Q6: 某些中文字符無法顯示？**
+
+字體不包含該字符。解決方案：
+1. 使用 GoNotoKurrent（覆蓋 80+ 文字系統）
+2. 使用支持完整 CJK 的字體（如 Noto Sans CJK）
+3. 檢查字體是否正確加載（查看日誌中的警告）
+
+**Q7: TTC 格式字體不支援？**
+
+PDFBox 目前不完全支持 TTC 格式。請使用 TTF 格式的字體。
 
 ---
 

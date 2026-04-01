@@ -605,6 +605,8 @@ OCR 識別結果可能混合簡繁體中文。使用 OpenCC 可在生成 PDF/OFD
 - 完全透明
 - 某些閱讀器可能無法搜索
 
+> **測試**：專案已包含 `config-test-conveyor.json` 測試文件，可用於驗證 textLayer 配置是否正常工作。
+
 ---
 
 ## font 配置（字體設置）

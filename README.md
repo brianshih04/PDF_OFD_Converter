@@ -233,10 +233,9 @@ cp NotoSansTC-Regular.otf ~/Library/Fonts/
 
 ## 相關文檔
 
-- **[JSON 配置完整指南](JSON-CONFIG-GUIDE.md)** - 所有 JSON 配置選項的詳細說明
-- **[Searchable OFD 完整產生方法](searchable_method.md)** - 如何生成可搜索的 OFD 文件
-- **[技術筆記](SEARCHABLE_OFD_NOTES.md)** - Searchable OFD 技術實現細節
-- **[textLayer 配置指南](TEXTLAYER-CONFIG-GUIDE.md)** - 如何配置文字層顏色和透明度
+- **[JSON 配置完整指南](JSON-CONFIG-GUIDE.md)** - 所有 JSON 配置選項的詳細說明（含 textLayer 配置）
+- **[Searchable OFD 技術筆記](SEARCHABLE_OFD_NOTES.md)** - Searchable PDF/OFD 產生方法與技術實現細節
+- **[開發者指南](DEVELOPER-GUIDE.md)** - 建置、開發、打包與字體設定
 
 ---
 
@@ -535,9 +534,8 @@ powershell -File repack-into-zip.ps1
 - **conveyor.conf** - Conveyor 配置
 - **repack-into-zip.ps1** - 便攜 ZIP 重新封裝腳本
 - **JSON-CONFIG-GUIDE.md** - JSON 配置指南
-- **searchable_method.md** - Searchable PDF/OFD 完整產生方法
-- **SEARCHABLE_OFD_NOTES.md** - 技術筆記
-- **TEXTLAYER-CONFIG-GUIDE.md** - textLayer 配置指南
+- **SEARCHABLE_OFD_NOTES.md** - Searchable PDF/OFD 技術筆記
+- **DEVELOPER-GUIDE.md** - 開發者指南（建置、打包、字體）
 - **CHINA-LINUX-GUIDE.md** - 中國國產 Linux 構建指南
 - **build-china-linux.sh** - Linux/macOS 構建腳本
 - **build-china-linux.ps1** - Windows PowerShell 構建腳本
