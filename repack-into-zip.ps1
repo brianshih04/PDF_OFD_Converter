@@ -63,7 +63,7 @@ Set-Content -Path $startBatPath -Value $startBatContent -Encoding ASCII
 Write-Host "Created start.bat at root level"
 
 # Build output ZIP name: use fsname + version from conveyor.conf
-$outputZipName = "JPEG2PDF-OFD-OCR-v0.10-windows-x64.zip"
+$outputZipName = "JPEG2PDF-OFD-OCR-v0.11-windows-x64.zip"
 $outputZipPath = Join-Path $conveyorOutputDir $outputZipName
 
 if (Test-Path $outputZipPath) { Remove-Item $outputZipPath -Force }

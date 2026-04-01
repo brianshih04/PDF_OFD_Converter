@@ -1,5 +1,19 @@
 # Changelog
 
+## [v0.11] - 2026-04-01
+
+### Changed
+- **JDK 升級至 21**：pom.xml `java.version` 從 17 升級至 21
+- **日誌重構**：所有 `System.out/err.println` 改為 SLF4J logging
+- **語言檢測重構**：將重複的語言檢測代碼抽取至 `TesseractLanguageHelper`
+- **pom.xml 簡化**：JavaFX filters 從 8 個重複項簡化為 1 個 wildcard pattern
+- **OfdService 改善**：新增臨時檔案刪除失敗的日誌警告
+
+### Fixed
+- 修正 `.mvn/jvm.config` 導致的 `ClassNotFoundException: configFile` 錯誤
+
+---
+
 ## [v0.10] - 2026-04-01
 
 ### Changed

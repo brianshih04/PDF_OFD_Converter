@@ -17,7 +17,7 @@
 
 > **主要開發平台**：Windows 10/11 x64
 >
-> **注意**：pom.xml 中 `java.version` 設為 17，但 Conveyor 打包使用 JDK 21 (Azul Zulu FX)。日常開發使用 JDK 17 或 21 皆可。
+> **注意**：pom.xml 中 `java.version` 設為 21，Conveyor 打包同樣使用 JDK 21 (Azul Zulu FX)。
 
 ---
 

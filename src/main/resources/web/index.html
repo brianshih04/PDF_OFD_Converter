@@ -1055,10 +1055,11 @@
         function browseInput() {
             try {
                 var isFolder = document.querySelector('input[name="inputType"]:checked').value === 'folder';
+                var currentPath = document.getElementById('inputPath').value || '';
                 var path;
 
                 if (isFolder) {
-                    path = window.javaApp.openDirectoryChooser();
+                    path = window.javaApp.openDirectoryChooser(currentPath);
                 } else {
                     path = window.javaApp.openFileChooser();
                 }
@@ -1074,7 +1075,8 @@
 
         // Browse output path
         function browseOutput() {
-            var path = window.javaApp.openDirectoryChooser();
+            var currentPath = document.getElementById('outputPath').value || '';
+            var path = window.javaApp.openDirectoryChooser(currentPath);
             if (path) {
                 document.getElementById('outputPath').value = path;
                 saveCurrentPaths();
@@ -1083,7 +1085,8 @@
 
         // Browse Tesseract data path
         function browseTesseractDataPath() {
-            var path = window.javaApp.openDirectoryChooser();
+            var currentPath = document.getElementById('settingTesseractDataPath').value || '';
+            var path = window.javaApp.openDirectoryChooser(currentPath);
             if (path) {
                 document.getElementById('settingTesseractDataPath').value = path;
             }
@@ -1091,7 +1094,8 @@
 
         // Browse default output folder
         function browseDefaultOutputFolder() {
-            var path = window.javaApp.openDirectoryChooser();
+            var currentPath = document.getElementById('settingDefaultOutputFolder').value || '';
+            var path = window.javaApp.openDirectoryChooser(currentPath);
             if (path) {
                 document.getElementById('settingDefaultOutputFolder').value = path;
             }

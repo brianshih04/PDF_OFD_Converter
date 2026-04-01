@@ -6,8 +6,8 @@
 
 [![GitHub](https://img.shields.io/badge/GitHub-brianshih04%2FPDF_OFD_Converter-blue)](https://github.com/brianshih04/PDF_OFD_Converter)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![Java](https://img.shields.io/badge/Java-17+-orange)](https://adoptium.net/)
-[![Version](https://img.shields.io/badge/Version-v0.10-blue)]()
+[![Java](https://img.shields.io/badge/Java-21+-orange)](https://adoptium.net/)
+[![Version](https://img.shields.io/badge/Version-v0.11-blue)]()
 
 ---
 
@@ -40,7 +40,7 @@
 
 ### Windows（推薦）
 
-1. 下載 `JPEG2PDF-OFD-OCR-v0.10-windows-x64.zip`
+1. 下載 `JPEG2PDF-OFD-OCR-v0.11-windows-x64.zip`
 2. 解壓縮到任意資料夾
 3. **GUI 模式**：雙擊 `start.bat`
 4. **CLI 模式**：開啟命令提示字元，執行：
@@ -489,7 +489,7 @@ WPS 搜索：可搜索
 
 ### 先決條件
 
-- JDK 21+（Conveyor 打包用，編譯用 JDK 17 亦可）
+- JDK 21+（編譯與打包）
 - Maven 3.6+
 - Conveyor（用於打包）
 
@@ -514,7 +514,7 @@ conveyor make windows-zip --overwrite=HARD_REPLACE --rerun=all
 powershell -File repack-into-zip.ps1
 ```
 
-輸出：`output/JPEG2PDF-OFD-OCR-v0.10-windows-x64.zip`
+輸出：`output/JPEG2PDF-OFD-OCR-v0.11-windows-x64.zip`
 
 > **注意：** 若僅修改 Java 程式碼而未改動依賴，可直接複製 JAR 到部署目錄的 `app/` 資料夾覆蓋，無需每次重新打包。
 

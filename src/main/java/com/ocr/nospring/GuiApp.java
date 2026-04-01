@@ -169,14 +169,25 @@ public class GuiApp extends Application {
          * Handles both FX thread and non-FX thread calls.
          */
         public String openDirectoryChooser() {
-            log.debug("openDirectoryChooser called, isFxThread={}", Platform.isFxApplicationThread());
+            return openDirectoryChooser("");
+        }
+
+        /**
+         * Open directory chooser dialog with a current path.
+         * If currentPath is provided and valid, use it as initial directory.
+         * Handles both FX thread and non-FX thread calls.
+         * @param currentPath the current path to start from, or empty string to use lastDirectory
+         */
+        public String openDirectoryChooser(String currentPath) {
+            log.debug("openDirectoryChooser called with currentPath={}, isFxThread={}", currentPath, Platform.isFxApplicationThread());
             if (Platform.isFxApplicationThread()) {
-                return doOpenDirectoryChooser();
+                return doOpenDirectoryChooser(currentPath);
             } else {
                 final String[] result = {""};
                 final CountDownLatch latch = new CountDownLatch(1);
+                final String path = currentPath;
                 Platform.runLater(() -> {
-                    result[0] = doOpenDirectoryChooser();
+                    result[0] = doOpenDirectoryChooser(path);
                     latch.countDown();
                 });
                 try { latch.await(); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
@@ -184,11 +195,26 @@ public class GuiApp extends Application {
             }
         }
 
-        private String doOpenDirectoryChooser() {
+        private String doOpenDirectoryChooser(String currentPath) {
             DirectoryChooser chooser = new DirectoryChooser();
             chooser.setTitle("選擇資料夾");
-            File dir = (lastDirectory != null && lastDirectory.exists()) ? lastDirectory : new File(System.getProperty("user.home"));
-            chooser.setInitialDirectory(dir);
+
+            // Priority: currentPath > lastDirectory > user.home
+            File initialDir = null;
+            if (currentPath != null && !currentPath.isEmpty()) {
+                File currentDir = new File(currentPath);
+                if (currentDir.exists() && currentDir.isDirectory()) {
+                    initialDir = currentDir;
+                }
+            }
+            if (initialDir == null && lastDirectory != null && lastDirectory.exists()) {
+                initialDir = lastDirectory;
+            }
+            if (initialDir == null) {
+                initialDir = new File(System.getProperty("user.home"));
+            }
+
+            chooser.setInitialDirectory(initialDir);
             File selected = chooser.showDialog(primaryStage);
             if (selected != null) {
                 lastDirectory = selected;
