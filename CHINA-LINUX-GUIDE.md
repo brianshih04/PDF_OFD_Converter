@@ -1,6 +1,6 @@
 # 構建中國國產 Linux 版本指南
 
-本指南說明如何為中國國產 Linux 發行版構建 JPEG2PDF-OFD OCR CLI。
+本指南說明如何為中國國產 Linux 發行版構建 JPEG2PDF-OFD-OCR。
 
 ---
 
@@ -58,9 +58,7 @@ conveyor make site
 **輸出文件：**
 ```
 output/
-├── jpeg2pdf-ofd-cli-3.0.0.x64.msix              # Windows
-├── jpeg2pdf-ofd-cli-3.0.0-mac-amd64.zip         # macOS Intel
-├── jpeg2pdf-ofd-cli-3.0.0-mac-aarch64.zip       # macOS ARM
+├── JPEG2PDF-OFD-OCR-v0.10-windows-x64.zip       # Windows (便攜版)
 ├── jpeg2pdf-ofd-cli-3.0.0-linux-amd64.deb       # Linux x86_64 DEB (UOS, Deepin, openEuler)
 ├── jpeg2pdf-ofd-cli-3.0.0-linux-amd64.rpm       # Linux x86_64 RPM (Kylin)
 ├── jpeg2pdf-ofd-cli-3.0.0-linux-aarch64.deb     # Linux ARM64 DEB (華為鯤鵬)
@@ -91,7 +89,7 @@ conveyor make app.linux.aarch64.rpm
 
 ```bash
 # 下載 DEB 包
-wget https://github.com/brianshih04/jpeg2pdf-ofd-conveyor/releases/download/v3.0.0/jpeg2pdf-ofd-cli-3.0.0-linux-amd64.deb
+wget https://github.com/brianshih04/PDF_OFD_Converter/releases/download/v3.0.0/jpeg2pdf-ofd-cli-3.0.0-linux-amd64.deb
 
 # 安裝
 sudo dpkg -i jpeg2pdf-ofd-cli-3.0.0-linux-amd64.deb
@@ -107,7 +105,7 @@ jpeg2pdf-ofd config.json
 
 ```bash
 # 下載 RPM 包
-wget https://github.com/brianshih04/jpeg2pdf-ofd-conveyor/releases/download/v3.0.0/jpeg2pdf-ofd-cli-3.0.0-linux-amd64.rpm
+wget https://github.com/brianshih04/PDF_OFD_Converter/releases/download/v3.0.0/jpeg2pdf-ofd-cli-3.0.0-linux-amd64.rpm
 
 # 安裝
 sudo rpm -ivh jpeg2pdf-ofd-cli-3.0.0-linux-amd64.rpm
@@ -123,7 +121,7 @@ jpeg2pdf-ofd config.json
 
 ```bash
 # 下載 RPM 包
-wget https://github.com/brianshih04/jpeg2pdf-ofd-conveyor/releases/download/v3.0.0/jpeg2pdf-ofd-cli-3.0.0-linux-amd64.rpm
+wget https://github.com/brianshih04/PDF_OFD_Converter/releases/download/v3.0.0/jpeg2pdf-ofd-cli-3.0.0-linux-amd64.rpm
 
 # 安裝
 sudo dnf install jpeg2pdf-ofd-cli-3.0.0-linux-amd64.rpm
@@ -136,7 +134,7 @@ jpeg2pdf-ofd config.json
 
 ```bash
 # 下載 ARM64 DEB 包
-wget https://github.com/brianshih04/jpeg2pdf-ofd-conveyor/releases/download/v3.0.0/jpeg2pdf-ofd-cli-3.0.0-linux-aarch64.deb
+wget https://github.com/brianshih04/PDF_OFD_Converter/releases/download/v3.0.0/jpeg2pdf-ofd-cli-3.0.0-linux-aarch64.deb
 
 # 安裝
 sudo dpkg -i jpeg2pdf-ofd-cli-3.0.0-linux-aarch64.deb
@@ -266,7 +264,7 @@ chmod +x /usr/bin/jpeg2pdf-ofd
 
 ## 技術支持
 
-**GitHub Issues:** https://github.com/brianshih04/jpeg2pdf-ofd-conveyor/issues
+**GitHub Issues:** https://github.com/brianshih04/PDF_OFD_Converter/issues
 
 **文檔:**
 - [README.md](README.md) - 完整文檔
@@ -275,4 +273,4 @@ chmod +x /usr/bin/jpeg2pdf-ofd
 
 ---
 
-**最後更新:** 2026-03-24
+**最後更新:** 2026-04-01

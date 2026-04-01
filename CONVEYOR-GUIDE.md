@@ -1,8 +1,8 @@
 # Conveyor 打包指南
 
-## 📦 使用 Conveyor 打包 JPEG2PDF-OFD CLI
+## 📦 使用 Conveyor 打包 JPEG2PDF-OFD-OCR
 
-這個項目使用 [Conveyor](https://www.hydraulic.software/) 進行跨平台打包，可以一次生成 Windows、macOS 和 Linux 的安裝檔。
+這個項目使用 [Conveyor](https://www.hydraulic.software/) 進行打包，目前僅生成 Windows x64 便攜版 ZIP。
 
 ---
 
@@ -82,9 +82,8 @@ conveyor make site
 這條指令會：
 - 下載並壓縮 JDK（Windows、macOS、Linux）
 - 創建原生啟動器
-- 生成安裝檔（.msix、.zip、.deb 等）
-- 創建 HTML 下載頁面
-- 啟用自動更新功能
+- 生成便攜版 ZIP
+- 啟用自動更新功能（如配置 site.base-url）
 
 ---
 
@@ -94,9 +93,7 @@ conveyor make site
 # 查看生成的文件
 ls output/
 
-# Windows: .msix, .appinstaller
-# macOS: .zip (包含 .app)
-# Linux: .deb, .rpm
+# Windows: .zip (便攜版)
 ```
 
 ---
@@ -140,7 +137,7 @@ https://brianshih04.github.io/jpeg2pdf-ofd-conveyor/
 ```hocon
 app {
     // 應用程式名稱
-    display-name = "JPEG2PDF-OFD OCR CLI"
+    display-name = "JPEG2PDF-OFD-OCR"
     
     // 文件系統名稱（小寫+連字號）
     fsname = "jpeg2pdf-ofd-cli"
@@ -149,7 +146,7 @@ app {
     jvm.gui.main-class = "com.ocr.nospring.Main"
     
     // 自動更新網站
-    site.base-url = "https://brianshih04.github.io/jpeg2pdf-ofd-conveyor"
+    site.base-url = "https://brianshih04.github.io/PDF_OFD_Converter"
 }
 ```
 
@@ -309,7 +306,7 @@ conveyor cache purge
 Set-MpPreference -EnableControlledFolderAccess Disabled
 
 # 或添加排除項
-Add-MpPreference -ExclusionPath "D:\Projects\jpeg2pdf-ofd-conveyor\output"
+Add-MpPreference -ExclusionPath "output"
 ```
 
 ### Q4: macOS Gatekeeper 阻擋？
@@ -359,11 +356,9 @@ conveyor make site
 
 # 4. 測試
 cd output
-# Windows: 運行 .msix
-# macOS: 解壓 .zip 並運行 .app
-# Linux: 安裝 .deb
+# Windows: 解壓 ZIP 並運行 start.bat
 ```
 
 ---
 
-**更新時間：** 2026-03-23
+**更新時間：** 2026-04-01

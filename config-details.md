@@ -21,7 +21,7 @@
     "cpuThreads": 4
   },
   "font": {
-    "path": "C:/Windows/Fonts/msyh.ttc"
+    "path": "C:/Windows/Fonts/arial.ttf"
   }
 }
 ```

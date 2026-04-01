@@ -987,6 +987,6 @@ java -Xmx4G -jar jpeg2pdf-ofd.jar config.json
 
 ---
 
-**GitHub:** https://github.com/brianshih04/jpeg2pdf-ofd-conveyor
+**GitHub:** https://github.com/brianshih04/PDF_OFD_Converter
 
-**更新時間：** 2026-03-25
+**更新時間：** 2026-04-01
