@@ -15,6 +15,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -217,20 +218,20 @@ public class PdfService {
             }
         }
 
-        // 2. RTL 語言（希伯來文、阿拉伯文等）
+        // 2. RTL 語言（希伯來文、阿拉伯文等）— 跨平台字體偵測
         if (isRTL) {
-            String[] rtlFonts = {
-                "C:/Windows/Fonts/tahoma.ttf",
-                "C:/Windows/Fonts/segoeui.ttf",
-            };
-            for (String path : rtlFonts) {
-                File fontFile = new File(path);
-                if (fontFile.exists()) {
-                    try {
-                        PDFont font = PDType0Font.load(document, fontFile);
-                        log.info("    Loaded font (RTL): {}", path);
-                        return font;
-                    } catch (Exception e) {
+            String[] rtlFontNames = {"tahoma.ttf", "segoeui.ttf", "DejaVuSans.ttf", "Arial.ttf"};
+            for (String fontDir : getSystemFontDirectories()) {
+                for (String fontName : rtlFontNames) {
+                    File fontFile = new File(fontDir, fontName);
+                    if (fontFile.exists()) {
+                        try {
+                            PDFont font = PDType0Font.load(document, fontFile);
+                            log.info("    Loaded font (RTL): {}", fontFile.getAbsolutePath());
+                            return font;
+                        } catch (Exception e) {
+                            // skip unsupported font format
+                        }
                     }
                 }
             }
@@ -271,5 +272,26 @@ public class PdfService {
         // 5. 最後使用默認字體（僅支持英文）
         log.warn("    Warning: Using default Helvetica font (English only)");
         return org.apache.pdfbox.pdmodel.font.PDType1Font.HELVETICA;
+    }
+
+    /**
+     * 取得系統字體目錄（跨平台）
+     */
+    private String[] getSystemFontDirectories() {
+        List<String> dirs = new ArrayList<>();
+        String os = System.getProperty("os.name", "").toLowerCase();
+        if (os.contains("win")) {
+            String winDir = System.getenv("WINDIR");
+            if (winDir != null) dirs.add(winDir + "\\Fonts");
+        } else if (os.contains("mac")) {
+            dirs.add("/System/Library/Fonts");
+            dirs.add("/System/Library/Fonts/Supplemental");
+            dirs.add("/Library/Fonts");
+        } else {
+            dirs.add("/usr/share/fonts/truetype");
+            dirs.add("/usr/share/fonts/TTF");
+            dirs.add("/usr/local/share/fonts");
+        }
+        return dirs.toArray(new String[0]);
     }
 }

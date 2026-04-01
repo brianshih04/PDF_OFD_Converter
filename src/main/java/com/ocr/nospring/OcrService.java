@@ -79,7 +79,9 @@ public class OcrService {
         } finally {
             // 刪除臨時文件
             if (tempFile != null && tempFile.exists()) {
-                tempFile.delete();
+                if (!tempFile.delete()) {
+                    log.warn("Failed to delete temp file: {}", tempFile.getAbsolutePath());
+                }
             }
         }
     }

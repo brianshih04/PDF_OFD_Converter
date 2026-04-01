@@ -65,6 +65,7 @@ public class GuiApp extends Application {
     private static final String PREFS_LAST_DIR = "lastDirectory";
     private File lastDirectory;
     private JavaBridge javaBridge;  // Strong reference to prevent GC
+    private volatile boolean bridgeInitialized = false;
 
     @Override
     public void start(Stage stage) {
@@ -141,11 +142,13 @@ public class GuiApp extends Application {
      * Setup Java bridge for JavaScript calls.
      */
     private void setupJavaBridge() {
+        if (bridgeInitialized) return;
         try {
             JSObject window = (JSObject) webEngine.executeScript("window");
             // Keep strong reference to prevent GC from collecting the bridge
             javaBridge = new JavaBridge();
             window.setMember("javaApp", javaBridge);
+            bridgeInitialized = true;
             log.info("Java bridge initialized");
         } catch (Exception e) {
             log.error("Error setting up Java bridge", e);
@@ -281,6 +284,26 @@ public class GuiApp extends Application {
                 // Build Config object
                 Config appConfig = new Config();
 
+                // Apply settings from frontend to Config
+                if (configMap.containsKey("textColor")) {
+                    appConfig.setTextLayerColor((String) configMap.get("textColor"));
+                }
+                if (configMap.containsKey("textOpacity")) {
+                    appConfig.setTextLayerOpacity(((Number) configMap.get("textOpacity")).doubleValue());
+                }
+                if (configMap.containsKey("chineseConversion") && !"null".equals(configMap.get("chineseConversion"))) {
+                    appConfig.setTextConvert((String) configMap.get("chineseConversion"));
+                }
+                if (configMap.containsKey("customFontPath")) {
+                    String fontPath = (String) configMap.get("customFontPath");
+                    if (fontPath != null && !fontPath.isEmpty()) {
+                        appConfig.setFontPath(fontPath);
+                    }
+                }
+                if (configMap.containsKey("tesseractDataPath")) {
+                    appConfig.setTesseractDataPath((String) configMap.get("tesseractDataPath"));
+                }
+
                 // Get input type
                 String inputType = (String) configMap.getOrDefault("inputType", "folder");
 
@@ -305,6 +328,10 @@ public class GuiApp extends Application {
 
                 // Get language
                 String language = (String) configMap.getOrDefault("language", "chinese_cht");
+                appConfig.setOcrLanguage(language);
+
+                // Get OCR engine
+                String ocrEngine = (String) configMap.getOrDefault("ocrEngine", "auto");
 
                 // Get formats
                 String formats = (String) configMap.getOrDefault("formats", "pdf");
@@ -370,13 +397,13 @@ public class GuiApp extends Application {
 
                         if ("pdf".equals(type)) {
                             // PDF to searchable mode
-                            processingService.processPdfToSearchable(files, outputDir, format, lang, "auto", 300f, callback);
+                            processingService.processPdfToSearchable(files, outputDir, format, lang, ocrEngine, 300f, callback);
                         } else if (isMultiPage) {
                             // Multi-page mode
-                            processingService.processMultiPage(files, outputDir, format, lang, "auto", callback);
+                            processingService.processMultiPage(files, outputDir, format, lang, ocrEngine, callback);
                         } else {
                             // Per-page mode
-                            processingService.processPerPage(files, outputDir, format, lang, "auto", callback);
+                            processingService.processPerPage(files, outputDir, format, lang, ocrEngine, callback);
                         }
 
                         return null;
@@ -640,7 +667,10 @@ public class GuiApp extends Application {
                 .replace("'", "\\'")
                 .replace("\"", "\\\"")
                 .replace("\n", "\\n")
-                .replace("\r", "\\r");
+                .replace("\r", "\\r")
+                .replace("</script>", "<\\/script>")
+                .replace("\u2028", "\\u2028")
+                .replace("\u2029", "\\u2029");
     }
 
     private String getFallbackHtml() {
