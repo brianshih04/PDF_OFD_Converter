@@ -1,5 +1,17 @@
 # Changelog
 
+## [v0.12] - 2026-04-01
+
+### Changed
+- **exe 名稱固定**：`display-name` 移除版本號，exe 固定為 `JPEG2PDF-OFD-OCR.exe`，避免每次 build 改名
+- **start.bat 更新**：對應新的 exe 名稱，位於 ZIP 根目錄，雙擊即可啟動
+- **自動化 build script**：新增 `scripts/build-conveyor.ps1`，一鍵執行 Maven → Conveyor → 注入 start.bat
+
+### Fixed
+- 修正 Conveyor jlink 缺少 `java.naming` 模組，導致 logback 初始化失敗（`NoClassDefFoundError: javax/naming/NamingException`）
+
+---
+
 ## [v0.11] - 2026-04-01
 
 ### Changed
