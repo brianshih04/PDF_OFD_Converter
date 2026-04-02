@@ -81,19 +81,6 @@ public class GuiApp extends Application {
         // Enable JavaScript
         webEngine.setJavaScriptEnabled(true);
 
-        // Handle window.confirm() — JavaFX WebEngine does not provide a
-        // built-in confirm dialog, so confirm() silently returns false.
-        // Without this, the Restore Defaults button is completely dead.
-        webEngine.setConfirmHandler(message -> {
-            Alert alert = new Alert(Alert.AlertType.CONFIRMATION, message,
-                    ButtonType.YES, ButtonType.NO);
-            alert.initOwner(stage);
-            // Bring dialog to front of the owner window
-            Stage dialogStage = (Stage) alert.getDialogPane().getScene().getWindow();
-            dialogStage.setAlwaysOnTop(true);
-            return alert.showAndWait().filter(ButtonType.YES::equals).isPresent();
-        });
-
         // Load HTML from resources
         loadHtmlFromResources();
 
@@ -166,6 +153,18 @@ public class GuiApp extends Application {
             log.error("Error setting up Java bridge", e);
             return;
         }
+
+        // Handle window.confirm() — must be set AFTER page load because
+        // loadContent() can reset the handler.  Without this, confirm()
+        // silently returns false and the Restore Defaults button is dead.
+        webEngine.setConfirmHandler(message -> {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION, message,
+                    ButtonType.YES, ButtonType.NO);
+            alert.initOwner(primaryStage);
+            Stage dialogStage = (Stage) alert.getDialogPane().getScene().getWindow();
+            dialogStage.setAlwaysOnTop(true);
+            return alert.showAndWait().filter(ButtonType.YES::equals).isPresent();
+        });
 
         // Defer loadSettings() to the next FX pulse so it runs after
         // loadContent() has fully returned and the page has settled.
