@@ -15,6 +15,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -275,7 +276,23 @@ public class PdfService {
             }
         }
 
-        // 5. 最後使用默認字體（僅支持英文）
+        // 5. Classpath resource fallback (bundled in JAR)
+        String[] classpathFonts = {
+            "/fonts/GoNotoKurrent-Regular.ttf",
+        };
+        for (String resourcePath : classpathFonts) {
+            try (InputStream is = PdfService.class.getResourceAsStream(resourcePath)) {
+                if (is != null) {
+                    PDFont font = PDType0Font.load(document, is);
+                    log.info("    Loaded font (classpath): {}", resourcePath);
+                    return font;
+                }
+            } catch (Exception e) {
+                log.warn("    Warning: Cannot load classpath font {}: {}", resourcePath, e.getMessage());
+            }
+        }
+
+        // 6. 最後使用默認字體（僅支持英文）
         log.warn("    Warning: Using default Helvetica font (English only)");
         return org.apache.pdfbox.pdmodel.font.PDType1Font.HELVETICA;
     }
