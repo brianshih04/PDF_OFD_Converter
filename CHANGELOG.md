@@ -1,5 +1,23 @@
 # Changelog
 
+## [v3.1.0] - 2026-04-02
+
+### Changed
+- Removed JavaFX GUI (GuiApp.java), using Python pywebview UI instead
+- Java CLI now outputs structured JSON progress to stdout
+- Removed JavaFX dependencies from pom.xml
+
+### Added
+- Python UI project (pdf-converter-ui/) with pywebview
+- core/config.py: Settings management (compatible with old JavaFX settings)
+- core/bridge.py: Java CLI subprocess bridge with JSON stdout parsing
+- api/js_api.py: JavaScript-Python bridge (replaces JavaBridge)
+- build/: PyInstaller build scripts
+- PLAN_NEW_UI.md: Full architecture migration plan
+- pywebviewready event for proper initialization
+
+---
+
 ## [v0.11] - 2026-04-01
 
 ### Changed

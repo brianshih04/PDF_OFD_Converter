@@ -2,19 +2,44 @@
 
 **跨平台 OCR 工具：將 JPEG 圖片轉換為可搜索的 PDF/OFD 文件**
 
-支援 **GUI（雙擊啟動）** 與 **CLI（命令行）** 兩種使用方式。
+架構由兩個組件組成：**Java CLI 引擎**（OCR 核心處理）+ **Python pywebview UI**（圖形化操作介面）。
 
 [![GitHub](https://img.shields.io/badge/GitHub-brianshih04%2FPDF_OFD_Converter-blue)](https://github.com/brianshih04/PDF_OFD_Converter)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 [![Java](https://img.shields.io/badge/Java-21+-orange)](https://adoptium.net/)
-[![Version](https://img.shields.io/badge/Version-v0.11-blue)]()
+[![Python](https://img.shields.io/badge/Python-3.13-blue)](https://www.python.org/)
+[![Version](https://img.shields.io/badge/Version-v3.1.0-blue)]()
 
 ---
 
+## 架構概覽
+
+```
+┌─────────────────────────────────────┐
+│     Python UI Shell (pywebview)      │
+│  pdf-converter-ui/                   │
+│  ├── app.py          # 進入點        │
+│  ├── core/bridge.py  # Java CLI 橋接 │
+│  ├── core/config.py  # 設定管理       │
+│  └── api/js_api.py   # JS↔Python 橋接 │
+└──────────────┬──────────────────────┘
+               │ subprocess (JSON stdout)
+┌──────────────▼──────────────────────┐
+│     Java CLI Engine                  │
+│  Java 21 + Maven                     │
+│  ├── Main.java       # CLI 進入點    │
+│  ├── OcrService.java  # OCR 核心    │
+│  └── PdfService.java  # PDF 產生    │
+└─────────────────────────────────────┘
+```
+
+- **Dev 模式**：`python app.py` 啟動 Python UI，自動呼叫 Java JAR
+- **Production 模式**：PyInstaller EXE + 內嵌 JAR，單一可執行檔
+
 ## 功能特色
 
-- **Windows 便攜版**：ZIP 解壓即用，無需安裝，雙擊 `start.bat` 啟動
-- **無需安裝 Java**：使用 Conveyor 打包，自包含 Azul Zulu FX 21 執行環境
+- **Windows 便攜版**：ZIP 解壓即用，無需安裝
+- **Python pywebview UI**：輕量桌面 GUI，無需 JavaFX
 - **80+ 種 OCR 語言**：支援繁中、簡中、英文、日文、韓文等
 - **多種輸出格式**：PDF、OFD（中國國家標準）、TXT
 - **單頁/多頁模式**：彈性的輸出選項
@@ -31,8 +56,9 @@
 
 | 版本 | 大小 | 需求 | 平台 | 說明 |
 |------|------|------|------|------|
-| **Conveyor ZIP (GUI+CLI)** | **~300 MB** | **無需 Java** | **Windows x64** | **便攜版，解壓即用** |
+| **PyInstaller EXE (GUI)** | **~350 MB** | **無需 Java/Python** | **Windows x64** | **便攜版，解壓即用** |
 | **JAR (CLI only)** | **82 MB** | **Java 17+** | 所有平台 | 純命令行模式 |
+| **Dev 模式 (GUI)** | - | **Python 3.13 + Java 21** | 所有平台 | `python app.py` |
 
 ---
 
@@ -40,13 +66,12 @@
 
 ### Windows（推薦）
 
-1. 下載 `JPEG2PDF-OFD-OCR-v0.11-windows-x64.zip`
+1. 下載 `JPEG2PDF-OFD-OCR-v3.1.0-windows-x64.zip`
 2. 解壓縮到任意資料夾
-3. **GUI 模式**：雙擊 `start.bat`
+3. **GUI 模式**：雙擊 `start.bat` 或 `JPEG2PDF-OFD-OCR.exe`
 4. **CLI 模式**：開啟命令提示字元，執行：
    ```powershell
-   cd bin
-   .\JPEG2PDF-OFD-OCR.exe config.json
+   java -jar jpeg2pdf-ofd-nospring-3.0.0.jar config.json
    ```
 
 ### CLI (JAR) — 跨平台
@@ -489,9 +514,21 @@ WPS 搜索：可搜索
 
 ### 先決條件
 
-- JDK 21+（編譯與打包）
+- JDK 21+（編譯 Java CLI 引擎）
 - Maven 3.6+
-- Conveyor（用於打包）
+- Python 3.13（UI 開發，pythonnet 不支援 3.14）
+- pywebview（`pip install pywebview`）
+
+### Dev 模式啟動
+
+```bash
+# 1. 建置 Java JAR
+mvn clean package -DskipTests
+
+# 2. 啟動 Python UI（自動橋接 Java CLI）
+cd pdf-converter-ui
+python app.py
+```
 
 ### 建置 JAR
 
@@ -504,17 +541,15 @@ mvn clean package
 ### 建置 Windows 便攜版 (ZIP)
 
 ```bash
-# 安裝 Conveyor
-# Windows: winget install Hydraulic.Conveyor
+# 1. 建置 Java JAR
+mvn clean package -DskipTests
 
-# 1. 打包為 ZIP（sign=false 跳過簽章）
-conveyor make windows-zip --overwrite=HARD_REPLACE --rerun=all
-
-# 2. 重新封裝為便攜 ZIP（重命名 exe、加入 start.bat）
-powershell -File repack-into-zip.ps1
+# 2. PyInstaller 打包 Python UI + JAR
+cd pdf-converter-ui/build
+pyinstaller --onefile --add-data "../ui;ui" ../app.py
 ```
 
-輸出：`output/JPEG2PDF-OFD-OCR-v0.11-windows-x64.zip`
+輸出：`dist/app.exe`（含內嵌 JAR）
 
 > **注意：** 若僅修改 Java 程式碼而未改動依賴，可直接複製 JAR 到部署目錄的 `app/` 資料夾覆蓋，無需每次重新打包。
 
@@ -523,7 +558,7 @@ powershell -File repack-into-zip.ps1
 ## 已知限制
 
 - **特殊符號缺字**：GoNotoKurrent 字體不包含 ≤ ≥ △ ℃ μ 等數學/科學符號，OCR 識別正常但 PDF 文字層會跳過這些字元。若需完整符號支援，可在 config.json 的 `fontPath` 指定包含符號的字體（如 Noto Sans CJK）。
-- **GUI 需 JavaFX**：CLI 模式（帶 config.json 參數）不需要 JavaFX，但 GUI 模式（雙擊 `start.bat` 或 `--gui`）需要 Conveyor 打包的 JVM 包含 JavaFX 模組（Azul Zulu FX 21）。
+- **Python 版本**：UI 需要 Python 3.13（pythonnet 不支援 3.14）。
 - **字體路徑**：CLI 從 JAR 目錄的相對路徑 `fonts/GoNotoKurrent-Regular.ttf` 載入字體，若 working directory 不在專案根目錄，請在 config.json 設定 `fontPath` 為絕對路徑。
 
 ---
@@ -531,11 +566,11 @@ powershell -File repack-into-zip.ps1
 ## 文件列表
 
 - **README.md** - 本文件
-- **conveyor.conf** - Conveyor 配置
-- **repack-into-zip.ps1** - 便攜 ZIP 重新封裝腳本
 - **JSON-CONFIG-GUIDE.md** - JSON 配置指南
 - **SEARCHABLE_OFD_NOTES.md** - Searchable PDF/OFD 技術筆記
 - **DEVELOPER-GUIDE.md** - 開發者指南（建置、打包、字體）
+- **PLAN_NEW_UI.md** - 新 UI 架構遷移計畫
+- **pdf-converter-ui/** - Python UI 專案
 - **CHINA-LINUX-GUIDE.md** - 中國國產 Linux 構建指南
 - **build-china-linux.sh** - Linux/macOS 構建腳本
 - **build-china-linux.ps1** - Windows PowerShell 構建腳本
@@ -558,7 +593,7 @@ powershell -File repack-into-zip.ps1
 - OpenCC 簡繁轉換（s2t/t2s）
 
 **打包選項：**
-- Conveyor ZIP（推薦，含 GUI+CLI，Windows 便攜版）
+- PyInstaller EXE（推薦，含 GUI+CLI，Windows 便攜版）
 - JAR（CLI only，需要 Java）
 
 ---
