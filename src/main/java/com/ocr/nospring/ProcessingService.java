@@ -75,6 +75,8 @@ public class ProcessingService {
         }
     }
 
+    private static final long LOW_MEMORY_THRESHOLD_BYTES = 50 * 1024 * 1024; // 50 MB
+
     /**
      * Multi-page mode: all images merged into one PDF/OFD.
      */
@@ -92,10 +94,12 @@ public class ProcessingService {
             // Process each image
             for (int i = 0; i < inputFiles.size(); i++) {
                 checkCancelled();
+                checkMemoryPressure();
 
                 File inputFile = inputFiles.get(i);
                 String msg = "[" + (i + 1) + "/" + inputFiles.size() + "] " + inputFile.getName();
                 log.info(msg);
+                logMemoryUsage();
                 if (callback != null) callback.onProgress(i + 1, inputFiles.size(), msg);
 
                 try {
@@ -178,6 +182,12 @@ public class ProcessingService {
 
             log.info("Total pages: {}", images.size());
 
+            // Release image memory
+            for (BufferedImage img : images) {
+                img.flush();
+            }
+            images.clear();
+
             if (callback != null) callback.onComplete(outputFiles);
 
         } catch (InterruptedException e) {
@@ -188,6 +198,44 @@ public class ProcessingService {
             log.error("ERROR: {}", errorMsg, e);
             if (callback != null) callback.onError(errorMsg);
         }
+    }
+
+    /**
+     * Log current JVM memory usage.
+     */
+    private void logMemoryUsage() {
+        Runtime rt = Runtime.getRuntime();
+        long freeBytes = rt.freeMemory();
+        long totalBytes = rt.totalMemory();
+        long maxBytes = rt.maxMemory();
+        long usedBytes = totalBytes - freeBytes;
+        log.debug("Memory: used={}MB, free={}MB, total={}MB, max={}MB",
+            bytesToMb(usedBytes), bytesToMb(freeBytes),
+            bytesToMb(totalBytes), bytesToMb(maxBytes));
+    }
+
+    /**
+     * Check if available memory is critically low. If so, request GC and pause briefly.
+     */
+    private void checkMemoryPressure() {
+        Runtime rt = Runtime.getRuntime();
+        long freeBytes = rt.freeMemory();
+        if (freeBytes < LOW_MEMORY_THRESHOLD_BYTES) {
+            log.warn("Low memory detected: {}MB free (threshold: {}MB). Pausing for GC...",
+                bytesToMb(freeBytes), bytesToMb(LOW_MEMORY_THRESHOLD_BYTES));
+            System.gc();
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            long freeAfter = rt.freeMemory();
+            log.info("Memory after GC: {}MB free", bytesToMb(freeAfter));
+        }
+    }
+
+    private static long bytesToMb(long bytes) {
+        return bytes / (1024 * 1024);
     }
 
     /**
