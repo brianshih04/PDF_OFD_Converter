@@ -644,7 +644,6 @@
             <div class="card">
                 <div class="settings-buttons">
                     <button class="btn btn-secondary" onclick="resetSettings()" data-i18n="btn_reset">恢復預設</button>
-                    <button class="btn btn-primary" onclick="saveSettings()" data-i18n="btn_save">儲存設定</button>
                 </div>
             </div>
         </div>
@@ -683,6 +682,13 @@
         // State
         var isProcessing = false;
         var currentSettings = {};
+
+        // Auto-save settings on any Tab 2 input change
+        document.getElementById('tab-settings').addEventListener('change', function(e) {
+            if (e.target.closest('#tab-settings')) {
+                saveSettings();
+            }
+        });
 
         // i18n translations
         var i18n = {
@@ -758,7 +764,6 @@
                 'label_open_folder_on_complete': '完成後自動開啟資料夾',
                 // Settings buttons
                 'btn_reset': '恢復預設',
-                'btn_save': '儲存設定',
                 // Messages
                 'msg_settings_saved': '設定已儲存',
                 'msg_confirm_reset': '確定要恢復預設設定嗎？',
@@ -766,7 +771,6 @@
                 'msg_select_input': '請選擇輸入路徑',
                 'msg_select_output': '請選擇輸出資料夾',
                 'msg_select_format': '請至少選擇一種輸出格式',
-                'msg_save_failed': '儲存設定失敗: ',
                 'msg_start_conversion': '開始轉換...',
                 'msg_config': '配置: ',
                 'msg_error': '錯誤: ',
@@ -848,7 +852,6 @@
                 'label_open_folder_on_complete': '完成后自动打开文件夹',
                 // Settings buttons
                 'btn_reset': '恢复默认',
-                'btn_save': '保存设置',
                 // Messages
                 'msg_settings_saved': '设置已保存',
                 'msg_confirm_reset': '确定要恢复默认设置吗？',
@@ -856,7 +859,6 @@
                 'msg_select_input': '请选择输入路径',
                 'msg_select_output': '请选择输出文件夹',
                 'msg_select_format': '请至少选择一种输出格式',
-                'msg_save_failed': '保存设置失败: ',
                 'msg_start_conversion': '开始转换...',
                 'msg_config': '配置: ',
                 'msg_error': '错误: ',
@@ -938,7 +940,6 @@
                 'label_open_folder_on_complete': 'Open Folder on Complete',
                 // Settings buttons
                 'btn_reset': 'Reset to Default',
-                'btn_save': 'Save Settings',
                 // Messages
                 'msg_settings_saved': 'Settings saved',
                 'msg_confirm_reset': 'Are you sure to reset to default settings?',
@@ -946,7 +947,6 @@
                 'msg_select_input': 'Please select input path',
                 'msg_select_output': 'Please select output folder',
                 'msg_select_format': 'Please select at least one output format',
-                'msg_save_failed': 'Failed to save settings: ',
                 'msg_start_conversion': 'Starting conversion...',
                 'msg_config': 'Config: ',
                 'msg_error': 'Error: ',
@@ -1239,14 +1239,10 @@
         function saveSettings() {
             var settings = getSettingsFromUI();
             currentSettings = settings;
-
             try {
-                var settingsJson = JSON.stringify(settings);
-                window.javaApp.saveSettings(settingsJson);
-                addLog('設定已儲存', 'success');
+                window.javaApp.saveSettings(JSON.stringify(settings));
             } catch (e) {
-                console.error('Error saving settings:', e);
-                alert('儲存設定失敗: ' + e.message);
+                console.error('Error auto-saving settings:', e);
             }
         }
 

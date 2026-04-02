@@ -153,6 +153,7 @@ public class GuiApp extends Application {
             window.setMember("javaApp", javaBridge);
             bridgeInitialized = true;
             log.info("Java bridge initialized");
+            webEngine.executeScript("loadSettings()");
         } catch (Exception e) {
             log.error("Error setting up Java bridge", e);
         }
