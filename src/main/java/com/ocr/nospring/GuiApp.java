@@ -5,6 +5,8 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.DirectoryChooser;
@@ -78,6 +80,19 @@ public class GuiApp extends Application {
 
         // Enable JavaScript
         webEngine.setJavaScriptEnabled(true);
+
+        // Handle window.confirm() — JavaFX WebEngine does not provide a
+        // built-in confirm dialog, so confirm() silently returns false.
+        // Without this, the Restore Defaults button is completely dead.
+        webEngine.setConfirmHandler(message -> {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION, message,
+                    ButtonType.YES, ButtonType.NO);
+            alert.initOwner(stage);
+            // Bring dialog to front of the owner window
+            Stage dialogStage = (Stage) alert.getDialogPane().getScene().getWindow();
+            dialogStage.setAlwaysOnTop(true);
+            return alert.showAndWait().filter(ButtonType.YES::equals).isPresent();
+        });
 
         // Load HTML from resources
         loadHtmlFromResources();

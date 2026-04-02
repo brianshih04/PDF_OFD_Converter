@@ -1284,8 +1284,8 @@
 
         // Reset Tab 1 form fields to defaults
         function resetTab1Fields() {
-            document.getElementById('inputPath').value = '';
-            document.getElementById('outputPath').value = '';
+            // Note: inputPath/outputPath are set by applySettings() from defaults,
+            // so do NOT clear them here — that was the old broken behavior.
             document.querySelector('input[name="inputType"][value="folder"]').checked = true;
             updateInputType();
             document.getElementById('language').value = 'chinese_cht';
