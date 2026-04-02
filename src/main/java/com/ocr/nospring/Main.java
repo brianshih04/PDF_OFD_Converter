@@ -219,7 +219,11 @@ public class Main {
             log.info("Mode: {}", multiPage ? "Multi-Page" : "Per-Page");
 
             // === 委派給 ProcessingService ===
-            ProcessingService processingService = new ProcessingService(config);
+            OcrService ocrService = new OcrService();
+            PdfService pdfService = new PdfService(config);
+            OfdService ofdService = new OfdService(config);
+            TextService textService = new TextService();
+            ProcessingService processingService = new ProcessingService(config, ocrService, pdfService, ofdService, textService);
 
             if ("pdf".equals(inputType)) {
                 processingService.processPdfToSearchable(inputFiles, outputDir, format, language, ocrEngine, renderDpi, null);

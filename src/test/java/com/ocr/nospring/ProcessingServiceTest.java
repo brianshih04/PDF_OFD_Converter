@@ -15,7 +15,8 @@ class ProcessingServiceTest {
     @BeforeEach
     void setUp() {
         Config config = new Config();
-        service = new ProcessingService(config);
+        service = new ProcessingService(config, new OcrService(), new PdfService(config),
+            new OfdService(config), new TextService());
     }
 
     @Test

@@ -37,14 +37,15 @@ public class ProcessingService {
     private volatile boolean cancelled = false;
 
     /**
-     * Constructor that takes Config and initializes all services.
+     * Constructor with dependency injection for all services.
      */
-    public ProcessingService(Config config) {
+    public ProcessingService(Config config, OcrService ocrService, PdfService pdfService,
+                             OfdService ofdService, TextService textService) {
         this.config = config;
-        this.ocrService = new OcrService();
-        this.pdfService = new PdfService(config);
-        this.textService = new TextService();
-        this.ofdService = new OfdService(config);
+        this.ocrService = ocrService;
+        this.pdfService = pdfService;
+        this.textService = textService;
+        this.ofdService = ofdService;
     }
 
     /**

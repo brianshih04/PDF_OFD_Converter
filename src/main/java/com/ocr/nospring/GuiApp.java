@@ -156,9 +156,68 @@ public class GuiApp extends Application {
     }
 
     /**
+     * Package-private settings manager — handles save/load/delete of settings file.
+     */
+    static class SettingsManager {
+
+        String getSettingsPath() {
+            return System.getProperty("user.home") + "/.jpeg2pdf-ofd/settings.json";
+        }
+
+        void save(String settingsJson) {
+            try {
+                File settingsFile = new File(getSettingsPath());
+                File settingsDir = settingsFile.getParentFile();
+                if (!settingsDir.exists()) {
+                    settingsDir.mkdirs();
+                }
+                try (FileOutputStream fos = new FileOutputStream(settingsFile)) {
+                    fos.write(settingsJson.getBytes(StandardCharsets.UTF_8));
+                }
+                log.info("Settings saved to: {}", settingsFile.getAbsolutePath());
+            } catch (Exception e) {
+                log.error("Error saving settings", e);
+            }
+        }
+
+        String load() {
+            try {
+                File settingsFile = new File(getSettingsPath());
+                if (!settingsFile.exists()) {
+                    log.debug("Settings file not found, using defaults");
+                    return "";
+                }
+                try (FileInputStream fis = new FileInputStream(settingsFile)) {
+                    byte[] bytes = fis.readAllBytes();
+                    String json = new String(bytes, StandardCharsets.UTF_8);
+                    log.info("Settings loaded from: {}", settingsFile.getAbsolutePath());
+                    return json;
+                }
+            } catch (Exception e) {
+                log.error("Error loading settings", e);
+                return "";
+            }
+        }
+
+        void delete() {
+            try {
+                File settingsFile = new File(getSettingsPath());
+                if (settingsFile.exists()) {
+                    settingsFile.delete();
+                    log.info("Settings file deleted");
+                }
+            } catch (Exception e) {
+                log.error("Error deleting settings", e);
+            }
+        }
+    }
+
+    /**
      * Java Bridge class - exposed to JavaScript.
      */
     public class JavaBridge {
+
+        private final SettingsManager settingsManager = new SettingsManager();
 
         /**
          * Get application version.
@@ -370,20 +429,7 @@ public class GuiApp extends Application {
          * @param settingsJson JSON string of settings
          */
         public void saveSettings(String settingsJson) {
-            try {
-                File settingsFile = new File(getSettingsPath());
-                File settingsDir = settingsFile.getParentFile();
-                if (!settingsDir.exists()) {
-                    settingsDir.mkdirs();
-                }
-
-                try (FileOutputStream fos = new FileOutputStream(settingsFile)) {
-                    fos.write(settingsJson.getBytes(StandardCharsets.UTF_8));
-                }
-                log.info("Settings saved to: {}", settingsFile.getAbsolutePath());
-            } catch (Exception e) {
-                log.error("Error saving settings", e);
-            }
+            settingsManager.save(settingsJson);
         }
 
         /**
@@ -391,38 +437,14 @@ public class GuiApp extends Application {
          * @return JSON string of settings, or empty string if not exists
          */
         public String loadSettings() {
-            try {
-                File settingsFile = new File(getSettingsPath());
-                if (!settingsFile.exists()) {
-                    log.debug("Settings file not found, using defaults");
-                    return "";
-                }
-
-                try (FileInputStream fis = new FileInputStream(settingsFile)) {
-                    byte[] bytes = fis.readAllBytes();
-                    String json = new String(bytes, StandardCharsets.UTF_8);
-                    log.info("Settings loaded from: {}", settingsFile.getAbsolutePath());
-                    return json;
-                }
-            } catch (Exception e) {
-                log.error("Error loading settings", e);
-                return "";
-            }
+            return settingsManager.load();
         }
 
         /**
          * Delete settings file.
          */
         public void deleteSettings() {
-            try {
-                File settingsFile = new File(getSettingsPath());
-                if (settingsFile.exists()) {
-                    settingsFile.delete();
-                    log.info("Settings file deleted");
-                }
-            } catch (Exception e) {
-                log.error("Error deleting settings", e);
-            }
+            settingsManager.delete();
         }
     }
 
@@ -522,7 +544,9 @@ public class GuiApp extends Application {
      * All UI callbacks use Platform.runLater() for thread safety.
      */
     private void createAndRunTask(ParsedConfig parsed, List<File> inputFiles, File outputDir) {
-        processingService = new ProcessingService(parsed.config);
+        processingService = new ProcessingService(
+            parsed.config, new OcrService(), new PdfService(parsed.config),
+            new OfdService(parsed.config), new TextService());
 
         currentTask = new Task<Void>() {
             @Override
@@ -562,14 +586,6 @@ public class GuiApp extends Application {
         Thread thread = new Thread(currentTask);
         thread.setDaemon(true);
         thread.start();
-    }
-
-    /**
-     * Get settings file path.
-     * @return path to settings.json in user home directory
-     */
-    private String getSettingsPath() {
-        return System.getProperty("user.home") + "/.jpeg2pdf-ofd/settings.json";
     }
 
     /**
