@@ -51,3 +51,8 @@ dist-test/
 test-fixed/
 test-fixed-v2/
 test-output/
+
+# Python
+__pycache__/
+*.pyc
+pdf-converter-ui/.venv/

@@ -14,7 +14,7 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).parent.parent
 JAVA_PROJECT = PROJECT_ROOT.parent / 'main_new_ui'
-JAR_NAME = 'jpeg2pdf-ofd-nospring-3.0.0.jar'
+JAR_NAME = 'jpeg2pdf-ofd-nospring-0.20.jar'
 DIST_DIR = PROJECT_ROOT / 'dist'
 DEFAULT_JAR_SRC = JAVA_PROJECT / 'target' / JAR_NAME
 

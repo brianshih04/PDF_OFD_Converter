@@ -6,6 +6,7 @@ to the Java CLI config.json format.
 """
 
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -23,7 +24,7 @@ def _get_base_path() -> Path:
     return Path(__file__).parent.parent.parent
 
 
-JAR_NAME = 'jpeg2pdf-ofd-nospring-3.0.0.jar'
+JAR_NAME = 'jpeg2pdf-ofd-nospring-0.20.jar'
 JAR_DEV_PATH = _get_base_path() / 'target' / JAR_NAME
 JAR_PACKAGED_PATH = _get_base_path() / JAR_NAME
 
@@ -70,13 +71,15 @@ class ConversionBridge:
 
         try:
             self._process = subprocess.Popen(
-                ['java', '-Xmx2G', '-jar', str(self.jar_path), str(config_path)],
+                ['java', '-Dfile.encoding=UTF-8', '-Xmx2G', '-jar',
+                 str(self._jar_path), str(config_path)],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
                 encoding='utf-8',
+                errors='replace',
                 bufsize=1,  # Line-buffered
-                cwd=str(self.jar_path.parent),
+                cwd=str(self._jar_path.parent),
             )
 
             output_files = []
@@ -107,7 +110,7 @@ class ConversionBridge:
                 on_complete(output_files)
             elif returncode != 0:
                 stderr = self._process.stderr.read()
-                on_error(f"Process exited with code {returncode}: {stderr[:500]}")
+                on_error(f"Process exited with code {returncode}: {stderr.strip()}")
             elif not self._cancelled:
                 on_complete([])
 
@@ -133,15 +136,15 @@ class ConversionBridge:
     def _write_temp_config(self, config_json: str) -> Path:
         """Write the transformed Java CLI config JSON to a temp file."""
         config = json.loads(config_json)
-        java_config = self._transform_config(config)
+        java_config = self.transform_config(config)
 
-        tmp = Path(tempfile.gettempdir()) / 'jpeg2pdf_conversion_config.json'
-        with open(tmp, 'w', encoding='utf-8') as f:
+        fd, tmp = tempfile.mkstemp(suffix='.json', prefix='jpeg2pdf_cfg_')
+        with os.fdopen(fd, 'w', encoding='utf-8') as f:
             json.dump(java_config, f, ensure_ascii=False, indent=2)
-        return tmp
+        return Path(tmp)
 
     @staticmethod
-    def _transform_config(frontend_config: dict) -> dict:
+    def transform_config(frontend_config: dict) -> dict:
         """Transform frontend config to Java CLI config.json format.
 
         Frontend sends (UI settings shape):

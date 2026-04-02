@@ -89,7 +89,7 @@ python app.py
 ```
 
 Python UI 會自動偵測 JAR 位置：
-- **Dev 模式**：在專案根目錄尋找 `target/jpeg2pdf-ofd-nospring-3.0.0.jar`
+- **Dev 模式**：在專案根目錄尋找 `target/jpeg2pdf-ofd-nospring-0.20.jar`
 - **Production 模式**（PyInstaller 打包後）：使用內嵌的 JAR
 
 ### 2.5 Tesseract OCR 安裝（選用）
@@ -247,7 +247,7 @@ mvn clean package
 
 ### 5.2 建置輸出
 
-- **JAR 位置**：`target/jpeg2pdf-ofd-nospring-3.0.0.jar`（~82 MB）
+- **JAR 位置**：`target/jpeg2pdf-ofd-nospring-0.20.jar`（~82 MB）
 - **Main Class**：`com.ocr.nospring.Main`
 - **打包方式**：Maven Shade Plugin（所有依賴打包進單一 JAR）
 - **JavaFX 除外**：Shade Plugin 排除 JavaFX（由 Conveyor 打包的 JVM 提供）
@@ -279,7 +279,7 @@ pyinstaller pdf-converter.spec
 
 | 步驟 | 檔案 | 說明 |
 |------|------|------|
-| Maven 輸出 | `target/jpeg2pdf-ofd-nospring-3.0.0.jar` | Java CLI 引擎 JAR |
+| Maven 輸出 | `target/jpeg2pdf-ofd-nospring-0.20.jar` | Java CLI 引擎 JAR |
 | PyInstaller 輸出 | `pdf-converter-ui/dist/app.exe` | 含 Python UI + 內嵌 JAR 的便攜版 |
 
 ### 6.3 本地快速測試
@@ -296,7 +296,7 @@ Python UI 自動偵測 JAR 位置，無需手動配置：
 
 | 模式 | JAR 來源 | 說明 |
 |------|---------|------|
-| **Dev 模式** | `target/jpeg2pdf-ofd-nospring-3.0.0.jar` | 專案根目錄下的 Maven 建置產出 |
+| **Dev 模式** | `target/jpeg2pdf-ofd-nospring-0.20.jar` | 專案根目錄下的 Maven 建置產出 |
 | **Production 模式** | 內嵌於 PyInstaller EXE | 由 PyInstaller `--add-data` 打包進去 |
 
 > `core/bridge.py` 中的 `find_jar()` 方法負責路徑解析邏輯。
@@ -393,10 +393,10 @@ PDF_OFD_Converter/
 
 ```bash
 # 使用範例配置檔
-java -jar target/jpeg2pdf-ofd-nospring-3.0.0.jar dist/config-test.json
+java -jar target/jpeg2pdf-ofd-nospring-0.20.jar dist/config-test.json
 
 # 指定自訂配置
-java -jar target/jpeg2pdf-ofd-nospring-3.0.0.jar path/to/your-config.json
+java -jar target/jpeg2pdf-ofd-nospring-0.20.jar path/to/your-config.json
 ```
 
 ### 9.2 GUI 測試
@@ -436,9 +436,9 @@ python app.py
 
 | 版本類型 | 位置 | 目前值 | 說明 |
 |---------|------|--------|------|
-| **Maven 版本** | `pom.xml` → `<version>` | `3.0.0` | Java 套件版本 |
-| **JAR 名稱** | `target/` | `jpeg2pdf-ofd-nospring-3.0.0.jar` | 需與 Maven 版本一致 |
-| **應用版本** | `README.md` | `v3.1.0` | UI 專案版本（含 Python UI） |
+| **Maven 版本** | `pom.xml` → `<version>` | `0.20` | Java 套件版本 |
+| **JAR 名稱** | `target/` | `jpeg2pdf-ofd-nospring-0.20.jar` | 需與 Maven 版本一致 |
+| **應用版本** | `README.md` | `v0.20` | UI 專案版本（含 Python UI） |
 
 ### 10.2 分支策略
 

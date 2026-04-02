@@ -114,7 +114,7 @@ This means only `Main.java` and `ProcessingService.ProgressCallback` usage in `M
 ### 0.7 Build Output
 
 After cleanup, `mvn clean package -DskipTests` produces:
-- `target/jpeg2pdf-ofd-nospring-3.0.0.jar` — fat JAR (~150MB with native OCR libs)
+- `target/jpeg2pdf-ofd-nospring-0.20.jar` — fat JAR (~150MB with native OCR libs)
 - No JavaFX runtime dependency
 - Runs with `java -jar` (no Conveyor, no JDK bundling needed for CLI)
 
@@ -255,9 +255,9 @@ import subprocess, json, threading
 from pathlib import Path
 from typing import Callable, Optional
 
-JAR_PATH = Path(__file__).parent.parent.parent / 'target' / 'jpeg2pdf-ofd-nospring-3.0.0.jar'
+JAR_PATH = Path(__file__).parent.parent.parent / 'target' / 'jpeg2pdf-ofd-nospring-0.20.jar'
 # For packaged builds, JAR is bundled alongside the EXE
-PACKAGED_JAR_PATH = Path(__file__).parent.parent / 'jpeg2pdf-ofd-nospring-3.0.0.jar'
+PACKAGED_JAR_PATH = Path(__file__).parent.parent / 'jpeg2pdf-ofd-nospring-0.20.jar'
 
 class ConversionBridge:
     def __init__(self):
@@ -497,7 +497,7 @@ class JsApi:
         self.settings.delete()
 
     def get_version(self) -> str:
-        return '3.0.0 (pywebview)'
+        return '0.20 (pywebview)'
 
     # === Callbacks to JavaScript ===
 
@@ -623,7 +623,7 @@ Two-artifact distribution:
 dist/
 ├── JPEG2PDF-OFD-OCR/                  # Distributable folder
 │   ├── JPEG2PDF-OFD-OCR.exe           # PyInstaller onefile EXE
-│   ├── jpeg2pdf-ofd-nospring-3.0.0.jar  # Java CLI engine
+│   ├── jpeg2pdf-ofd-nospring-0.20.jar  # Java CLI engine
 │   └── start.bat                      # Simple launcher
 ```
 
@@ -698,8 +698,8 @@ def package():
     shutil.copy2(exe_src, dist_app / 'JPEG2PDF-OFD-OCR.exe')
 
     # Copy JAR
-    jar_src = JAVA_PROJECT / 'target' / 'jpeg2pdf-ofd-nospring-3.0.0.jar'
-    shutil.copy2(jar_src, dist_app / 'jpeg2pdf-ofd-nospring-3.0.0.jar')
+    jar_src = JAVA_PROJECT / 'target' / 'jpeg2pdf-ofd-nospring-0.20.jar'
+    shutil.copy2(jar_src, dist_app / 'jpeg2pdf-ofd-nospring-0.20.jar')
 
     # Create start.bat
     bat_content = '@echo off\r\ncd /d "%~dp0"\r\nstart "" "JPEG2PDF-OFD-OCR.exe"'

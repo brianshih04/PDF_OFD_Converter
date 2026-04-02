@@ -79,57 +79,72 @@ public class PdfService {
     }
 
     /**
-     * 生成多頁 PDF
+     * 生成多頁 PDF (batch API — kept for backward compatibility)
      */
     public void generateMultiPagePdf(List<BufferedImage> images, List<List<OcrService.TextBlock>> allTextBlocks, File outputFile) throws Exception {
-
-        if (images.size() != allTextBlocks.size()) {
-            throw new IllegalArgumentException("Images and text blocks count mismatch");
-        }
-
-        try (PDDocument document = new PDDocument()) {
-            // 載入字體
-            PDFont font = loadFont(document);
-
-            // 處理每一頁
-            for (int pageIndex = 0; pageIndex < images.size(); pageIndex++) {
-                BufferedImage image = images.get(pageIndex);
-                List<OcrService.TextBlock> textBlocks = allTextBlocks.get(pageIndex);
-
-                // 建立頁面
-                float width = image.getWidth();
-                float height = image.getHeight();
-                PDPage page = new PDPage(new PDRectangle(width, height));
-                document.addPage(page);
-
-                // 轉換圖片
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                ImageIO.write(image, "PNG", baos);
-                byte[] imageBytes = baos.toByteArray();
-
-                PDImageXObject pdImage = PDImageXObject.createFromByteArray(
-                    document, imageBytes, "image"
-                );
-
-                // 繪製內容
-                try (PDPageContentStream contentStream = new PDPageContentStream(
-                    document, page,
-                    PDPageContentStream.AppendMode.APPEND,
-                    true,
-                    true
-                )) {
-                    // 1. 繪製圖片
-                    contentStream.drawImage(pdImage, 0, 0, width, height);
-
-                    // 2. 繪製透明文字層（使用與 OFD 相同的算法）
-                    drawTransparentTextLayer(contentStream, textBlocks, font, width, height);
-                }
+        PDDocument doc = openMultiPage(outputFile);
+        try {
+            for (int i = 0; i < images.size(); i++) {
+                addPage(doc, images.get(i), allTextBlocks.get(i));
             }
-
-            // 保存
-            document.save(outputFile);
+        } finally {
+            closeMultiPage(doc);
         }
     }
+
+    /**
+     * Open a new multi-page PDF document. Caller must call addPage() then closeMultiPage().
+     */
+    public PDDocument openMultiPage(File outputFile) throws Exception {
+        this.multiPageOutputFile = outputFile;
+        PDDocument doc = new PDDocument();
+        this.multiPageFont = loadFont(doc);
+        return doc;
+    }
+
+    /**
+     * Add a single page (image + OCR text layer) to an open multi-page PDF.
+     */
+    public void addPage(PDDocument document, BufferedImage image, List<OcrService.TextBlock> textBlocks) throws Exception {
+        PDFont font = this.multiPageFont;
+
+        float width = image.getWidth();
+        float height = image.getHeight();
+        PDPage page = new PDPage(new PDRectangle(width, height));
+        document.addPage(page);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(image, "PNG", baos);
+        byte[] imageBytes = baos.toByteArray();
+
+        PDImageXObject pdImage = PDImageXObject.createFromByteArray(document, imageBytes, "image");
+
+        try (PDPageContentStream contentStream = new PDPageContentStream(
+            document, page,
+            PDPageContentStream.AppendMode.APPEND,
+            true,
+            true
+        )) {
+            contentStream.drawImage(pdImage, 0, 0, width, height);
+            drawTransparentTextLayer(contentStream, textBlocks, font, width, height);
+        }
+    }
+
+    /**
+     * Finalize and save a multi-page PDF document.
+     */
+    public void closeMultiPage(PDDocument document) throws Exception {
+        try {
+            document.save(this.multiPageOutputFile);
+        } finally {
+            document.close();
+            this.multiPageFont = null;
+            this.multiPageOutputFile = null;
+        }
+    }
+
+    private PDFont multiPageFont;
+    private File multiPageOutputFile;
 
     /**
      * 繪製透明文字層（整段定位，不用逐字/scaleX）

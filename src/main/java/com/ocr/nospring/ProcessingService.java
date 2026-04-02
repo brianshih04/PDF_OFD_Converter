@@ -1,6 +1,7 @@
 package com.ocr.nospring;
 
 import com.github.houbb.opencc4j.util.ZhConverterUtil;
+import org.apache.pdfbox.pdmodel.PDDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.imageio.ImageIO;
@@ -79,19 +80,35 @@ public class ProcessingService {
 
     /**
      * Multi-page mode: all images merged into one PDF/OFD.
+     * Uses streaming approach — only one image in memory at a time.
      */
     public void processMultiPage(List<File> inputFiles, File outputDir, String format,
                                   String language, String ocrEngine, ProgressCallback callback) {
         List<String> outputFiles = new ArrayList<>();
 
+        // Streaming state — one image processed at a time
+        PDDocument pdfDoc = null;
+        boolean pdfOpen = false;
+        boolean txtOpen = false;
+        boolean ofdOpen = false;
+        int totalPages = 0;
+
         try {
             log.info("Processing {} images into multi-page document...", inputFiles.size());
 
-            // Store all page data
-            List<BufferedImage> images = new ArrayList<>();
-            List<List<OcrService.TextBlock>> allTextBlocks = new ArrayList<>();
+            // Generate output filename
+            String timestamp = new java.text.SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+            String outputFilename = "multipage_" + timestamp;
 
-            // Process each image
+            // Pre-create output files so we can stream into them
+            File pdfFile = (format.contains("pdf") || format.contains("all"))
+                ? new File(outputDir, outputFilename + ".pdf") : null;
+            File txtFile = (format.contains("txt") || format.contains("all"))
+                ? new File(outputDir, outputFilename + ".txt") : null;
+            File ofdFile = (format.contains("ofd") || format.contains("all"))
+                ? new File(outputDir, outputFilename + ".ofd") : null;
+
+            // Process each image: load → OCR → add to outputs → release
             for (int i = 0; i < inputFiles.size(); i++) {
                 checkCancelled();
                 checkMemoryPressure();
@@ -99,7 +116,6 @@ public class ProcessingService {
                 File inputFile = inputFiles.get(i);
                 String msg = "[" + (i + 1) + "/" + inputFiles.size() + "] " + inputFile.getName();
                 log.info(msg);
-                logMemoryUsage();
                 if (callback != null) callback.onProgress(i + 1, inputFiles.size(), msg);
 
                 try {
@@ -131,87 +147,80 @@ public class ProcessingService {
 
                     log.info("  OK: OCR completed ({} blocks)", textBlocks.size());
 
-                    // Save data
-                    images.add(image);
-                    allTextBlocks.add(textBlocks);
+                    // Open output documents on first valid page
+                    if (totalPages == 0) {
+                        if (pdfFile != null) {
+                            pdfDoc = pdfService.openMultiPage(pdfFile);
+                            pdfOpen = true;
+                        }
+                        if (txtFile != null) {
+                            textService.openMultiPage(txtFile);
+                            txtOpen = true;
+                        }
+                        if (ofdFile != null) {
+                            ofdService.openMultiPage(ofdFile);
+                            ofdOpen = true;
+                        }
+                    }
+
+                    // Add page to each open output
+                    if (pdfOpen) pdfService.addPage(pdfDoc, image, textBlocks);
+                    if (txtOpen) textService.addPage(textBlocks, totalPages + 1);
+                    if (ofdOpen) ofdService.addPage(image, textBlocks, totalPages + 1);
+
+                    totalPages++;
+
+                    // Release image immediately
+                    image.flush();
 
                 } catch (Exception e) {
                     log.error("  ERROR: {}", e.getMessage());
                 }
             }
 
-            if (images.isEmpty()) {
+            if (totalPages == 0) {
                 String errorMsg = "No valid images processed";
                 log.error("ERROR: {}", errorMsg);
                 if (callback != null) callback.onError(errorMsg);
                 return;
             }
 
-            log.info("Generating multi-page output...");
-
-            // Generate output filename
-            String timestamp = new java.text.SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-            String outputFilename = "multipage_" + timestamp;
-
-            // Generate multi-page PDF
-            if (format.contains("pdf") || format.contains("all")) {
-                checkCancelled();
-                File pdfFile = new File(outputDir, outputFilename + ".pdf");
-                pdfService.generateMultiPagePdf(images, allTextBlocks, pdfFile);
+            // Close all output documents
+            if (pdfOpen) {
+                pdfService.closeMultiPage(pdfDoc);
                 log.info("  OK: Multi-page PDF -> {}", pdfFile.getName());
                 outputFiles.add(pdfFile.getAbsolutePath());
             }
-
-            // Generate TXT (all pages text)
-            if (format.contains("txt") || format.contains("all")) {
-                checkCancelled();
-                File txtFile = new File(outputDir, outputFilename + ".txt");
-                textService.generateMultiPageTxt(allTextBlocks, txtFile);
+            if (txtOpen) {
+                textService.closeMultiPage();
                 log.info("  OK: TXT -> {}", txtFile.getName());
                 outputFiles.add(txtFile.getAbsolutePath());
             }
-
-            // Generate multi-page OFD
-            if (format.contains("ofd") || format.contains("all")) {
-                checkCancelled();
-                File ofdFile = new File(outputDir, outputFilename + ".ofd");
-                ofdService.generateMultiPageOfd(images, allTextBlocks, ofdFile);
+            if (ofdOpen) {
+                ofdService.closeMultiPage();
                 log.info("  OK: Multi-page OFD -> {}", ofdFile.getName());
                 outputFiles.add(ofdFile.getAbsolutePath());
             }
 
-            log.info("Total pages: {}", images.size());
-
-            // Release image memory
-            for (BufferedImage img : images) {
-                img.flush();
-            }
-            images.clear();
+            log.info("Total pages: {}", totalPages);
 
             if (callback != null) callback.onComplete(outputFiles);
 
         } catch (InterruptedException e) {
             log.info("Processing cancelled");
+            // Clean up partial outputs
+            try { if (pdfOpen) pdfService.closeMultiPage(pdfDoc); } catch (Exception ignored) {}
+            try { if (txtOpen) textService.closeMultiPage(); } catch (Exception ignored) {}
+            try { if (ofdOpen) ofdService.closeMultiPage(); } catch (Exception ignored) {}
             if (callback != null) callback.onError("Cancelled by user");
         } catch (Exception e) {
             String errorMsg = "Error in multi-page processing: " + e.getMessage();
             log.error("ERROR: {}", errorMsg, e);
+            try { if (pdfOpen) pdfService.closeMultiPage(pdfDoc); } catch (Exception ignored) {}
+            try { if (txtOpen) textService.closeMultiPage(); } catch (Exception ignored) {}
+            try { if (ofdOpen) ofdService.closeMultiPage(); } catch (Exception ignored) {}
             if (callback != null) callback.onError(errorMsg);
         }
-    }
-
-    /**
-     * Log current JVM memory usage.
-     */
-    private void logMemoryUsage() {
-        Runtime rt = Runtime.getRuntime();
-        long freeBytes = rt.freeMemory();
-        long totalBytes = rt.totalMemory();
-        long maxBytes = rt.maxMemory();
-        long usedBytes = totalBytes - freeBytes;
-        log.debug("Memory: used={}MB, free={}MB, total={}MB, max={}MB",
-            bytesToMb(usedBytes), bytesToMb(freeBytes),
-            bytesToMb(totalBytes), bytesToMb(maxBytes));
     }
 
     /**
@@ -351,16 +360,23 @@ public class ProcessingService {
     /**
      * PDF to searchable mode.
      * Renders input PDF files to images, OCRs them, and regenerates searchable PDF/OFD.
+     * Uses streaming approach — only one page image in memory at a time per PDF.
      */
     public void processPdfToSearchable(List<File> pdfFiles, File outputDir, String format,
                                         String language, String ocrEngine, float dpi,
                                         ProgressCallback callback) {
         List<String> outputFiles = new ArrayList<>();
+        PdfToImagesService pdfToImages = new PdfToImagesService();
 
-        try {
-            PdfToImagesService pdfToImages = new PdfToImagesService();
+        for (int f = 0; f < pdfFiles.size(); f++) {
+            // Streaming state for this PDF
+            PDDocument pdfDoc = null;
+            boolean pdfOpen = false;
+            boolean txtOpen = false;
+            boolean ofdOpen = false;
+            int totalPages = 0;
 
-            for (int f = 0; f < pdfFiles.size(); f++) {
+            try {
                 checkCancelled();
 
                 File pdfFile = pdfFiles.get(f);
@@ -368,76 +384,108 @@ public class ProcessingService {
                 log.info(msg);
                 if (callback != null) callback.onProgress(f + 1, pdfFiles.size(), msg);
 
-                // Render each PDF page to image
+                // Pre-create output files
+                String baseName = pdfFile.getName().replaceAll("(?i)\\.pdf$", "");
+                String timestamp = new java.text.SimpleDateFormat("yyyyMMdd_HHmmss").format(new java.util.Date());
+
+                File outFile = (format.contains("pdf") || format.contains("all"))
+                    ? new File(outputDir, baseName + "_searchable_" + timestamp + ".pdf") : null;
+                File txtFile = (format.contains("txt") || format.contains("all"))
+                    ? new File(outputDir, baseName + "_searchable_" + timestamp + ".txt") : null;
+                File ofdFile = (format.contains("ofd") || format.contains("all"))
+                    ? new File(outputDir, baseName + "_searchable_" + timestamp + ".ofd") : null;
+
+                // Render all pages (PdfToImagesService returns List — this is per-PDF, not cumulative)
                 List<BufferedImage> pages = pdfToImages.renderPages(pdfFile, dpi);
 
-                // OCR each page
-                List<List<OcrService.TextBlock>> allTextBlocks = new ArrayList<>();
+                // Process each page: OCR → add to outputs → release
                 for (int i = 0; i < pages.size(); i++) {
                     checkCancelled();
+                    BufferedImage pageImage = pages.get(i);
 
                     log.info("  [{}/{}] OCR...", i + 1, pages.size());
                     List<OcrService.TextBlock> textBlocks;
                     if (TesseractLanguageHelper.shouldUseTesseract(ocrEngine, language)) {
                         tesseractService = getOrCreateTesseractService(
                             config.getTesseractDataPath(), TesseractLanguageHelper.getTesseractLanguage(language));
-                        textBlocks = tesseractService.recognize(pages.get(i));
+                        textBlocks = tesseractService.recognize(pageImage);
                         log.info("  OCR Engine: Tesseract ({})", TesseractLanguageHelper.getTesseractLabel(language));
                     } else {
-                        textBlocks = ocrService.recognize(pages.get(i), language);
+                        textBlocks = ocrService.recognize(pageImage, language);
                         log.info("  OCR Engine: RapidOCR");
                     }
 
-                    // Text conversion
                     if (config.getTextConvert() != null && !config.getTextConvert().isEmpty()) {
                         convertTextBlocks(textBlocks, config.getTextConvert());
                     }
 
-                    allTextBlocks.add(textBlocks);
                     log.info("  OK: {} blocks", textBlocks.size());
+
+                    // Open output documents on first page
+                    if (totalPages == 0) {
+                        if (outFile != null) {
+                            pdfDoc = pdfService.openMultiPage(outFile);
+                            pdfOpen = true;
+                        }
+                        if (txtFile != null) {
+                            textService.openMultiPage(txtFile);
+                            txtOpen = true;
+                        }
+                        if (ofdFile != null) {
+                            ofdService.openMultiPage(ofdFile);
+                            ofdOpen = true;
+                        }
+                    }
+
+                    // Add page to each open output
+                    if (pdfOpen) pdfService.addPage(pdfDoc, pageImage, textBlocks);
+                    if (txtOpen) textService.addPage(textBlocks, totalPages + 1);
+                    if (ofdOpen) ofdService.addPage(pageImage, textBlocks, totalPages + 1);
+
+                    totalPages++;
+
+                    // Release page image immediately
+                    pageImage.flush();
                 }
 
-                // Generate output
-                String baseName = pdfFile.getName().replaceAll("(?i)\\.pdf$", "");
-                String timestamp = new java.text.SimpleDateFormat("yyyyMMdd_HHmmss").format(new java.util.Date());
+                // Clear the pages list references
+                pages.clear();
 
-                if (format.contains("pdf") || format.contains("all")) {
-                    checkCancelled();
-                    String outName = baseName + "_searchable_" + timestamp + ".pdf";
-                    File outFile = new File(outputDir, outName);
-                    pdfService.generateMultiPagePdf(pages, allTextBlocks, outFile);
-                    log.info("  OK: PDF -> {}", outName);
+                // Close all output documents
+                if (pdfOpen) {
+                    pdfService.closeMultiPage(pdfDoc);
+                    log.info("  OK: PDF -> {}", outFile.getName());
                     outputFiles.add(outFile.getAbsolutePath());
                 }
-                if (format.contains("ofd") || format.contains("all")) {
-                    checkCancelled();
-                    String outName = baseName + "_searchable_" + timestamp + ".ofd";
-                    File outFile = new File(outputDir, outName);
-                    ofdService.generateMultiPageOfd(pages, allTextBlocks, outFile);
-                    log.info("  OK: OFD -> {}", outName);
-                    outputFiles.add(outFile.getAbsolutePath());
+                if (txtOpen) {
+                    textService.closeMultiPage();
+                    log.info("  OK: TXT -> {}", txtFile.getName());
+                    outputFiles.add(txtFile.getAbsolutePath());
                 }
-                if (format.contains("txt") || format.contains("all")) {
-                    checkCancelled();
-                    String outName = baseName + "_searchable_" + timestamp + ".txt";
-                    File outFile = new File(outputDir, outName);
-                    textService.generateMultiPageTxt(allTextBlocks, outFile);
-                    log.info("  OK: TXT -> {}", outName);
-                    outputFiles.add(outFile.getAbsolutePath());
+                if (ofdOpen) {
+                    ofdService.closeMultiPage();
+                    log.info("  OK: OFD -> {}", ofdFile.getName());
+                    outputFiles.add(ofdFile.getAbsolutePath());
                 }
 
+            } catch (InterruptedException e) {
+                log.info("Processing cancelled");
+                try { if (pdfOpen) pdfService.closeMultiPage(pdfDoc); } catch (Exception ignored) {}
+                try { if (txtOpen) textService.closeMultiPage(); } catch (Exception ignored) {}
+                try { if (ofdOpen) ofdService.closeMultiPage(); } catch (Exception ignored) {}
+                if (callback != null) callback.onError("Cancelled by user");
+                return;
+            } catch (Exception e) {
+                String errorMsg = "Error processing " + pdfFiles.get(f).getName() + ": " + e.getMessage();
+                log.error("ERROR: {}", errorMsg, e);
+                try { if (pdfOpen) pdfService.closeMultiPage(pdfDoc); } catch (Exception ignored) {}
+                try { if (txtOpen) textService.closeMultiPage(); } catch (Exception ignored) {}
+                try { if (ofdOpen) ofdService.closeMultiPage(); } catch (Exception ignored) {}
+                if (callback != null) callback.onError(errorMsg);
             }
-
-            if (callback != null) callback.onComplete(outputFiles);
-
-        } catch (InterruptedException e) {
-            log.info("Processing cancelled");
-            if (callback != null) callback.onError("Cancelled by user");
-        } catch (Exception e) {
-            String errorMsg = "Error in PDF to searchable processing: " + e.getMessage();
-            log.error("ERROR: {}", errorMsg, e);
-            if (callback != null) callback.onError(errorMsg);
         }
+
+        if (callback != null) callback.onComplete(outputFiles);
     }
 
     /**

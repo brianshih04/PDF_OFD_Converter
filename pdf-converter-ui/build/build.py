@@ -15,7 +15,7 @@ PROJECT_ROOT = Path(__file__).parent.parent
 JAVA_PROJECT = PROJECT_ROOT.parent / 'main_new_ui'
 DIST_DIR = PROJECT_ROOT / 'dist'
 PACKAGE_NAME = 'JPEG2PDF-OFD-OCR'
-JAR_NAME = 'jpeg2pdf-ofd-nospring-3.0.0.jar'
+JAR_NAME = 'jpeg2pdf-ofd-nospring-0.20.jar'
 EXE_NAME = 'JPEG2PDF-OFD-OCR.exe'
 
 

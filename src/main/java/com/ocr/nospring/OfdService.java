@@ -52,72 +52,87 @@ public class OfdService {
     }
 
     /**
-     * 生成多頁 OFD
+     * 生成多頁 OFD (batch API — kept for backward compatibility)
      */
     public void generateMultiPageOfd(List<BufferedImage> images, List<List<OcrService.TextBlock>> allTextBlocks, File outputFile) throws Exception {
-
-        if (images.size() != allTextBlocks.size()) {
-            throw new IllegalArgumentException("Images and text blocks count mismatch");
-        }
-
-        // 臨時保存所有圖片
-        Path tempDir = Files.createTempDirectory("ofd_multipage_");
-        List<Path> tempImages = new ArrayList<>();
-
+        openMultiPage(outputFile);
         try {
-            try (OFDDoc ofdDoc = new OFDDoc(outputFile.toPath())) {
-
-                // 處理每一頁
-                for (int pageIndex = 0; pageIndex < images.size(); pageIndex++) {
-                    BufferedImage image = images.get(pageIndex);
-                    List<OcrService.TextBlock> textBlocks = allTextBlocks.get(pageIndex);
-
-                    // 保存圖片
-                    Path tempImage = tempDir.resolve("page_" + pageIndex + ".png");
-                    ImageIO.write(image, "PNG", tempImage.toFile());
-                    tempImages.add(tempImage); // 記錄所有臨時圖片
-
-                    // 轉換坐標：像素 -> mm
-                    double widthMm = image.getWidth() * MM_PER_INCH / ASSUMED_DPI;
-                    double heightMm = image.getHeight() * MM_PER_INCH / ASSUMED_DPI;
-
-                    // 創建頁面佈局
-                    PageLayout pageLayout = new PageLayout(widthMm, heightMm);
-                    pageLayout.setMargin(0d);
-
-                    // 創建虛擬頁面
-                    VirtualPage vPage = new VirtualPage(pageLayout);
-
-                    // 添加背景圖片
-                    Img img = new Img(tempImage);
-                    img.setPosition(Position.Absolute)
-                       .setX(0d)
-                       .setY(0d)
-                       .setWidth(widthMm)
-                       .setHeight(heightMm);
-                    vPage.add(img);
-
-                    // 添加不可見文字層
-                    renderTextBlocks(vPage, textBlocks, String.valueOf(pageIndex + 1));
-
-                    // 添加頁面（不刪除圖片！）
-                    ofdDoc.addVPage(vPage);
-                }
+            for (int i = 0; i < images.size(); i++) {
+                addPage(images.get(i), allTextBlocks.get(i), i + 1);
             }
-            // OFD 文檔已在此處關閉並生成完成
-
         } finally {
-            // 在文檔完全生成後，再清理所有臨時圖片
-            for (Path tempImage : tempImages) {
-                if (!Files.deleteIfExists(tempImage)) {
-                    log.warn("Failed to delete temp image: {}", tempImage);
-                }
-            }
-            if (!Files.deleteIfExists(tempDir)) {
-                log.warn("Failed to delete temp directory: {}", tempDir);
-            }
+            closeMultiPage();
         }
     }
+
+    /**
+     * Open a new multi-page OFD document. Caller must call addPage() then closeMultiPage().
+     */
+    public void openMultiPage(File outputFile) throws Exception {
+        this.multiPageTempDir = Files.createTempDirectory("ofd_multipage_");
+        this.multiPageTempImages = new ArrayList<>();
+        this.multiPageOutputFile = outputFile;
+        this.ofdDoc = new OFDDoc(outputFile.toPath());
+    }
+
+    /**
+     * Add a single page (image + OCR text layer) to an open multi-page OFD.
+     */
+    public void addPage(BufferedImage image, List<OcrService.TextBlock> textBlocks, int pageNumber) throws Exception {
+        Path tempImage = multiPageTempDir.resolve("page_" + (pageNumber - 1) + ".png");
+        ImageIO.write(image, "PNG", tempImage.toFile());
+        multiPageTempImages.add(tempImage);
+
+        double widthMm = image.getWidth() * MM_PER_INCH / ASSUMED_DPI;
+        double heightMm = image.getHeight() * MM_PER_INCH / ASSUMED_DPI;
+
+        PageLayout pageLayout = new PageLayout(widthMm, heightMm);
+        pageLayout.setMargin(0d);
+
+        VirtualPage vPage = new VirtualPage(pageLayout);
+
+        Img img = new Img(tempImage);
+        img.setPosition(Position.Absolute)
+           .setX(0d)
+           .setY(0d)
+           .setWidth(widthMm)
+           .setHeight(heightMm);
+        vPage.add(img);
+
+        renderTextBlocks(vPage, textBlocks, String.valueOf(pageNumber));
+
+        ofdDoc.addVPage(vPage);
+    }
+
+    /**
+     * Finalize and save a multi-page OFD document, then clean up temp files.
+     */
+    public void closeMultiPage() throws Exception {
+        try {
+            if (ofdDoc != null) ofdDoc.close();
+        } finally {
+            // Clean up temp images
+            if (multiPageTempImages != null) {
+                for (Path tempImage : multiPageTempImages) {
+                    if (!Files.deleteIfExists(tempImage)) {
+                        log.warn("Failed to delete temp image: {}", tempImage);
+                    }
+                }
+            }
+            if (multiPageTempDir != null && !Files.deleteIfExists(multiPageTempDir)) {
+                log.warn("Failed to delete temp directory: {}", multiPageTempDir);
+            }
+            ofdDoc = null;
+            multiPageTempDir = null;
+            multiPageTempImages = null;
+            multiPageOutputFile = null;
+        }
+    }
+
+    private OFDDoc ofdDoc;
+    private Path multiPageTempDir;
+    private List<Path> multiPageTempImages;
+    private File multiPageOutputFile;
 
     public void generateOfd(BufferedImage image, List<OcrService.TextBlock> textBlocks, File outputFile) throws Exception {
 

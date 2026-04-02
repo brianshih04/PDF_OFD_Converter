@@ -1,6 +1,6 @@
 # Changelog
 
-## [v3.1.0] - 2026-04-02
+## [v0.20] - 2026-04-02
 
 ### Changed
 - Removed JavaFX GUI (GuiApp.java), using Python pywebview UI instead
@@ -52,7 +52,7 @@
 
 ---
 
-## [3.0.0] - 2026-03-31
+## [0.19] - 2026-03-31
 
 ### Added
 - **JavaFX GUI 模式**：內建 WebView 介面，支援資料夾選擇、格式設定、語言切換、即時處理

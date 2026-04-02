@@ -20,7 +20,7 @@ public class Main {
 
     private static final Logger log = LoggerFactory.getLogger(Main.class);
 
-    private static String VERSION = "3.0.0 (No Spring Boot)";
+    private static String VERSION = "0.20";
     private static String APP_NAME = "JPEG2PDF-OFD (No Spring Boot)";
 
     static {
@@ -282,7 +282,7 @@ public class Main {
             String folderPath = (String) inputConfig.get("folder");
             String pattern = inputConfig.containsKey("pattern")
                 ? (String) inputConfig.get("pattern")
-                : "*.jpg";
+                : "*.jpg,*.jpeg,*.png,*.bmp,*.tiff,*.tif";
 
             File folder = new File(folderPath);
             if (folder.exists() && folder.isDirectory()) {
@@ -308,6 +308,18 @@ public class Main {
 
     private static boolean matchesPattern(String filename, String pattern) {
         if (pattern.equals("*") || pattern.equals("*.*")) return true;
+        // Support comma-separated patterns: "*.jpg,*.png,*.tiff"
+        if (pattern.contains(",")) {
+            String[] patterns = pattern.split(",");
+            for (String p : patterns) {
+                p = p.trim();
+                if (!p.isEmpty() && p.startsWith("*.")) {
+                    String ext = p.substring(1).toLowerCase();
+                    if (filename.toLowerCase().endsWith(ext)) return true;
+                }
+            }
+            return false;
+        }
         if (pattern.startsWith("*.")) {
             String ext = pattern.substring(1).toLowerCase();
             return filename.toLowerCase().endsWith(ext);

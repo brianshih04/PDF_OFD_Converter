@@ -28,7 +28,7 @@ class JsApi:
             dialog_type=webview.FOLDER_DIALOG,
             directory=current_path or os.path.expanduser('~'),
         )
-        return folder[0] if folder else ''
+        return folder[0] if len(folder) > 0 else ''
 
     def open_file_chooser(self) -> str:
         """Open native file picker for PDF files."""
@@ -36,7 +36,7 @@ class JsApi:
             dialog_type=webview.OPEN_DIALOG,
             file_types=('PDF Files (*.pdf)',),
         )
-        return result[0] if result else ''
+        return result[0] if len(result) > 0 else ''
 
     def open_font_file_chooser(self) -> str:
         """Open native file picker for TTF font files."""
@@ -44,7 +44,7 @@ class JsApi:
             dialog_type=webview.OPEN_DIALOG,
             file_types=('Font Files (*.ttf;*.ttc)',),
         )
-        return result[0] if result else ''
+        return result[0] if len(result) > 0 else ''
 
     # ================================================================
     # Conversion
@@ -85,7 +85,7 @@ class JsApi:
     # ================================================================
 
     def get_version(self) -> str:
-        return '3.0.0 (pywebview)'
+        return '0.20'
 
     # ================================================================
     # Callbacks to JavaScript via window.evaluate_js

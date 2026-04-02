@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -412,7 +412,7 @@
     </style>
 </head>
 <body>
-    <!-- Loading overlay ??shown until pywebview API is ready -->
+    <!-- Loading overlay: shown until pywebview API is ready -->
     <div id="loadingOverlay">
         <div class="loading-spinner"></div>
         <div class="loading-text">Initializing...</div>
@@ -424,66 +424,66 @@
 
         <!-- Tab Navigation -->
         <div class="tab-nav">
-            <button class="tab-btn active" onclick="switchTab('convert', this)" data-i18n="tab_convert">頧?</button>
-            <button class="tab-btn" onclick="switchTab('settings', this)" data-i18n="tab_settings">閮剖?</button>
+            <button class="tab-btn active" onclick="switchTab('convert', this)" data-i18n="tab_convert">轉換</button>
+            <button class="tab-btn" onclick="switchTab('settings', this)" data-i18n="tab_settings">設定</button>
         </div>
 
         <!-- Tab 1: Convert -->
         <div id="tab-convert" class="tab-content active">
             <!-- Input Section -->
             <div class="card">
-                <div class="card-title" data-i18n="card_input">頛詨閮剔蔭</div>
+                <div class="card-title" data-i18n="card_input">輸入設置</div>
 
                 <div class="form-group">
-                    <label data-i18n="label_input_type">頛詨憿?</label>
+                    <label data-i18n="label_input_type">輸入類型</label>
                     <div class="radio-group">
                         <label class="radio-item">
                             <input type="radio" name="inputType" value="folder" checked onchange="updateInputType()">
-                            <span data-i18n="label_image_folder">??鞈?憭?/span>
+                            <span data-i18n="label_image_folder">圖片資料夾</span>
                         </label>
                         <label class="radio-item">
                             <input type="radio" name="inputType" value="pdf" onchange="updateInputType()">
-                            <span data-i18n="label_pdf_file">PDF 瑼?</span>
+                            <span data-i18n="label_pdf_file">PDF 檔案</span>
                         </label>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label id="inputLabel" data-i18n="label_select_image_folder">?豢???鞈?憭?/label>
+                    <label id="inputLabel" data-i18n="label_select_image_folder">選擇圖片資料夾</label>
                     <div class="path-row">
-                        <input type="text" id="inputPath" class="path-input" data-i18n-placeholder="placeholder_browse" placeholder="暺??汗?豢?..." readonly>
-                        <button class="btn btn-secondary" onclick="browseInput()" data-i18n="btn_browse">?汗</button>
+                        <input type="text" id="inputPath" class="path-input" data-i18n-placeholder="placeholder_browse" placeholder="點擊瀏覽選擇..." readonly>
+                        <button class="btn btn-secondary" onclick="browseInput()" data-i18n="btn_browse">瀏覽</button>
                     </div>
                 </div>
             </div>
 
             <!-- OCR Settings -->
             <div class="card">
-                <div class="card-title" data-i18n="card_ocr">OCR 閮剔蔭</div>
+                <div class="card-title" data-i18n="card_ocr">OCR 設置</div>
 
                 <div class="form-group">
-                    <label data-i18n="label_ocr_language">霅隤?</label>
+                    <label data-i18n="label_ocr_language">識別語言</label>
                     <select id="language">
-                        <option value="chinese_cht">蝜?銝剜?</option>
-                        <option value="ch">蝞雿葉??/option>
+                        <option value="chinese_cht">繁體中文</option>
+                        <option value="ch">简体中文</option>
                         <option value="en">English</option>
-                        <option value="japan">?交隤?/option>
-                        <option value="korean">?筏??/option>
-                        <option value="french">Fran癟ais</option>
+                        <option value="japan">日本語</option>
+                        <option value="korean">한국어</option>
+                        <option value="french">Français</option>
                         <option value="german">Deutsch</option>
-                        <option value="spanish">Espa簽ol</option>
-                        <option value="arabic">塈?媢堭堥?堜</option>
-                        <option value="hebrew">蛁?蚳?蛌</option>
+                        <option value="spanish">Español</option>
+                        <option value="arabic">العربية</option>
+                        <option value="hebrew">עברית</option>
                     </select>
                 </div>
             </div>
 
             <!-- Output Settings -->
             <div class="card">
-                <div class="card-title" data-i18n="card_output">頛詨閮剔蔭</div>
+                <div class="card-title" data-i18n="card_output">輸出設置</div>
 
                 <div class="form-group">
-                    <label data-i18n="label_output_format">頛詨?澆?</label>
+                    <label data-i18n="label_output_format">輸出格式</label>
                     <div class="checkbox-group">
                         <label class="checkbox-item">
                             <input type="checkbox" id="formatPdf" checked>
@@ -503,15 +503,15 @@
                 <div class="form-group">
                     <label class="checkbox-item">
                         <input type="checkbox" id="multiPage">
-                        <span data-i18n="label_multi_page_mode">憭?璅∪? (?????雿萇銝??獢?</span>
+                        <span data-i18n="label_multi_page_mode">多頁模式 (所有圖片合併為一個檔案)</span>
                     </label>
                 </div>
 
                 <div class="form-group">
-                    <label data-i18n="label_output_folder">頛詨鞈?憭?/label>
+                    <label data-i18n="label_output_folder">輸出資料夾</label>
                     <div class="path-row">
-                        <input type="text" id="outputPath" class="path-input" data-i18n-placeholder="placeholder_browse" placeholder="暺??汗?豢?..." readonly>
-                        <button class="btn btn-secondary" onclick="browseOutput()" data-i18n="btn_browse">?汗</button>
+                        <input type="text" id="outputPath" class="path-input" data-i18n-placeholder="placeholder_browse" placeholder="點擊瀏覽選擇..." readonly>
+                        <button class="btn btn-secondary" onclick="browseOutput()" data-i18n="btn_browse">瀏覽</button>
                     </div>
                 </div>
             </div>
@@ -519,18 +519,18 @@
             <!-- Action Buttons -->
             <div class="card">
                 <button id="startBtn" class="btn btn-success start-btn" onclick="startConversion()" data-i18n="btn_start">
-                    ??頧?
+                    開始轉換
                 </button>
                 <button id="cancelBtn" class="btn btn-danger start-btn hidden" onclick="cancelConversion()" data-i18n="btn_cancel">
-                    ??頧?
+                    取消轉換
                 </button>
             </div>
 
             <!-- Progress Section -->
             <div id="progressSection" class="card progress-section">
-                <div class="card-title" data-i18n="card_progress">頧??脣漲</div>
+                <div class="card-title" data-i18n="card_progress">轉換進度</div>
 
-                <div class="progress-text" id="progressText" data-i18n="text_preparing">皞?銝?..</div>
+                <div class="progress-text" id="progressText" data-i18n="text_preparing">準備中...</div>
                 <div class="progress-bar-container">
                     <div class="progress-bar" id="progressBar"></div>
                 </div>
@@ -538,7 +538,7 @@
                 <div class="log-area" id="logArea"></div>
 
                 <div id="successMessage" class="success-message">
-                    <h4 data-i18n="text_complete">頧?摰?!</h4>
+                    <h4 data-i18n="text_complete">轉換完成!</h4>
                     <ul class="file-list" id="fileList"></ul>
                 </div>
             </div>
@@ -548,40 +548,40 @@
         <div id="tab-settings" class="tab-content">
             <!-- OCR Engine Section -->
             <div class="card">
-                <div class="card-title" data-i18n="card_ocr_engine">OCR 撘?</div>
+                <div class="card-title" data-i18n="card_ocr_engine">OCR 引擎</div>
 
                 <div class="form-group">
-                    <label data-i18n="label_engine">撘?</label>
+                    <label data-i18n="label_engine">引擎</label>
                     <select id="settingOcrEngine">
-                        <option value="auto" data-i18n="option_auto">?芸?</option>
+                        <option value="auto" data-i18n="option_auto">自動</option>
                         <option value="rapidocr">RapidOCR</option>
                         <option value="tesseract">Tesseract</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label data-i18n="label_tesseract_data_path">Tesseract 鞈?頝臬?</label>
+                    <label data-i18n="label_tesseract_data_path">Tesseract 資料路徑</label>
                     <div class="path-row">
-                        <input type="text" id="settingTesseractDataPath" class="path-input" data-i18n-placeholder="placeholder_tessdata" placeholder="tessdata 鞈?憭曇楝敺?..">
-                        <button class="btn btn-secondary" onclick="browseTesseractDataPath()" data-i18n="btn_browse">?汗</button>
+                        <input type="text" id="settingTesseractDataPath" class="path-input" data-i18n-placeholder="placeholder_tessdata" placeholder="tessdata 資料夾路徑...">
+                        <button class="btn btn-secondary" onclick="browseTesseractDataPath()" data-i18n="btn_browse">瀏覽</button>
                     </div>
                 </div>
             </div>
 
             <!-- Output Section -->
             <div class="card">
-                <div class="card-title" data-i18n="card_output_settings">頛詨</div>
+                <div class="card-title" data-i18n="card_output_settings">輸出</div>
 
                 <div class="form-group">
-                    <label data-i18n="label_default_output_folder">?身頛詨鞈?憭?/label>
+                    <label data-i18n="label_default_output_folder">預設輸出資料夾</label>
                     <div class="path-row">
-                        <input type="text" id="settingDefaultOutputFolder" class="path-input" data-i18n-placeholder="placeholder_output" placeholder="?身頛詨頝臬?...">
-                        <button class="btn btn-secondary" onclick="browseDefaultOutputFolder()" data-i18n="btn_browse">?汗</button>
+                        <input type="text" id="settingDefaultOutputFolder" class="path-input" data-i18n-placeholder="placeholder_output" placeholder="預設輸出路徑...">
+                        <button class="btn btn-secondary" onclick="browseDefaultOutputFolder()" data-i18n="btn_browse">瀏覽</button>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label data-i18n="label_filename_format">瑼??澆?</label>
+                    <label data-i18n="label_filename_format">檔名格式</label>
                     <select id="settingFilenameFormat">
                         <option value="multipage_YYYYMMDD_HHmmss">multipage_YYYYMMDD_HHmmss</option>
                         <option value="input_YYYYMMDD_HHmmss">input_YYYYMMDD_HHmmss</option>
@@ -589,52 +589,52 @@
                 </div>
 
                 <div class="form-group">
-                    <label data-i18n="label_multi_page_mode_settings">憭?璅∪?</label>
+                    <label data-i18n="label_multi_page_mode_settings">多頁模式</label>
                     <select id="settingMultiPageMode">
-                        <option value="false" data-i18n-opt="option_page_by_page">??頧?</option>
-                        <option value="true" data-i18n-opt="option_merge_multi_page">?蔥?箏???/option>
+                        <option value="false" data-i18n-opt="option_page_by_page">逐頁轉換</option>
+                        <option value="true" data-i18n-opt="option_merge_multi_page">合併為多頁</option>
                     </select>
                 </div>
             </div>
 
             <!-- Font Section -->
             <div class="card">
-                <div class="card-title" data-i18n="card_font">摮?</div>
+                <div class="card-title" data-i18n="card_font">字體</div>
 
                 <div class="form-group">
-                    <label data-i18n="label_font_mode">摮?璅∪?</label>
+                    <label data-i18n="label_font_mode">字體模式</label>
                     <select id="settingFontMode" onchange="updateFontModeVisibility()">
-                        <option value="auto" data-i18n-opt="option_font_auto">?芸?嚗?隤?嚗?/option>
-                        <option value="custom" data-i18n-opt="option_custom">?芾?</option>
+                        <option value="auto" data-i18n-opt="option_font_auto">自動（依語言）</option>
+                        <option value="custom" data-i18n-opt="option_custom">自訂</option>
                     </select>
                 </div>
 
                 <div class="form-group" id="customFontPathGroup" style="display: none;">
-                    <label data-i18n="label_custom_font_path">?芾?摮?頝臬?</label>
+                    <label data-i18n="label_custom_font_path">自訂字體路徑</label>
                     <div class="path-row">
-                        <input type="text" id="settingCustomFontPath" class="path-input" data-i18n-placeholder="placeholder_font" placeholder="?豢? TTF 摮?瑼?...">
-                        <button class="btn btn-secondary" onclick="browseCustomFont()" data-i18n="btn_browse">?汗</button>
+                        <input type="text" id="settingCustomFontPath" class="path-input" data-i18n-placeholder="placeholder_font" placeholder="選擇 TTF 字體檔案...">
+                        <button class="btn btn-secondary" onclick="browseCustomFont()" data-i18n="btn_browse">瀏覽</button>
                     </div>
                 </div>
             </div>
 
             <!-- Text Layer Section -->
             <div class="card">
-                <div class="card-title" data-i18n="card_text_layer">??撅?/div>
+                <div class="card-title" data-i18n="card_text_layer">文字層</div>
 
                 <div class="form-group">
-                    <label data-i18n="label_color">憿</label>
+                    <label data-i18n="label_color">顏色</label>
                     <select id="settingTextColor">
-                        <option value="white" data-i18n-opt="option_white">?質</option>
-                        <option value="black" data-i18n-opt="option_black">暺</option>
-                        <option value="red" data-i18n-opt="option_red">蝝</option>
-                        <option value="blue" data-i18n-opt="option_blue">?</option>
-                        <option value="debug" data-i18n-opt="option_debug_mode">隤輯岫璅∪?</option>
+                        <option value="white" data-i18n-opt="option_white">白色</option>
+                        <option value="black" data-i18n-opt="option_black">黑色</option>
+                        <option value="red" data-i18n-opt="option_red">紅色</option>
+                        <option value="blue" data-i18n-opt="option_blue">藍色</option>
+                        <option value="debug" data-i18n-opt="option_debug_mode">調試模式</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label data-i18n="label_opacity">??摨?/label>
+                    <label data-i18n="label_opacity">透明度</label>
                     <div class="range-row">
                         <input type="range" id="settingTextOpacity" class="range-slider"
                                min="0" max="1" step="0.0001" value="0.0001"
@@ -646,27 +646,27 @@
 
             <!-- Text Conversion Section -->
             <div class="card">
-                <div class="card-title" data-i18n="card_text_conversion">??頧?</div>
+                <div class="card-title" data-i18n="card_text_conversion">文字轉換</div>
 
                 <div class="form-group">
-                    <label data-i18n="label_chinese_conversion">蝪∠?頧?</label>
+                    <label data-i18n="label_chinese_conversion">簡繁轉換</label>
                     <select id="settingChineseConversion">
-                        <option value="null" data-i18n-opt="option_no_conversion">銝???/option>
-                        <option value="s2t" data-i18n-opt="option_s2t">蝪⊿???擃?/option>
-                        <option value="t2s" data-i18n-opt="option_t2s">蝜??陛擃?/option>
+                        <option value="null" data-i18n-opt="option_no_conversion">不轉換</option>
+                        <option value="s2t" data-i18n-opt="option_s2t">簡體→繁體</option>
+                        <option value="t2s" data-i18n-opt="option_t2s">繁體→簡體</option>
                     </select>
                 </div>
             </div>
 
             <!-- Interface Section -->
             <div class="card">
-                <div class="card-title" data-i18n="card_interface">?</div>
+                <div class="card-title" data-i18n="card_interface">界面</div>
 
                 <div class="form-group">
-                    <label data-i18n="label_ui_language">UI 隤?</label>
+                    <label data-i18n="label_ui_language">UI 語言</label>
                     <select id="settingUiLanguage" onchange="changeUiLanguage()">
-                        <option value="zh-TW">蝜?銝剜?</option>
-                        <option value="zh-CN">蝞雿葉??/option>
+                        <option value="zh-TW">繁體中文</option>
+                        <option value="zh-CN">简体中文</option>
                         <option value="en">English</option>
                     </select>
                 </div>
@@ -674,14 +674,14 @@
                 <div class="form-group">
                     <label class="checkbox-item">
                         <input type="checkbox" id="settingNotifyOnComplete" checked>
-                        <span data-i18n="label_notify_on_complete">摰?敺</span>
+                        <span data-i18n="label_notify_on_complete">完成後通知</span>
                     </label>
                 </div>
 
                 <div class="form-group">
                     <label class="checkbox-item">
                         <input type="checkbox" id="settingOpenFolderOnComplete" checked>
-                        <span data-i18n="label_open_folder_on_complete">摰?敺?????冗</span>
+                        <span data-i18n="label_open_folder_on_complete">完成後自動開啟資料夾</span>
                     </label>
                 </div>
             </div>
@@ -689,7 +689,7 @@
             <!-- Settings Buttons -->
             <div class="card">
                 <div class="settings-buttons">
-                    <button class="btn btn-secondary" onclick="resetSettings()" data-i18n="btn_reset">?Ｗ儔?身</button>
+                    <button class="btn btn-secondary" onclick="resetSettings()" data-i18n="btn_reset">恢復預設</button>
                 </div>
             </div>
         </div>
@@ -740,178 +740,178 @@
         var i18n = {
             'zh-TW': {
                 // Tab navigation
-                'tab_convert': '頧?',
-                'tab_settings': '閮剖?',
+                'tab_convert': '轉換',
+                'tab_settings': '設定',
                 // Input section
-                'card_input': '頛詨閮剔蔭',
-                'label_input_type': '頛詨憿?',
-                'label_image_folder': '??鞈?憭?,
-                'label_pdf_file': 'PDF 瑼?',
-                'label_select_image_folder': '?豢???鞈?憭?,
-                'label_select_pdf_file': '?豢? PDF 瑼?',
-                'btn_browse': '?汗',
-                'placeholder_browse': '暺??汗?豢?...',
+                'card_input': '輸入設置',
+                'label_input_type': '輸入類型',
+                'label_image_folder': '圖片資料夾',
+                'label_pdf_file': 'PDF 檔案',
+                'label_select_image_folder': '選擇圖片資料夾',
+                'label_select_pdf_file': '選擇 PDF 檔案',
+                'btn_browse': '瀏覽',
+                'placeholder_browse': '點擊瀏覽選擇...',
                 // OCR section
-                'card_ocr': 'OCR 閮剔蔭',
-                'label_ocr_language': '霅隤?',
+                'card_ocr': 'OCR 設置',
+                'label_ocr_language': '識別語言',
                 // Output section
-                'card_output': '頛詨閮剔蔭',
-                'label_output_format': '頛詨?澆?',
-                'label_multi_page_mode': '憭?璅∪? (?????雿萇銝??獢?',
-                'label_output_folder': '頛詨鞈?憭?,
+                'card_output': '輸出設置',
+                'label_output_format': '輸出格式',
+                'label_multi_page_mode': '多頁模式 (所有圖片合併為一個檔案)',
+                'label_output_folder': '輸出資料夾',
                 // Action buttons
-                'btn_start': '??頧?',
-                'btn_cancel': '??頧?',
+                'btn_start': '開始轉換',
+                'btn_cancel': '取消轉換',
                 // Progress section
-                'card_progress': '頧??脣漲',
-                'text_preparing': '皞?銝?..',
-                'text_processing': '??銝?..',
-                'text_complete': '頧?摰?!',
+                'card_progress': '轉換進度',
+                'text_preparing': '準備中...',
+                'text_processing': '處理中...',
+                'text_complete': '轉換完成!',
                 // Settings - OCR Engine
-                'card_ocr_engine': 'OCR 撘?',
-                'label_engine': '撘?',
-                'option_auto': '?芸?',
-                'label_tesseract_data_path': 'Tesseract 鞈?頝臬?',
-                'placeholder_tessdata': 'tessdata 鞈?憭曇楝敺?..',
+                'card_ocr_engine': 'OCR 引擎',
+                'label_engine': '引擎',
+                'option_auto': '自動',
+                'label_tesseract_data_path': 'Tesseract 資料路徑',
+                'placeholder_tessdata': 'tessdata 資料夾路徑...',
                 // Settings - Output
-                'card_output_settings': '頛詨',
-                'label_default_output_folder': '?身頛詨鞈?憭?,
-                'placeholder_output': '?身頛詨頝臬?...',
-                'label_filename_format': '瑼??澆?',
-                'label_multi_page_mode_settings': '憭?璅∪?',
-                'option_page_by_page': '??頧?',
-                'option_merge_multi_page': '?蔥?箏???,
+                'card_output_settings': '輸出',
+                'label_default_output_folder': '預設輸出資料夾',
+                'placeholder_output': '預設輸出路徑...',
+                'label_filename_format': '檔名格式',
+                'label_multi_page_mode_settings': '多頁模式',
+                'option_page_by_page': '逐頁轉換',
+                'option_merge_multi_page': '合併為多頁',
                 // Settings - Font
-                'card_font': '摮?',
-                'label_font_mode': '摮?璅∪?',
-                'option_font_auto': '?芸?嚗?隤?嚗?,
-                'option_custom': '?芾?',
-                'label_custom_font_path': '?芾?摮?頝臬?',
-                'placeholder_font': '?豢? TTF 摮?瑼?...',
+                'card_font': '字體',
+                'label_font_mode': '字體模式',
+                'option_font_auto': '自動（依語言）',
+                'option_custom': '自訂',
+                'label_custom_font_path': '自訂字體路徑',
+                'placeholder_font': '選擇 TTF 字體檔案...',
                 // Settings - Text layer
-                'card_text_layer': '??撅?,
-                'label_color': '憿',
-                'option_white': '?質',
-                'option_black': '暺',
-                'option_red': '蝝',
-                'option_blue': '?',
-                'option_debug_mode': '隤輯岫璅∪?',
-                'label_opacity': '??摨?,
+                'card_text_layer': '文字層',
+                'label_color': '顏色',
+                'option_white': '白色',
+                'option_black': '黑色',
+                'option_red': '紅色',
+                'option_blue': '藍色',
+                'option_debug_mode': '調試模式',
+                'label_opacity': '透明度',
                 // Settings - Text conversion
-                'card_text_conversion': '??頧?',
-                'label_chinese_conversion': '蝪∠?頧?',
-                'option_no_conversion': '銝???,
-                'option_s2t': '蝪⊿???擃?,
-                'option_t2s': '蝜??陛擃?,
+                'card_text_conversion': '文字轉換',
+                'label_chinese_conversion': '簡繁轉換',
+                'option_no_conversion': '不轉換',
+                'option_s2t': '簡體→繁體',
+                'option_t2s': '繁體→簡體',
                 // Settings - Interface
-                'card_interface': '?',
-                'label_ui_language': 'UI 隤?',
-                'label_notify_on_complete': '摰?敺',
-                'label_open_folder_on_complete': '摰?敺?????冗',
+                'card_interface': '界面',
+                'label_ui_language': 'UI 語言',
+                'label_notify_on_complete': '完成後通知',
+                'label_open_folder_on_complete': '完成後自動開啟資料夾',
                 // Settings buttons
-                'btn_reset': '?Ｗ儔?身',
+                'btn_reset': '恢復預設',
                 // Messages
-                'msg_settings_saved': '閮剖?撌脣摮?,
-                'msg_confirm_reset': '蝣箏?閬敺拚?閮剛身摰?嚗?,
-                'msg_confirm_reset_all': '蝣箏?閬敺拇???閮剛身摰?嚗n??皜??歇?脣??身摰?,
-                'msg_select_input': '隢?撓?亥楝敺?,
-                'msg_select_output': '隢?撓?箄??冗',
-                'msg_select_format': '隢撠??蝔株撓?箸撘?,
-                'msg_start_conversion': '??頧?...',
-                'msg_config': '?蔭: ',
-                'msg_error': '?航炊: ',
-                'msg_interface_loaded': '?撌脰??伐?隢?撓?亙?頛詨頝臬?',
+                'msg_settings_saved': '設定已儲存',
+                'msg_confirm_reset': '確定要恢復預設設定嗎？',
+                'msg_confirm_reset_all': '確定要恢復所有預設設定嗎？\n這會清除所有已儲存的設定。',
+                'msg_select_input': '請選擇輸入路徑',
+                'msg_select_output': '請選擇輸出資料夾',
+                'msg_select_format': '請至少選擇一種輸出格式',
+                'msg_start_conversion': '開始轉換...',
+                'msg_config': '配置: ',
+                'msg_error': '錯誤: ',
+                'msg_interface_loaded': '界面已載入，請選擇輸入和輸出路徑',
                 // Language names
-                'lang_zh_tw': '蝜?銝剜?',
-                'lang_zh_cn': '蝞雿葉??,
+                'lang_zh_tw': '繁體中文',
+                'lang_zh_cn': '简体中文',
                 'lang_en': 'English'
             },
             'zh-CN': {
                 // Tab navigation
-                'tab_convert': '頧祆',
-                'tab_settings': '霈曄蔭',
+                'tab_convert': '转换',
+                'tab_settings': '设置',
                 // Input section
-                'card_input': '颲霈曄蔭',
-                'label_input_type': '颲蝐餃?',
-                'label_image_folder': '?曄??辣憭?,
-                'label_pdf_file': 'PDF ?辣',
-                'label_select_image_folder': '??曄??辣憭?,
-                'label_select_pdf_file': '? PDF ?辣',
-                'btn_browse': '瘚?',
-                'placeholder_browse': '?孵瘚??...',
+                'card_input': '输入设置',
+                'label_input_type': '输入类型',
+                'label_image_folder': '图片文件夹',
+                'label_pdf_file': 'PDF 文件',
+                'label_select_image_folder': '选择图片文件夹',
+                'label_select_pdf_file': '选择 PDF 文件',
+                'btn_browse': '浏览',
+                'placeholder_browse': '点击浏览选择...',
                 // OCR section
-                'card_ocr': 'OCR 霈曄蔭',
-                'label_ocr_language': '霂霂剛?',
+                'card_ocr': 'OCR 设置',
+                'label_ocr_language': '识别语言',
                 // Output section
-                'card_output': '颲霈曄蔭',
-                'label_output_format': '颲?澆?',
-                'label_multi_page_mode': '憭△璅∪? (????撟嗡蛹銝銝芣?隞?',
-                'label_output_folder': '颲?辣憭?,
+                'card_output': '输出设置',
+                'label_output_format': '输出格式',
+                'label_multi_page_mode': '多页模式 (所有图片合并为一个文件)',
+                'label_output_folder': '输出文件夹',
                 // Action buttons
-                'btn_start': '撘憪蓮??,
-                'btn_cancel': '??頧祆',
+                'btn_start': '开始转换',
+                'btn_cancel': '取消转换',
                 // Progress section
-                'card_progress': '頧祆餈漲',
-                'text_preparing': '??銝?..',
-                'text_processing': '憭?銝?..',
-                'text_complete': '頧祆摰?!',
+                'card_progress': '转换进度',
+                'text_preparing': '准备中...',
+                'text_processing': '处理中...',
+                'text_complete': '转换完成!',
                 // Settings - OCR Engine
-                'card_ocr_engine': 'OCR 撘?',
-                'label_engine': '撘?',
-                'option_auto': '?芸',
-                'label_tesseract_data_path': 'Tesseract ?唳頝臬?',
-                'placeholder_tessdata': 'tessdata ?辣憭寡楝敺?..',
+                'card_ocr_engine': 'OCR 引擎',
+                'label_engine': '引擎',
+                'option_auto': '自动',
+                'label_tesseract_data_path': 'Tesseract 数据路径',
+                'placeholder_tessdata': 'tessdata 文件夹路径...',
                 // Settings - Output
-                'card_output_settings': '颲',
-                'label_default_output_folder': '暺恕颲?辣憭?,
-                'placeholder_output': '暺恕颲頝臬?...',
-                'label_filename_format': '?辣?撘?,
-                'label_multi_page_mode_settings': '憭△璅∪?',
-                'option_page_by_page': '?△頧祆',
-                'option_merge_multi_page': '?僎銝箏?憿?,
+                'card_output_settings': '输出',
+                'label_default_output_folder': '默认输出文件夹',
+                'placeholder_output': '默认输出路径...',
+                'label_filename_format': '文件名格式',
+                'label_multi_page_mode_settings': '多页模式',
+                'option_page_by_page': '逐页转换',
+                'option_merge_multi_page': '合并为多页',
                 // Settings - Font
-                'card_font': '摮?',
-                'label_font_mode': '摮?璅∪?',
-                'option_font_auto': '?芸嚗?霂剛?嚗?,
-                'option_custom': '?芸?銋?,
-                'label_custom_font_path': '?芸?銋?雿楝敺?,
-                'placeholder_font': '? TTF 摮??辣...',
+                'card_font': '字体',
+                'label_font_mode': '字体模式',
+                'option_font_auto': '自动（依语言）',
+                'option_custom': '自定义',
+                'label_custom_font_path': '自定义字体路径',
+                'placeholder_font': '选择 TTF 字体文件...',
                 // Settings - Text layer
-                'card_text_layer': '??撅?,
-                'label_color': '憸',
-                'option_white': '?質',
-                'option_black': '暺',
-                'option_red': '蝥Ｚ',
-                'option_blue': '?',
-                'option_debug_mode': '靚?璅∪?',
-                'label_opacity': '??摨?,
+                'card_text_layer': '文字层',
+                'label_color': '颜色',
+                'option_white': '白色',
+                'option_black': '黑色',
+                'option_red': '红色',
+                'option_blue': '蓝色',
+                'option_debug_mode': '调试模式',
+                'label_opacity': '透明度',
                 // Settings - Text conversion
-                'card_text_conversion': '??頧祆',
-                'label_chinese_conversion': '蝞蝜蓮??,
-                'option_no_conversion': '銝蓮??,
-                'option_s2t': '蝞雿?蝜?',
-                'option_t2s': '蝜???雿?,
+                'card_text_conversion': '文字转换',
+                'label_chinese_conversion': '简繁转换',
+                'option_no_conversion': '不转换',
+                'option_s2t': '简体→繁体',
+                'option_t2s': '繁体→简体',
                 // Settings - Interface
-                'card_interface': '?',
-                'label_ui_language': 'UI 霂剛?',
-                'label_notify_on_complete': '摰??',
-                'label_open_folder_on_complete': '摰???冽?撘?辣憭?,
+                'card_interface': '界面',
+                'label_ui_language': 'UI 语言',
+                'label_notify_on_complete': '完成后通知',
+                'label_open_folder_on_complete': '完成后自动打开文件夹',
                 // Settings buttons
-                'btn_reset': '?Ｗ?暺恕',
+                'btn_reset': '恢复默认',
                 // Messages
-                'msg_settings_saved': '霈曄蔭撌脖?摮?,
-                'msg_confirm_reset': '蝖桀?閬憭?霈方挽蝵桀?嚗?,
-                'msg_confirm_reset_all': '蝖桀?閬憭???霈方挽蝵桀?嚗n餈?皜??歇靽??挽蝵柴?,
-                'msg_select_input': '霂琿颲頝臬?',
-                'msg_select_output': '霂琿颲?辣憭?,
-                'msg_select_format': '霂瑁撠銝蝘??箸撘?,
-                'msg_start_conversion': '撘憪蓮??..',
-                'msg_config': '?蔭: ',
-                'msg_error': '?秤: ',
-                'msg_interface_loaded': '?撌脣?頧踝?霂琿颲???箄楝敺?,
+                'msg_settings_saved': '设置已保存',
+                'msg_confirm_reset': '确定要恢复默认设置吗？',
+                'msg_confirm_reset_all': '确定要恢复所有默认设置吗？\n这会清除所有已保存的设置。',
+                'msg_select_input': '请选择输入路径',
+                'msg_select_output': '请选择输出文件夹',
+                'msg_select_format': '请至少选择一种输出格式',
+                'msg_start_conversion': '开始转换...',
+                'msg_config': '配置: ',
+                'msg_error': '错误: ',
+                'msg_interface_loaded': '界面已加载，请选择输入和输出路径',
                 // Language names
-                'lang_zh_tw': '蝜?銝剜?',
-                'lang_zh_cn': '蝞雿葉??,
+                'lang_zh_tw': '繁體中文',
+                'lang_zh_cn': '简体中文',
                 'lang_en': 'English'
             },
             'en': {
@@ -977,8 +977,8 @@
                 'card_text_conversion': 'Text Conversion',
                 'label_chinese_conversion': 'Chinese Conversion',
                 'option_no_conversion': 'No Conversion',
-                'option_s2t': 'Simplified?raditional',
-                'option_t2s': 'Traditional?implified',
+                'option_s2t': 'Simplified→Traditional',
+                'option_t2s': 'Traditional→Simplified',
                 // Settings - Interface
                 'card_interface': 'Interface',
                 'label_ui_language': 'UI Language',
@@ -998,8 +998,8 @@
                 'msg_error': 'Error: ',
                 'msg_interface_loaded': 'Interface loaded, please select input and output paths',
                 // Language names
-                'lang_zh_tw': '蝜?銝剜?',
-                'lang_zh_cn': '蝞雿葉??,
+                'lang_zh_tw': '繁體中文',
+                'lang_zh_cn': '简体中文',
                 'lang_en': 'English'
             }
         };
@@ -1022,26 +1022,22 @@
             elements.forEach(function(el) {
                 var key = el.getAttribute('data-i18n');
                 var text = t(key);
-                // Handle different element types
                 if (el.tagName === 'INPUT' && (el.type === 'submit' || el.type === 'button')) {
                     el.value = text;
                 } else {
                     el.textContent = text;
                 }
             });
-            // Update placeholders (data-i18n-placeholder)
             var placeholders = document.querySelectorAll('[data-i18n-placeholder]');
             placeholders.forEach(function(el) {
                 var key = el.getAttribute('data-i18n-placeholder');
                 el.placeholder = t(key);
             });
-            // Update select options (data-i18n-opt)
             var options = document.querySelectorAll('[data-i18n-opt]');
             options.forEach(function(el) {
                 var key = el.getAttribute('data-i18n-opt');
                 el.textContent = t(key);
             });
-            // Update language select options text
             updateLanguageSelectOptions();
         }
 
@@ -1055,19 +1051,17 @@
             }
         }
 
-        // Default settings ??loaded from Python API (default.json)
+        // Default settings: loaded from Python API (default.json)
         var defaultSettings = null;
 
         // Switch tab
         function switchTab(tabName, btn) {
-            // Update tab buttons
             var buttons = document.querySelectorAll('.tab-btn');
             buttons.forEach(function(b) {
                 b.classList.remove('active');
             });
             btn.classList.add('active');
 
-            // Update tab content
             document.querySelectorAll('.tab-content').forEach(function(content) {
                 content.classList.remove('active');
             });
@@ -1182,7 +1176,6 @@
         async function changeUiLanguage() {
             var select = document.getElementById('settingUiLanguage');
             var newLang = select.value;
-            // Map select value to i18n key
             var langMap = {
                 'zh-TW': 'zh-TW',
                 'zh-CN': 'zh-CN',
@@ -1190,14 +1183,12 @@
             };
             currentUiLanguage = langMap[newLang] || 'zh-TW';
             applyI18n();
-            // Save settings after language change
             saveSettings();
         }
 
         // Load settings from Python
         async function loadSettings() {
             try {
-                // Ensure defaults are loaded from the bundled default.json
                 if (!defaultSettings) {
                     var defaultsJson = await window.pywebview.api.load_default_settings();
                     if (defaultsJson && defaultsJson.trim() !== '') {
@@ -1240,7 +1231,6 @@
             if (settings.chineseConversion) document.getElementById('settingChineseConversion').value = settings.chineseConversion;
             if (settings.uiLanguage) {
                 document.getElementById('settingUiLanguage').value = settings.uiLanguage;
-                // Apply UI language
                 var langMap = { 'zh-TW': 'zh-TW', 'zh-CN': 'zh-CN', 'en': 'en' };
                 currentUiLanguage = langMap[settings.uiLanguage] || 'zh-TW';
                 applyI18n();
@@ -1249,7 +1239,6 @@
             if (settings.openFolderOnComplete !== undefined) document.getElementById('settingOpenFolderOnComplete').checked = settings.openFolderOnComplete;
 
             updateFontModeVisibility();
-            // ?? tab1 ?撓??頛詨頝臬?
             if (settings.inputPath) document.getElementById('inputPath').value = settings.inputPath;
             if (settings.outputPath) document.getElementById('outputPath').value = settings.outputPath;
         }
@@ -1286,16 +1275,14 @@
 
         // Reset settings to default (Settings tab)
         async function resetSettings() {
-            if (confirm('蝣箏?閬敺拚?閮剛身摰?嚗n??皜??歇?脣??身摰?)) {
+            if (confirm(t('msg_confirm_reset_all'))) {
                 if (!defaultSettings) {
                     var defaultsJson = await window.pywebview.api.load_default_settings();
                     defaultSettings = defaultsJson ? JSON.parse(defaultsJson) : {};
                 }
                 applySettings(defaultSettings);
                 currentSettings = Object.assign({}, defaultSettings);
-                // Also reset Tab 1 fields
                 resetTab1Fields();
-                // Delete persisted settings file so defaults survive restarts
                 try {
                     await window.pywebview.api.delete_settings();
                 } catch (e) {
@@ -1306,7 +1293,7 @@
 
         // Reset all settings (from Tab 1 button) - resets everything including saved file
         async function resetAllSettings() {
-            if (confirm('蝣箏?閬敺拇???閮剛身摰?嚗n??皜??歇?脣??身摰?)) {
+            if (confirm(t('msg_confirm_reset_all'))) {
                 if (!defaultSettings) {
                     var defaultsJson = await window.pywebview.api.load_default_settings();
                     defaultSettings = defaultsJson ? JSON.parse(defaultsJson) : {};
@@ -1314,7 +1301,6 @@
                 applySettings(defaultSettings);
                 currentSettings = Object.assign({}, defaultSettings);
                 resetTab1Fields();
-                // Delete saved settings file
                 try {
                     await window.pywebview.api.delete_settings();
                 } catch (e) {
@@ -1325,8 +1311,6 @@
 
         // Reset Tab 1 form fields to defaults
         function resetTab1Fields() {
-            // Note: inputPath/outputPath are set by applySettings() from defaults,
-            // so do NOT clear them here ??that was the old broken behavior.
             document.querySelector('input[name="inputType"][value="folder"]').checked = true;
             updateInputType();
             document.getElementById('language').value = 'chinese_cht';
@@ -1342,34 +1326,32 @@
 
         // Start conversion
         async function startConversion() {
-            // Get values
+            if (isProcessing) return;
+
             var inputType = document.querySelector('input[name="inputType"]:checked').value;
             var inputPath = document.getElementById('inputPath').value;
             var outputPath = document.getElementById('outputPath').value;
             var language = document.getElementById('language').value;
             var multiPage = document.getElementById('multiPage').checked;
 
-            // Get formats
             var formats = [];
             if (document.getElementById('formatPdf').checked) formats.push('pdf');
             if (document.getElementById('formatOfd').checked) formats.push('ofd');
             if (document.getElementById('formatTxt').checked) formats.push('txt');
 
-            // Validate
             if (!inputPath) {
-                alert('隢?撓?亥楝敺?);
+                alert(t('msg_select_input'));
                 return;
             }
             if (!outputPath) {
-                alert('隢?撓?箄??冗');
+                alert(t('msg_select_output'));
                 return;
             }
             if (formats.length === 0) {
-                alert('隢撠??蝔株撓?箸撘?);
+                alert(t('msg_select_format'));
                 return;
             }
 
-            // Build config with settings
             var config = {
                 inputType: inputType,
                 inputPath: inputPath,
@@ -1379,7 +1361,6 @@
                 multiPage: multiPage
             };
 
-            // Include settings values
             if (currentSettings.ocrEngine) config.ocrEngine = currentSettings.ocrEngine;
             if (currentSettings.tesseractDataPath) config.tesseractDataPath = currentSettings.tesseractDataPath;
             if (currentSettings.fontMode) config.fontMode = currentSettings.fontMode;
@@ -1390,7 +1371,6 @@
                 config.chineseConversion = currentSettings.chineseConversion;
             }
 
-            // Update UI
             isProcessing = true;
             document.getElementById('startBtn').classList.add('hidden');
             document.getElementById('cancelBtn').classList.remove('hidden');
@@ -1398,18 +1378,17 @@
             document.getElementById('successMessage').classList.remove('active');
             document.getElementById('logArea').innerHTML = '';
             document.getElementById('progressBar').style.width = '0%';
-            document.getElementById('progressText').textContent = '皞?銝?..';
+            document.getElementById('progressText').textContent = t('text_preparing');
 
-            // Call Python
             var configJson = JSON.stringify(config);
-            addLog('??頧?...');
-            addLog('?蔭: ' + configJson);
+            addLog(t('msg_start_conversion'));
+            addLog(t('msg_config') + configJson);
 
             try {
                 await window.pywebview.api.start_conversion(configJson);
             } catch (e) {
                 console.error('Error calling startConversion:', e);
-                addLog('?航炊: ' + e.message, 'error');
+                addLog(t('msg_error') + e.message, 'error');
                 resetUI();
             }
         }
@@ -1428,7 +1407,7 @@
         function updateProgress(current, total, message) {
             var percent = total > 0 ? Math.round((current / total) * 100) : 0;
             document.getElementById('progressBar').style.width = percent + '%';
-            document.getElementById('progressText').textContent = current + ' / ' + total + ' - ' + (message || '??銝?..');
+            document.getElementById('progressText').textContent = current + ' / ' + total + ' - ' + (message || t('text_processing'));
             if (message) {
                 addLog(message);
             }
@@ -1450,9 +1429,9 @@
 
         // Show success
         function showSuccess(files) {
-            addLog('頧?摰?!', 'success');
+            addLog(t('text_complete'), 'success');
             document.getElementById('progressBar').style.width = '100%';
-            document.getElementById('progressText').textContent = '頧?摰?!';
+            document.getElementById('progressText').textContent = t('text_complete');
 
             var fileList = document.getElementById('fileList');
             fileList.innerHTML = '';
@@ -1483,16 +1462,15 @@
         document.addEventListener('DOMContentLoaded', function() {
             window.addEventListener('pywebviewready', async function() {
                 console.log('pywebview API ready');
-            addLog(t('msg_interface_loaded'));
-            try {
-                await loadSettings();
-            } catch (e) {
-                console.error('Failed to load settings:', e);
-                document.getElementById('loadingError').style.display = 'block';
-                document.querySelector('.loading-spinner').style.display = 'none';
-                document.querySelector('.loading-text').textContent = 'Initialization failed';
-            }
-            hideLoadingOverlay();
+                try {
+                    await loadSettings();
+                } catch (e) {
+                    console.error('Failed to load settings:', e);
+                    document.getElementById('loadingError').style.display = 'block';
+                    document.querySelector('.loading-spinner').style.display = 'none';
+                    document.querySelector('.loading-text').textContent = 'Initialization failed';
+                }
+                hideLoadingOverlay();
             });
         });
     </script>

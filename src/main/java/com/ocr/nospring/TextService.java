@@ -4,7 +4,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
@@ -15,45 +17,70 @@ public class TextService {
     private static final Logger log = LoggerFactory.getLogger(TextService.class);
     
     /**
-     * 生成多頁 TXT
+     * 生成多頁 TXT (batch API — kept for backward compatibility)
      */
     public void generateMultiPageTxt(List<List<OcrService.TextBlock>> allTextBlocks, File outputFile) throws Exception {
-        
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile))) {
-            for (int pageIndex = 0; pageIndex < allTextBlocks.size(); pageIndex++) {
-                List<OcrService.TextBlock> textBlocks = allTextBlocks.get(pageIndex);
-                
-                // 添加頁面分隔符
-                if (pageIndex > 0) {
-                    writer.newLine();
-                    writer.write("========================================");
-                    writer.newLine();
-                    writer.write("Page " + (pageIndex + 1));
-                    writer.newLine();
-                    writer.write("========================================");
-                    writer.newLine();
-                    writer.newLine();
-                } else {
-                    writer.write("Page " + (pageIndex + 1));
-                    writer.newLine();
-                    writer.newLine();
-                }
-                
-                // 寫入文字
-                for (OcrService.TextBlock block : textBlocks) {
-                    String text = block.text;
-                    if (text != null && !text.trim().isEmpty()) {
-                        writer.write(text);
-                        writer.newLine();
-                    }
-                }
+        openMultiPage(outputFile);
+        try {
+            for (int i = 0; i < allTextBlocks.size(); i++) {
+                addPage(allTextBlocks.get(i), i + 1);
             }
+        } finally {
+            closeMultiPage();
         }
     }
+
+    /**
+     * Open a new multi-page TXT. Caller must call addPage() then closeMultiPage().
+     */
+    public void openMultiPage(File outputFile) throws Exception {
+        this.multiPageWriter = new BufferedWriter(new OutputStreamWriter(
+            new FileOutputStream(outputFile), StandardCharsets.UTF_8));
+        this.multiPageCount = 0;
+    }
+
+    /**
+     * Add text blocks for one page to an open multi-page TXT.
+     */
+    public void addPage(List<OcrService.TextBlock> textBlocks, int pageNumber) throws Exception {
+        if (multiPageWriter == null) throw new IllegalStateException("Multi-page TXT not open");
+
+        if (multiPageCount > 0) {
+            multiPageWriter.newLine();
+            multiPageWriter.write("========================================");
+            multiPageWriter.newLine();
+        }
+        multiPageWriter.write("Page " + pageNumber);
+        multiPageWriter.newLine();
+        multiPageWriter.newLine();
+
+        for (OcrService.TextBlock block : textBlocks) {
+            String text = block.text;
+            if (text != null && !text.trim().isEmpty()) {
+                multiPageWriter.write(text);
+                multiPageWriter.newLine();
+            }
+        }
+        multiPageCount++;
+    }
+
+    /**
+     * Finalize and save a multi-page TXT.
+     */
+    public void closeMultiPage() throws Exception {
+        if (multiPageWriter != null) {
+            multiPageWriter.close();
+            multiPageWriter = null;
+        }
+    }
+
+    private BufferedWriter multiPageWriter;
+    private int multiPageCount;
     
     public void generateTxt(List<OcrService.TextBlock> textBlocks, File outputFile) throws Exception {
         
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile))) {
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
+                new FileOutputStream(outputFile), StandardCharsets.UTF_8))) {
             for (OcrService.TextBlock block : textBlocks) {
                 String text = block.text;
                 if (text != null && !text.trim().isEmpty()) {
