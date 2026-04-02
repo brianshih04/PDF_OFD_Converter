@@ -1009,24 +1009,8 @@
             }
         }
 
-        // Default settings
-        var defaultSettings = {
-            ocrEngine: 'auto',
-            tesseractDataPath: 'C:\\OCR\\tessdata',
-            inputPath: 'C:\\OCR\\Sample',
-            outputPath: 'C:\\OCR\\Output',
-            defaultOutputFolder: 'C:\\OCR\\Output',
-            filenameFormat: 'multipage_YYYYMMDD_HHmmss',
-            multiPageMode: 'false',
-            fontMode: 'auto',
-            customFontPath: '',
-            textColor: 'white',
-            textOpacity: 0.0001,
-            chineseConversion: 'null',
-            uiLanguage: 'zh-TW',
-            notifyOnComplete: true,
-            openFolderOnComplete: true
-        };
+        // Default settings — loaded from Java bridge (default.json resource)
+        var defaultSettings = null;
 
         // Switch tab
         function switchTab(tabName, btn) {
@@ -1172,16 +1156,29 @@
         // Load settings from Java
         function loadSettings() {
             try {
+                // Ensure defaults are loaded from the bundled default.json
+                if (!defaultSettings) {
+                    var defaultsJson = window.javaApp.loadDefaultSettings();
+                    if (defaultsJson && defaultsJson.trim() !== '') {
+                        defaultSettings = JSON.parse(defaultsJson);
+                    } else {
+                        defaultSettings = {};
+                    }
+                }
                 var settingsJson = window.javaApp.loadSettings();
                 if (settingsJson && settingsJson.trim() !== '') {
                     currentSettings = JSON.parse(settingsJson);
                     applySettings(currentSettings);
                 } else {
                     applySettings(defaultSettings);
+                    currentSettings = Object.assign({}, defaultSettings);
                 }
             } catch (e) {
                 console.error('Error loading settings:', e);
-                applySettings(defaultSettings);
+                if (defaultSettings) {
+                    applySettings(defaultSettings);
+                    currentSettings = Object.assign({}, defaultSettings);
+                }
             }
         }
 
@@ -1249,8 +1246,12 @@
         // Reset settings to default (Settings tab)
         function resetSettings() {
             if (confirm('確定要恢復預設設定嗎？\n這會清除所有已儲存的設定。')) {
+                if (!defaultSettings) {
+                    var defaultsJson = window.javaApp.loadDefaultSettings();
+                    defaultSettings = defaultsJson ? JSON.parse(defaultsJson) : {};
+                }
                 applySettings(defaultSettings);
-                currentSettings = defaultSettings;
+                currentSettings = Object.assign({}, defaultSettings);
                 // Also reset Tab 1 fields
                 resetTab1Fields();
                 // Delete persisted settings file so defaults survive restarts
@@ -1265,8 +1266,12 @@
         // Reset all settings (from Tab 1 button) - resets everything including saved file
         function resetAllSettings() {
             if (confirm('確定要恢復所有預設設定嗎？\n這會清除所有已儲存的設定。')) {
+                if (!defaultSettings) {
+                    var defaultsJson = window.javaApp.loadDefaultSettings();
+                    defaultSettings = defaultsJson ? JSON.parse(defaultsJson) : {};
+                }
                 applySettings(defaultSettings);
-                currentSettings = defaultSettings;
+                currentSettings = Object.assign({}, defaultSettings);
                 resetTab1Fields();
                 // Delete saved settings file
                 try {

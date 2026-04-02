@@ -202,11 +202,60 @@ public class GuiApp extends Application {
 
     /**
      * Package-private settings manager — handles save/load/delete of settings file.
+     * Factory defaults live in the classpath resource /default.json.
+     * User customizations are persisted to ~/.jpeg2pdf-ofd/settings.json.
+     * On first run (no settings.json), default.json is copied to settings.json.
      */
     static class SettingsManager {
 
+        private static final String DEFAULT_RESOURCE = "/default.json";
+
         String getSettingsPath() {
             return System.getProperty("user.home") + "/.jpeg2pdf-ofd/settings.json";
+        }
+
+        /**
+         * Read factory defaults from the bundled default.json resource.
+         * @return JSON string of default settings, or empty string on failure
+         */
+        String loadDefaultSettings() {
+            try (InputStream is = GuiApp.class.getResourceAsStream(DEFAULT_RESOURCE)) {
+                if (is == null) {
+                    log.error("Default settings resource {} not found in classpath", DEFAULT_RESOURCE);
+                    return "";
+                }
+                return new String(is.readAllBytes(), StandardCharsets.UTF_8);
+            } catch (Exception e) {
+                log.error("Error loading default settings from resource", e);
+                return "";
+            }
+        }
+
+        /**
+         * Load user settings. If settings.json does not exist, copy default.json
+         * to settings.json and return the defaults.
+         * @return JSON string of settings (never empty unless both files are missing)
+         */
+        String load() {
+            File settingsFile = new File(getSettingsPath());
+            if (!settingsFile.exists()) {
+                // First run — seed settings.json from default.json resource
+                String defaults = loadDefaultSettings();
+                if (!defaults.isEmpty()) {
+                    save(defaults);
+                    log.info("Initialized settings from defaults: {}", settingsFile.getAbsolutePath());
+                }
+                return defaults;
+            }
+            try (FileInputStream fis = new FileInputStream(settingsFile)) {
+                String json = new String(fis.readAllBytes(), StandardCharsets.UTF_8);
+                log.info("Settings loaded from: {}", settingsFile.getAbsolutePath());
+                return json;
+            } catch (Exception e) {
+                log.error("Error loading settings, falling back to defaults", e);
+                String defaults = loadDefaultSettings();
+                return defaults.isEmpty() ? "" : defaults;
+            }
         }
 
         void save(String settingsJson) {
@@ -225,31 +274,15 @@ public class GuiApp extends Application {
             }
         }
 
-        String load() {
-            try {
-                File settingsFile = new File(getSettingsPath());
-                if (!settingsFile.exists()) {
-                    log.debug("Settings file not found, using defaults");
-                    return "";
-                }
-                try (FileInputStream fis = new FileInputStream(settingsFile)) {
-                    byte[] bytes = fis.readAllBytes();
-                    String json = new String(bytes, StandardCharsets.UTF_8);
-                    log.info("Settings loaded from: {}", settingsFile.getAbsolutePath());
-                    return json;
-                }
-            } catch (Exception e) {
-                log.error("Error loading settings", e);
-                return "";
-            }
-        }
-
+        /**
+         * Delete user settings so the next load falls back to defaults.
+         */
         void delete() {
             try {
                 File settingsFile = new File(getSettingsPath());
                 if (settingsFile.exists()) {
                     settingsFile.delete();
-                    log.info("Settings file deleted");
+                    log.info("Settings file deleted — will revert to defaults on next load");
                 }
             } catch (Exception e) {
                 log.error("Error deleting settings", e);
@@ -490,15 +523,23 @@ public class GuiApp extends Application {
         }
 
         /**
-         * Load settings from file.
-         * @return JSON string of settings, or empty string if not exists
+         * Load settings from file. On first run, seeds settings.json from default.json.
+         * @return JSON string of settings
          */
         public String loadSettings() {
             return settingsManager.load();
         }
 
         /**
-         * Delete settings file.
+         * Load factory defaults from the bundled default.json resource.
+         * @return JSON string of default settings
+         */
+        public String loadDefaultSettings() {
+            return settingsManager.loadDefaultSettings();
+        }
+
+        /**
+         * Delete settings file so next load falls back to defaults.
          */
         public void deleteSettings() {
             settingsManager.delete();
