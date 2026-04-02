@@ -271,148 +271,41 @@ public class GuiApp extends Application {
         public void startConversion(String configJson) {
             log.info("Starting conversion with config: {}", configJson);
 
-            // Cancel any existing task
             if (currentTask != null && currentTask.isRunning()) {
                 currentTask.cancel();
             }
 
             try {
-                // Parse JSON config
-                ObjectMapper mapper = new ObjectMapper();
-                Map<String, Object> configMap = mapper.readValue(configJson, Map.class);
+                ParsedConfig parsed = parseConfig(configJson);
 
-                // Build Config object
-                Config appConfig = new Config();
-
-                // Apply settings from frontend to Config
-                if (configMap.containsKey("textColor")) {
-                    appConfig.setTextLayerColor((String) configMap.get("textColor"));
-                }
-                if (configMap.containsKey("textOpacity")) {
-                    appConfig.setTextLayerOpacity(((Number) configMap.get("textOpacity")).doubleValue());
-                }
-                if (configMap.containsKey("chineseConversion") && !"null".equals(configMap.get("chineseConversion"))) {
-                    appConfig.setTextConvert((String) configMap.get("chineseConversion"));
-                }
-                if (configMap.containsKey("customFontPath")) {
-                    String fontPath = (String) configMap.get("customFontPath");
-                    if (fontPath != null && !fontPath.isEmpty()) {
-                        appConfig.setFontPath(fontPath);
-                    }
-                }
-                if (configMap.containsKey("tesseractDataPath")) {
-                    appConfig.setTesseractDataPath((String) configMap.get("tesseractDataPath"));
-                }
-
-                // Get input type
-                String inputType = (String) configMap.getOrDefault("inputType", "folder");
-
-                // Get input path
-                String inputPath = (String) configMap.get("inputPath");
-                if (inputPath == null || inputPath.isEmpty()) {
+                if (parsed.inputPath == null || parsed.inputPath.isEmpty()) {
                     callJsOnError("请选择输入路径");
                     return;
                 }
-
-                // Get output path
-                String outputPath = (String) configMap.get("outputPath");
-                if (outputPath == null || outputPath.isEmpty()) {
+                if (parsed.outputPath == null || parsed.outputPath.isEmpty()) {
                     callJsOnError("请选择输出文件夹");
                     return;
                 }
 
-                File outputDir = new File(outputPath);
+                File outputDir = new File(parsed.outputPath);
                 if (!outputDir.exists()) {
                     outputDir.mkdirs();
                 }
 
-                // Get language
-                String language = (String) configMap.getOrDefault("language", "chinese_cht");
-                appConfig.setOcrLanguage(language);
-
-                // Get OCR engine
-                String ocrEngine = (String) configMap.getOrDefault("ocrEngine", "auto");
-
-                // Get formats
-                String formats = (String) configMap.getOrDefault("formats", "pdf");
-
-                // Get multiPage flag
-                boolean multiPage = Boolean.parseBoolean(String.valueOf(configMap.getOrDefault("multiPage", false)));
-
-                // Get input files
-                List<File> inputFiles = new ArrayList<>();
-                if ("folder".equals(inputType)) {
-                    File folder = new File(inputPath);
-                    if (folder.exists() && folder.isDirectory()) {
-                        findImageFiles(folder, inputFiles);
-                    }
-                } else if ("pdf".equals(inputType)) {
-                    File pdfFile = new File(inputPath);
-                    if (pdfFile.exists() && pdfFile.isFile()) {
-                        inputFiles.add(pdfFile);
-                    }
-                }
-
+                List<File> inputFiles = collectInputFiles(parsed.inputType, parsed.inputPath);
                 if (inputFiles.isEmpty()) {
                     callJsOnError("未找到可处理的文件");
                     return;
                 }
 
-                log.info("Input type: {}", inputType);
+                log.info("Input type: {}", parsed.inputType);
                 log.info("Input files: {}", inputFiles.size());
-                log.info("Output: {}", outputPath);
-                log.info("Format: {}", formats);
-                log.info("Language: {}", language);
-                log.info("MultiPage: {}", multiPage);
+                log.info("Output: {}", parsed.outputPath);
+                log.info("Format: {}", parsed.formats);
+                log.info("Language: {}", parsed.language);
+                log.info("MultiPage: {}", parsed.multiPage);
 
-                // Create ProcessingService
-                processingService = new ProcessingService(appConfig);
-
-                // Create and run task
-                final List<File> files = inputFiles;
-                final String format = formats;
-                final String lang = language;
-                final boolean isMultiPage = multiPage;
-                final String type = inputType;
-
-                currentTask = new Task<Void>() {
-                    @Override
-                    protected Void call() throws Exception {
-                        ProcessingService.ProgressCallback callback = new ProcessingService.ProgressCallback() {
-                            @Override
-                            public void onProgress(int current, int total, String message) {
-                                Platform.runLater(() -> callJsOnProgress(current, total, message));
-                            }
-
-                            @Override
-                            public void onComplete(List<String> outputFiles) {
-                                Platform.runLater(() -> callJsOnComplete(outputFiles));
-                            }
-
-                            @Override
-                            public void onError(String message) {
-                                Platform.runLater(() -> callJsOnError(message));
-                            }
-                        };
-
-                        if ("pdf".equals(type)) {
-                            // PDF to searchable mode
-                            processingService.processPdfToSearchable(files, outputDir, format, lang, ocrEngine, 300f, callback);
-                        } else if (isMultiPage) {
-                            // Multi-page mode
-                            processingService.processMultiPage(files, outputDir, format, lang, ocrEngine, callback);
-                        } else {
-                            // Per-page mode
-                            processingService.processPerPage(files, outputDir, format, lang, ocrEngine, callback);
-                        }
-
-                        return null;
-                    }
-                };
-
-                Thread thread = new Thread(currentTask);
-                thread.setDaemon(true);
-                thread.start();
+                createAndRunTask(parsed, inputFiles, outputDir);
 
             } catch (Exception e) {
                 log.error("Configuration parsing error", e);
@@ -531,6 +424,144 @@ public class GuiApp extends Application {
                 log.error("Error deleting settings", e);
             }
         }
+    }
+
+    // --- Conversion helper classes and methods ---
+
+    /**
+     * Holds parsed configuration extracted from frontend JSON.
+     */
+    private static class ParsedConfig {
+        final Config config;
+        final String inputType;
+        final String inputPath;
+        final String outputPath;
+        final String language;
+        final String ocrEngine;
+        final String formats;
+        final boolean multiPage;
+
+        ParsedConfig(Config config, String inputType, String inputPath, String outputPath,
+                     String language, String ocrEngine, String formats, boolean multiPage) {
+            this.config = config;
+            this.inputType = inputType;
+            this.inputPath = inputPath;
+            this.outputPath = outputPath;
+            this.language = language;
+            this.ocrEngine = ocrEngine;
+            this.formats = formats;
+            this.multiPage = multiPage;
+        }
+    }
+
+    /**
+     * Parse JSON config from frontend and build Config object + extracted parameters.
+     */
+    private ParsedConfig parseConfig(String configJson) throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        @SuppressWarnings("unchecked")
+        Map<String, Object> configMap = mapper.readValue(configJson, Map.class);
+
+        Config appConfig = new Config();
+
+        if (configMap.containsKey("textColor")) {
+            appConfig.setTextLayerColor((String) configMap.get("textColor"));
+        }
+        if (configMap.containsKey("textOpacity")) {
+            appConfig.setTextLayerOpacity(((Number) configMap.get("textOpacity")).doubleValue());
+        }
+        if (configMap.containsKey("chineseConversion") && !"null".equals(configMap.get("chineseConversion"))) {
+            appConfig.setTextConvert((String) configMap.get("chineseConversion"));
+        }
+        if (configMap.containsKey("customFontPath")) {
+            String fontPath = (String) configMap.get("customFontPath");
+            if (fontPath != null && !fontPath.isEmpty()) {
+                appConfig.setFontPath(fontPath);
+            }
+        }
+        if (configMap.containsKey("tesseractDataPath")) {
+            appConfig.setTesseractDataPath((String) configMap.get("tesseractDataPath"));
+        }
+
+        String language = (String) configMap.getOrDefault("language", "chinese_cht");
+        appConfig.setOcrLanguage(language);
+
+        return new ParsedConfig(
+            appConfig,
+            (String) configMap.getOrDefault("inputType", "folder"),
+            (String) configMap.get("inputPath"),
+            (String) configMap.get("outputPath"),
+            language,
+            (String) configMap.getOrDefault("ocrEngine", "auto"),
+            (String) configMap.getOrDefault("formats", "pdf"),
+            Boolean.parseBoolean(String.valueOf(configMap.getOrDefault("multiPage", false)))
+        );
+    }
+
+    /**
+     * Collect input files based on input type (folder or single PDF).
+     */
+    private List<File> collectInputFiles(String inputType, String inputPath) {
+        List<File> inputFiles = new ArrayList<>();
+        if ("folder".equals(inputType)) {
+            File folder = new File(inputPath);
+            if (folder.exists() && folder.isDirectory()) {
+                findImageFiles(folder, inputFiles);
+            }
+        } else if ("pdf".equals(inputType)) {
+            File pdfFile = new File(inputPath);
+            if (pdfFile.exists() && pdfFile.isFile()) {
+                inputFiles.add(pdfFile);
+            }
+        }
+        return inputFiles;
+    }
+
+    /**
+     * Create a background Task for conversion and start it on a daemon thread.
+     * All UI callbacks use Platform.runLater() for thread safety.
+     */
+    private void createAndRunTask(ParsedConfig parsed, List<File> inputFiles, File outputDir) {
+        processingService = new ProcessingService(parsed.config);
+
+        currentTask = new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                ProcessingService.ProgressCallback callback = new ProcessingService.ProgressCallback() {
+                    @Override
+                    public void onProgress(int current, int total, String message) {
+                        Platform.runLater(() -> callJsOnProgress(current, total, message));
+                    }
+
+                    @Override
+                    public void onComplete(List<String> outputFiles) {
+                        Platform.runLater(() -> callJsOnComplete(outputFiles));
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        Platform.runLater(() -> callJsOnError(message));
+                    }
+                };
+
+                if ("pdf".equals(parsed.inputType)) {
+                    processingService.processPdfToSearchable(
+                        inputFiles, outputDir, parsed.formats, parsed.language, parsed.ocrEngine, 300f, callback);
+                } else if (parsed.multiPage) {
+                    processingService.processMultiPage(
+                        inputFiles, outputDir, parsed.formats, parsed.language, parsed.ocrEngine, callback);
+                } else {
+                    processingService.processPerPage(
+                        inputFiles, outputDir, parsed.formats, parsed.language, parsed.ocrEngine, callback);
+                }
+
+                return null;
+            }
+        };
+
+        Thread thread = new Thread(currentTask);
+        thread.setDaemon(true);
+        thread.start();
     }
 
     /**

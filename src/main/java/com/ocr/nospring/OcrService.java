@@ -16,7 +16,10 @@ import java.util.List;
 public class OcrService {
 
     private static final Logger log = LoggerFactory.getLogger(OcrService.class);
-    
+
+    /** default confidence value assigned to OCR text results */
+    private static final double DEFAULT_CONFIDENCE = 0.9;
+
     private InferenceEngine engine;
     private volatile boolean initialized = false;
     
@@ -68,7 +71,7 @@ public class OcrService {
                         tb.y = minY;
                         tb.width = maxX - minX;
                         tb.height = maxY - minY;
-                        tb.confidence = 0.9; // Default confidence
+                        tb.confidence = DEFAULT_CONFIDENCE;
                         tb.fontSize = calculateFontSize(tb.height);
                         textBlocks.add(tb);
                     }

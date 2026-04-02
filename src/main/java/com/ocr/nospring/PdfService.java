@@ -25,6 +25,12 @@ public class PdfService {
 
     private static final Logger log = LoggerFactory.getLogger(PdfService.class);
 
+    /** fine-tuning offset ratio for Y axis text positioning */
+    private static final double TEXT_Y_OFFSET_RATIO = 0.1;
+
+    /** aspect ratio threshold (height/width) above which text is considered vertical */
+    private static final double VERTICAL_TEXT_RATIO = 1.5;
+
     private final Config config;
 
     public PdfService(Config config) {
@@ -164,10 +170,10 @@ public class PdfService {
                 }
 
                 // Y: 文字底部往上抬一點（約 0.1 * fontSize）
-                float pdfY = (float) (height - ocrY - ocrH + ocrH * 0.1);
+                float pdfY = (float) (height - ocrY - ocrH + ocrH * TEXT_Y_OFFSET_RATIO);
 
                 // 判斷直列文字
-                boolean isVertical = ocrH > ocrW * 1.5;
+                boolean isVertical = ocrH > ocrW * VERTICAL_TEXT_RATIO;
 
                 if (isVertical) {
                     // 直列：逐字從上到下
