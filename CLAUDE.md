@@ -31,7 +31,41 @@
 - iOS/macOS： 強制使用 Swift/SwiftUI，嚴格管理 ARC，避免 Retain Cycles。macOS 需遵守 Sandbox 檔案存取規範。
 - Android： 落實 MVVM/MVI 架構，嚴格控管 Activity/Fragment 的 Lifecycle，耗時任務必須放入 ViewModel 的 viewModelScope 或 WorkManager 中。
 
-## 4. 溝通與回報格式 (Communication Protocol)
+## 4. 打包與部署流程 (Build & Package Pipeline)
+當收到打包指令時，按以下順序執行：
+
+### Step 1: Maven Build
+```bash
+mvn clean package -DskipTests
+```
+確認 BUILD SUCCESS。
+
+### Step 2: Conveyor Package
+```bash
+conveyor make windows-zip --overwrite
+```
+確認 output 目錄產出 `jpeg2pdf-ofd-ocr-3.0.0-windows-amd64.zip`。
+
+### Step 3: Repack (start.bat 到根目錄)
+```powershell
+$extractDir = Join-Path $env:TEMP "conveyor-repack-$(Get-Random)"
+Expand-Archive "output/jpeg2pdf-ofd-ocr-3.0.0-windows-amd64.zip" $extractDir -Force
+Set-Content "$extractDir\start.bat" -Value "@echo off`r`ncd /d `"%~dp0bin`"`r`nstart `"`" `"`JPEG2PDF-OFD-OCR.exe`"" -Encoding ASCII
+Compress-Archive "$extractDir\*" "output/JPEG2PDF-OFD-OCR-v0.11-windows-x64.zip" -CompressionLevel Optimal -Force
+Remove-Item $extractDir -Recurse -Force
+```
+
+### Step 4: 本機驗證
+解壓到暫存目錄，執行 `bin\JPEG2PDF-OFD-OCR.exe`，確認 5 秒內 process 存活（檢查 `Get-Process "JPEG2PDF*"`）。
+
+### 重要注意事項
+- **不要改名 EXE**：Conveyor launcher 內部綁定原始檔名，改名會導致靜默崩潰
+- **conveyor.conf 的 `display-name` 已設為 `JPEG2PDF-OFD-OCR`**（無版本號），EXE 會自動以此命名
+- **`java.naming` 模組**：conveyor.conf 的 modules 列表必須包含 `java.naming`（Logback 1.5.x 需要）
+- 如果 `conveyor make` 報 I/O Error，先 `Stop-Process -Name "JPEG2PDF*"` 再重試
+- **不要與架構師（小龍）同時執行相同任務**，每個產出物必須能追蹤來源
+
+## 5. 溝通與回報格式 (Communication Protocol)
 當你向架構師 (OpenClaw) 回報進度時，必須保持極度精簡，格式如下：
 ```text
 [Agent Type]: {當前執行的 Agent，如 General/Verification}

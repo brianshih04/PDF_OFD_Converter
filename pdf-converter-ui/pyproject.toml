@@ -1,0 +1,17 @@
+[project]
+name = "pdf-converter-ui"
+version = "3.0.0"
+description = "JPEG2PDF-OFD OCR — Python pywebview UI shell for the Java CLI engine"
+requires-python = ">=3.10"
+dependencies = [
+    "pywebview>=5.0",
+]
+
+[project.optional-dependencies]
+build = [
+    "pyinstaller>=6.0",
+]
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.backends._legacy:_Backend"

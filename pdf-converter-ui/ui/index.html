@@ -1,0 +1,1500 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JPEG2PDF-OFD OCR</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft YaHei", sans-serif;
+            background-color: #f5f6fa;
+            color: #333;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        /* Tab Navigation */
+        .tab-nav {
+            display: flex;
+            border-bottom: 2px solid #e0e0e0;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            border: none;
+            background: none;
+            font-size: 15px;
+            cursor: pointer;
+            color: #666;
+            position: relative;
+            transition: color 0.2s;
+        }
+
+        .tab-btn:hover {
+            color: #3498db;
+        }
+
+        .tab-btn.active {
+            color: #3498db;
+            font-weight: 500;
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #3498db;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 10px;
+        }
+
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .radio-item input[type="radio"] {
+            cursor: pointer;
+        }
+
+        .path-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .path-input {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            background: #f9f9f9;
+        }
+
+        .path-input:focus {
+            outline: none;
+            border-color: #3498db;
+            background: white;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-secondary {
+            background: #ecf0f1;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #dfe6e9;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #219a52;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .checkbox-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+
+        .start-btn {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .progress-section {
+            display: none;
+        }
+
+        .progress-section.active {
+            display: block;
+        }
+
+        .progress-bar-container {
+            height: 8px;
+            background: #ecf0f1;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: #3498db;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 13px;
+            color: #7f8c8d;
+            margin-bottom: 8px;
+        }
+
+        .log-area {
+            height: 150px;
+            overflow-y: auto;
+            background: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            padding: 12px;
+            font-family: "Consolas", "Monaco", monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .log-line {
+            margin-bottom: 2px;
+        }
+
+        .log-line.error {
+            color: #e74c3c;
+        }
+
+        .log-line.success {
+            color: #27ae60;
+        }
+
+        .success-message {
+            display: none;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 12px;
+        }
+
+        .success-message.active {
+            display: block;
+        }
+
+        .success-message h4 {
+            margin-bottom: 8px;
+        }
+
+        .file-list {
+            list-style: none;
+            font-size: 13px;
+        }
+
+        .file-list li {
+            padding: 4px 0;
+            border-bottom: 1px dashed #ccc;
+        }
+
+        .file-list li:last-child {
+            border-bottom: none;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Range Slider */
+        .range-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .range-slider {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: #e0e0e0;
+            outline: none;
+        }
+
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #3498db;
+            cursor: pointer;
+        }
+
+        .range-value {
+            min-width: 60px;
+            text-align: right;
+            font-size: 13px;
+            color: #666;
+            font-family: "Consolas", monospace;
+        }
+
+        /* Settings buttons */
+        .settings-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .settings-buttons .btn {
+            min-width: 120px;
+        }
+
+        /* Loading overlay */
+        #loadingOverlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #f5f6fa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.3s ease;
+        }
+        #loadingOverlay.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .loading-spinner {
+            width: 36px;
+            height: 36px;
+            border: 4px solid #e0e0e0;
+            border-top-color: #3498db;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .loading-text {
+            margin-top: 14px;
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        .loading-error {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 8px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading overlay ??shown until pywebview API is ready -->
+    <div id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Initializing...</div>
+        <div class="loading-error" id="loadingError">Bridge initialization failed. Please restart the application.</div>
+    </div>
+
+    <div class="container">
+        <h1>JPEG2PDF-OFD OCR</h1>
+
+        <!-- Tab Navigation -->
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="switchTab('convert', this)" data-i18n="tab_convert">頧?</button>
+            <button class="tab-btn" onclick="switchTab('settings', this)" data-i18n="tab_settings">閮剖?</button>
+        </div>
+
+        <!-- Tab 1: Convert -->
+        <div id="tab-convert" class="tab-content active">
+            <!-- Input Section -->
+            <div class="card">
+                <div class="card-title" data-i18n="card_input">頛詨閮剔蔭</div>
+
+                <div class="form-group">
+                    <label data-i18n="label_input_type">頛詨憿?</label>
+                    <div class="radio-group">
+                        <label class="radio-item">
+                            <input type="radio" name="inputType" value="folder" checked onchange="updateInputType()">
+                            <span data-i18n="label_image_folder">??鞈?憭?/span>
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="inputType" value="pdf" onchange="updateInputType()">
+                            <span data-i18n="label_pdf_file">PDF 瑼?</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label id="inputLabel" data-i18n="label_select_image_folder">?豢???鞈?憭?/label>
+                    <div class="path-row">
+                        <input type="text" id="inputPath" class="path-input" data-i18n-placeholder="placeholder_browse" placeholder="暺??汗?豢?..." readonly>
+                        <button class="btn btn-secondary" onclick="browseInput()" data-i18n="btn_browse">?汗</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OCR Settings -->
+            <div class="card">
+                <div class="card-title" data-i18n="card_ocr">OCR 閮剔蔭</div>
+
+                <div class="form-group">
+                    <label data-i18n="label_ocr_language">霅隤?</label>
+                    <select id="language">
+                        <option value="chinese_cht">蝜?銝剜?</option>
+                        <option value="ch">蝞雿葉??/option>
+                        <option value="en">English</option>
+                        <option value="japan">?交隤?/option>
+                        <option value="korean">?筏??/option>
+                        <option value="french">Fran癟ais</option>
+                        <option value="german">Deutsch</option>
+                        <option value="spanish">Espa簽ol</option>
+                        <option value="arabic">塈?媢堭堥?堜</option>
+                        <option value="hebrew">蛁?蚳?蛌</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Output Settings -->
+            <div class="card">
+                <div class="card-title" data-i18n="card_output">頛詨閮剔蔭</div>
+
+                <div class="form-group">
+                    <label data-i18n="label_output_format">頛詨?澆?</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-item">
+                            <input type="checkbox" id="formatPdf" checked>
+                            PDF
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" id="formatOfd" checked>
+                            OFD
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" id="formatTxt">
+                            TXT
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="multiPage">
+                        <span data-i18n="label_multi_page_mode">憭?璅∪? (?????雿萇銝??獢?</span>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label data-i18n="label_output_folder">頛詨鞈?憭?/label>
+                    <div class="path-row">
+                        <input type="text" id="outputPath" class="path-input" data-i18n-placeholder="placeholder_browse" placeholder="暺??汗?豢?..." readonly>
+                        <button class="btn btn-secondary" onclick="browseOutput()" data-i18n="btn_browse">?汗</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="card">
+                <button id="startBtn" class="btn btn-success start-btn" onclick="startConversion()" data-i18n="btn_start">
+                    ??頧?
+                </button>
+                <button id="cancelBtn" class="btn btn-danger start-btn hidden" onclick="cancelConversion()" data-i18n="btn_cancel">
+                    ??頧?
+                </button>
+            </div>
+
+            <!-- Progress Section -->
+            <div id="progressSection" class="card progress-section">
+                <div class="card-title" data-i18n="card_progress">頧??脣漲</div>
+
+                <div class="progress-text" id="progressText" data-i18n="text_preparing">皞?銝?..</div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+
+                <div class="log-area" id="logArea"></div>
+
+                <div id="successMessage" class="success-message">
+                    <h4 data-i18n="text_complete">頧?摰?!</h4>
+                    <ul class="file-list" id="fileList"></ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Settings -->
+        <div id="tab-settings" class="tab-content">
+            <!-- OCR Engine Section -->
+            <div class="card">
+                <div class="card-title" data-i18n="card_ocr_engine">OCR 撘?</div>
+
+                <div class="form-group">
+                    <label data-i18n="label_engine">撘?</label>
+                    <select id="settingOcrEngine">
+                        <option value="auto" data-i18n="option_auto">?芸?</option>
+                        <option value="rapidocr">RapidOCR</option>
+                        <option value="tesseract">Tesseract</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label data-i18n="label_tesseract_data_path">Tesseract 鞈?頝臬?</label>
+                    <div class="path-row">
+                        <input type="text" id="settingTesseractDataPath" class="path-input" data-i18n-placeholder="placeholder_tessdata" placeholder="tessdata 鞈?憭曇楝敺?..">
+                        <button class="btn btn-secondary" onclick="browseTesseractDataPath()" data-i18n="btn_browse">?汗</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Output Section -->
+            <div class="card">
+                <div class="card-title" data-i18n="card_output_settings">頛詨</div>
+
+                <div class="form-group">
+                    <label data-i18n="label_default_output_folder">?身頛詨鞈?憭?/label>
+                    <div class="path-row">
+                        <input type="text" id="settingDefaultOutputFolder" class="path-input" data-i18n-placeholder="placeholder_output" placeholder="?身頛詨頝臬?...">
+                        <button class="btn btn-secondary" onclick="browseDefaultOutputFolder()" data-i18n="btn_browse">?汗</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label data-i18n="label_filename_format">瑼??澆?</label>
+                    <select id="settingFilenameFormat">
+                        <option value="multipage_YYYYMMDD_HHmmss">multipage_YYYYMMDD_HHmmss</option>
+                        <option value="input_YYYYMMDD_HHmmss">input_YYYYMMDD_HHmmss</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label data-i18n="label_multi_page_mode_settings">憭?璅∪?</label>
+                    <select id="settingMultiPageMode">
+                        <option value="false" data-i18n-opt="option_page_by_page">??頧?</option>
+                        <option value="true" data-i18n-opt="option_merge_multi_page">?蔥?箏???/option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Font Section -->
+            <div class="card">
+                <div class="card-title" data-i18n="card_font">摮?</div>
+
+                <div class="form-group">
+                    <label data-i18n="label_font_mode">摮?璅∪?</label>
+                    <select id="settingFontMode" onchange="updateFontModeVisibility()">
+                        <option value="auto" data-i18n-opt="option_font_auto">?芸?嚗?隤?嚗?/option>
+                        <option value="custom" data-i18n-opt="option_custom">?芾?</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="customFontPathGroup" style="display: none;">
+                    <label data-i18n="label_custom_font_path">?芾?摮?頝臬?</label>
+                    <div class="path-row">
+                        <input type="text" id="settingCustomFontPath" class="path-input" data-i18n-placeholder="placeholder_font" placeholder="?豢? TTF 摮?瑼?...">
+                        <button class="btn btn-secondary" onclick="browseCustomFont()" data-i18n="btn_browse">?汗</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Text Layer Section -->
+            <div class="card">
+                <div class="card-title" data-i18n="card_text_layer">??撅?/div>
+
+                <div class="form-group">
+                    <label data-i18n="label_color">憿</label>
+                    <select id="settingTextColor">
+                        <option value="white" data-i18n-opt="option_white">?質</option>
+                        <option value="black" data-i18n-opt="option_black">暺</option>
+                        <option value="red" data-i18n-opt="option_red">蝝</option>
+                        <option value="blue" data-i18n-opt="option_blue">?</option>
+                        <option value="debug" data-i18n-opt="option_debug_mode">隤輯岫璅∪?</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label data-i18n="label_opacity">??摨?/label>
+                    <div class="range-row">
+                        <input type="range" id="settingTextOpacity" class="range-slider"
+                               min="0" max="1" step="0.0001" value="0.0001"
+                               oninput="updateOpacityValue()">
+                        <span class="range-value" id="opacityValue">0.0001</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Text Conversion Section -->
+            <div class="card">
+                <div class="card-title" data-i18n="card_text_conversion">??頧?</div>
+
+                <div class="form-group">
+                    <label data-i18n="label_chinese_conversion">蝪∠?頧?</label>
+                    <select id="settingChineseConversion">
+                        <option value="null" data-i18n-opt="option_no_conversion">銝???/option>
+                        <option value="s2t" data-i18n-opt="option_s2t">蝪⊿???擃?/option>
+                        <option value="t2s" data-i18n-opt="option_t2s">蝜??陛擃?/option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Interface Section -->
+            <div class="card">
+                <div class="card-title" data-i18n="card_interface">?</div>
+
+                <div class="form-group">
+                    <label data-i18n="label_ui_language">UI 隤?</label>
+                    <select id="settingUiLanguage" onchange="changeUiLanguage()">
+                        <option value="zh-TW">蝜?銝剜?</option>
+                        <option value="zh-CN">蝞雿葉??/option>
+                        <option value="en">English</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="settingNotifyOnComplete" checked>
+                        <span data-i18n="label_notify_on_complete">摰?敺</span>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="settingOpenFolderOnComplete" checked>
+                        <span data-i18n="label_open_folder_on_complete">摰?敺?????冗</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Settings Buttons -->
+            <div class="card">
+                <div class="settings-buttons">
+                    <button class="btn btn-secondary" onclick="resetSettings()" data-i18n="btn_reset">?Ｗ儔?身</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript bridge for Python callbacks
+        window.pythonBridge = {
+            onProgress: function(current, total, message) {
+                console.log('Progress:', current, '/', total, message);
+                updateProgress(current, total, message);
+            },
+
+            onComplete: function(filesJson) {
+                console.log('Complete:', filesJson);
+                try {
+                    var files = JSON.parse(filesJson);
+                    showSuccess(files);
+                } catch (e) {
+                    showSuccess([filesJson]);
+                }
+            },
+
+            onError: function(message) {
+                console.error('Error:', message);
+                addLog(message, 'error');
+                resetUI();
+            },
+
+            onLog: function(message) {
+                console.log('Log:', message);
+                addLog(message);
+            }
+        };
+
+        // State
+        var isProcessing = false;
+        var currentSettings = {};
+
+        // Auto-save settings on any Tab 2 input change
+        document.getElementById('tab-settings').addEventListener('change', function(e) {
+            if (e.target.closest('#tab-settings')) {
+                saveSettings();
+            }
+        });
+
+        // i18n translations
+        var i18n = {
+            'zh-TW': {
+                // Tab navigation
+                'tab_convert': '頧?',
+                'tab_settings': '閮剖?',
+                // Input section
+                'card_input': '頛詨閮剔蔭',
+                'label_input_type': '頛詨憿?',
+                'label_image_folder': '??鞈?憭?,
+                'label_pdf_file': 'PDF 瑼?',
+                'label_select_image_folder': '?豢???鞈?憭?,
+                'label_select_pdf_file': '?豢? PDF 瑼?',
+                'btn_browse': '?汗',
+                'placeholder_browse': '暺??汗?豢?...',
+                // OCR section
+                'card_ocr': 'OCR 閮剔蔭',
+                'label_ocr_language': '霅隤?',
+                // Output section
+                'card_output': '頛詨閮剔蔭',
+                'label_output_format': '頛詨?澆?',
+                'label_multi_page_mode': '憭?璅∪? (?????雿萇銝??獢?',
+                'label_output_folder': '頛詨鞈?憭?,
+                // Action buttons
+                'btn_start': '??頧?',
+                'btn_cancel': '??頧?',
+                // Progress section
+                'card_progress': '頧??脣漲',
+                'text_preparing': '皞?銝?..',
+                'text_processing': '??銝?..',
+                'text_complete': '頧?摰?!',
+                // Settings - OCR Engine
+                'card_ocr_engine': 'OCR 撘?',
+                'label_engine': '撘?',
+                'option_auto': '?芸?',
+                'label_tesseract_data_path': 'Tesseract 鞈?頝臬?',
+                'placeholder_tessdata': 'tessdata 鞈?憭曇楝敺?..',
+                // Settings - Output
+                'card_output_settings': '頛詨',
+                'label_default_output_folder': '?身頛詨鞈?憭?,
+                'placeholder_output': '?身頛詨頝臬?...',
+                'label_filename_format': '瑼??澆?',
+                'label_multi_page_mode_settings': '憭?璅∪?',
+                'option_page_by_page': '??頧?',
+                'option_merge_multi_page': '?蔥?箏???,
+                // Settings - Font
+                'card_font': '摮?',
+                'label_font_mode': '摮?璅∪?',
+                'option_font_auto': '?芸?嚗?隤?嚗?,
+                'option_custom': '?芾?',
+                'label_custom_font_path': '?芾?摮?頝臬?',
+                'placeholder_font': '?豢? TTF 摮?瑼?...',
+                // Settings - Text layer
+                'card_text_layer': '??撅?,
+                'label_color': '憿',
+                'option_white': '?質',
+                'option_black': '暺',
+                'option_red': '蝝',
+                'option_blue': '?',
+                'option_debug_mode': '隤輯岫璅∪?',
+                'label_opacity': '??摨?,
+                // Settings - Text conversion
+                'card_text_conversion': '??頧?',
+                'label_chinese_conversion': '蝪∠?頧?',
+                'option_no_conversion': '銝???,
+                'option_s2t': '蝪⊿???擃?,
+                'option_t2s': '蝜??陛擃?,
+                // Settings - Interface
+                'card_interface': '?',
+                'label_ui_language': 'UI 隤?',
+                'label_notify_on_complete': '摰?敺',
+                'label_open_folder_on_complete': '摰?敺?????冗',
+                // Settings buttons
+                'btn_reset': '?Ｗ儔?身',
+                // Messages
+                'msg_settings_saved': '閮剖?撌脣摮?,
+                'msg_confirm_reset': '蝣箏?閬敺拚?閮剛身摰?嚗?,
+                'msg_confirm_reset_all': '蝣箏?閬敺拇???閮剛身摰?嚗n??皜??歇?脣??身摰?,
+                'msg_select_input': '隢?撓?亥楝敺?,
+                'msg_select_output': '隢?撓?箄??冗',
+                'msg_select_format': '隢撠??蝔株撓?箸撘?,
+                'msg_start_conversion': '??頧?...',
+                'msg_config': '?蔭: ',
+                'msg_error': '?航炊: ',
+                'msg_interface_loaded': '?撌脰??伐?隢?撓?亙?頛詨頝臬?',
+                // Language names
+                'lang_zh_tw': '蝜?銝剜?',
+                'lang_zh_cn': '蝞雿葉??,
+                'lang_en': 'English'
+            },
+            'zh-CN': {
+                // Tab navigation
+                'tab_convert': '頧祆',
+                'tab_settings': '霈曄蔭',
+                // Input section
+                'card_input': '颲霈曄蔭',
+                'label_input_type': '颲蝐餃?',
+                'label_image_folder': '?曄??辣憭?,
+                'label_pdf_file': 'PDF ?辣',
+                'label_select_image_folder': '??曄??辣憭?,
+                'label_select_pdf_file': '? PDF ?辣',
+                'btn_browse': '瘚?',
+                'placeholder_browse': '?孵瘚??...',
+                // OCR section
+                'card_ocr': 'OCR 霈曄蔭',
+                'label_ocr_language': '霂霂剛?',
+                // Output section
+                'card_output': '颲霈曄蔭',
+                'label_output_format': '颲?澆?',
+                'label_multi_page_mode': '憭△璅∪? (????撟嗡蛹銝銝芣?隞?',
+                'label_output_folder': '颲?辣憭?,
+                // Action buttons
+                'btn_start': '撘憪蓮??,
+                'btn_cancel': '??頧祆',
+                // Progress section
+                'card_progress': '頧祆餈漲',
+                'text_preparing': '??銝?..',
+                'text_processing': '憭?銝?..',
+                'text_complete': '頧祆摰?!',
+                // Settings - OCR Engine
+                'card_ocr_engine': 'OCR 撘?',
+                'label_engine': '撘?',
+                'option_auto': '?芸',
+                'label_tesseract_data_path': 'Tesseract ?唳頝臬?',
+                'placeholder_tessdata': 'tessdata ?辣憭寡楝敺?..',
+                // Settings - Output
+                'card_output_settings': '颲',
+                'label_default_output_folder': '暺恕颲?辣憭?,
+                'placeholder_output': '暺恕颲頝臬?...',
+                'label_filename_format': '?辣?撘?,
+                'label_multi_page_mode_settings': '憭△璅∪?',
+                'option_page_by_page': '?△頧祆',
+                'option_merge_multi_page': '?僎銝箏?憿?,
+                // Settings - Font
+                'card_font': '摮?',
+                'label_font_mode': '摮?璅∪?',
+                'option_font_auto': '?芸嚗?霂剛?嚗?,
+                'option_custom': '?芸?銋?,
+                'label_custom_font_path': '?芸?銋?雿楝敺?,
+                'placeholder_font': '? TTF 摮??辣...',
+                // Settings - Text layer
+                'card_text_layer': '??撅?,
+                'label_color': '憸',
+                'option_white': '?質',
+                'option_black': '暺',
+                'option_red': '蝥Ｚ',
+                'option_blue': '?',
+                'option_debug_mode': '靚?璅∪?',
+                'label_opacity': '??摨?,
+                // Settings - Text conversion
+                'card_text_conversion': '??頧祆',
+                'label_chinese_conversion': '蝞蝜蓮??,
+                'option_no_conversion': '銝蓮??,
+                'option_s2t': '蝞雿?蝜?',
+                'option_t2s': '蝜???雿?,
+                // Settings - Interface
+                'card_interface': '?',
+                'label_ui_language': 'UI 霂剛?',
+                'label_notify_on_complete': '摰??',
+                'label_open_folder_on_complete': '摰???冽?撘?辣憭?,
+                // Settings buttons
+                'btn_reset': '?Ｗ?暺恕',
+                // Messages
+                'msg_settings_saved': '霈曄蔭撌脖?摮?,
+                'msg_confirm_reset': '蝖桀?閬憭?霈方挽蝵桀?嚗?,
+                'msg_confirm_reset_all': '蝖桀?閬憭???霈方挽蝵桀?嚗n餈?皜??歇靽??挽蝵柴?,
+                'msg_select_input': '霂琿颲頝臬?',
+                'msg_select_output': '霂琿颲?辣憭?,
+                'msg_select_format': '霂瑁撠銝蝘??箸撘?,
+                'msg_start_conversion': '撘憪蓮??..',
+                'msg_config': '?蔭: ',
+                'msg_error': '?秤: ',
+                'msg_interface_loaded': '?撌脣?頧踝?霂琿颲???箄楝敺?,
+                // Language names
+                'lang_zh_tw': '蝜?銝剜?',
+                'lang_zh_cn': '蝞雿葉??,
+                'lang_en': 'English'
+            },
+            'en': {
+                // Tab navigation
+                'tab_convert': 'Convert',
+                'tab_settings': 'Settings',
+                // Input section
+                'card_input': 'Input Settings',
+                'label_input_type': 'Input Type',
+                'label_image_folder': 'Image Folder',
+                'label_pdf_file': 'PDF File',
+                'label_select_image_folder': 'Select Image Folder',
+                'label_select_pdf_file': 'Select PDF File',
+                'btn_browse': 'Browse',
+                'placeholder_browse': 'Click to browse...',
+                // OCR section
+                'card_ocr': 'OCR Settings',
+                'label_ocr_language': 'Recognition Language',
+                // Output section
+                'card_output': 'Output Settings',
+                'label_output_format': 'Output Format',
+                'label_multi_page_mode': 'Multi-page mode (merge all images into one file)',
+                'label_output_folder': 'Output Folder',
+                // Action buttons
+                'btn_start': 'Start Conversion',
+                'btn_cancel': 'Cancel Conversion',
+                // Progress section
+                'card_progress': 'Conversion Progress',
+                'text_preparing': 'Preparing...',
+                'text_processing': 'Processing...',
+                'text_complete': 'Conversion Complete!',
+                // Settings - OCR Engine
+                'card_ocr_engine': 'OCR Engine',
+                'label_engine': 'Engine',
+                'option_auto': 'Auto',
+                'label_tesseract_data_path': 'Tesseract Data Path',
+                'placeholder_tessdata': 'tessdata folder path...',
+                // Settings - Output
+                'card_output_settings': 'Output',
+                'label_default_output_folder': 'Default Output Folder',
+                'placeholder_output': 'Default output path...',
+                'label_filename_format': 'Filename Format',
+                'label_multi_page_mode_settings': 'Multi-page Mode',
+                'option_page_by_page': 'Page by Page',
+                'option_merge_multi_page': 'Merge to Multi-page',
+                // Settings - Font
+                'card_font': 'Font',
+                'label_font_mode': 'Font Mode',
+                'option_font_auto': 'Auto (by language)',
+                'option_custom': 'Custom',
+                'label_custom_font_path': 'Custom Font Path',
+                'placeholder_font': 'Select TTF font file...',
+                // Settings - Text layer
+                'card_text_layer': 'Text Layer',
+                'label_color': 'Color',
+                'option_white': 'White',
+                'option_black': 'Black',
+                'option_red': 'Red',
+                'option_blue': 'Blue',
+                'option_debug_mode': 'Debug Mode',
+                'label_opacity': 'Opacity',
+                // Settings - Text conversion
+                'card_text_conversion': 'Text Conversion',
+                'label_chinese_conversion': 'Chinese Conversion',
+                'option_no_conversion': 'No Conversion',
+                'option_s2t': 'Simplified?raditional',
+                'option_t2s': 'Traditional?implified',
+                // Settings - Interface
+                'card_interface': 'Interface',
+                'label_ui_language': 'UI Language',
+                'label_notify_on_complete': 'Notify on Complete',
+                'label_open_folder_on_complete': 'Open Folder on Complete',
+                // Settings buttons
+                'btn_reset': 'Reset to Default',
+                // Messages
+                'msg_settings_saved': 'Settings saved',
+                'msg_confirm_reset': 'Are you sure to reset to default settings?',
+                'msg_confirm_reset_all': 'Are you sure to reset all settings?\nThis will clear all saved settings.',
+                'msg_select_input': 'Please select input path',
+                'msg_select_output': 'Please select output folder',
+                'msg_select_format': 'Please select at least one output format',
+                'msg_start_conversion': 'Starting conversion...',
+                'msg_config': 'Config: ',
+                'msg_error': 'Error: ',
+                'msg_interface_loaded': 'Interface loaded, please select input and output paths',
+                // Language names
+                'lang_zh_tw': '蝜?銝剜?',
+                'lang_zh_cn': '蝞雿葉??,
+                'lang_en': 'English'
+            }
+        };
+
+        // Current UI language
+        var currentUiLanguage = 'zh-TW';
+
+        // Get i18n text
+        function t(key) {
+            var lang = i18n[currentUiLanguage];
+            if (lang && lang[key]) {
+                return lang[key];
+            }
+            return key;
+        }
+
+        // Apply i18n to all elements with data-i18n attribute
+        function applyI18n() {
+            var elements = document.querySelectorAll('[data-i18n]');
+            elements.forEach(function(el) {
+                var key = el.getAttribute('data-i18n');
+                var text = t(key);
+                // Handle different element types
+                if (el.tagName === 'INPUT' && (el.type === 'submit' || el.type === 'button')) {
+                    el.value = text;
+                } else {
+                    el.textContent = text;
+                }
+            });
+            // Update placeholders (data-i18n-placeholder)
+            var placeholders = document.querySelectorAll('[data-i18n-placeholder]');
+            placeholders.forEach(function(el) {
+                var key = el.getAttribute('data-i18n-placeholder');
+                el.placeholder = t(key);
+            });
+            // Update select options (data-i18n-opt)
+            var options = document.querySelectorAll('[data-i18n-opt]');
+            options.forEach(function(el) {
+                var key = el.getAttribute('data-i18n-opt');
+                el.textContent = t(key);
+            });
+            // Update language select options text
+            updateLanguageSelectOptions();
+        }
+
+        // Update language select dropdown options
+        function updateLanguageSelectOptions() {
+            var select = document.getElementById('settingUiLanguage');
+            if (select) {
+                select.options[0].text = t('lang_zh_tw');
+                select.options[1].text = t('lang_zh_cn');
+                select.options[2].text = t('lang_en');
+            }
+        }
+
+        // Default settings ??loaded from Python API (default.json)
+        var defaultSettings = null;
+
+        // Switch tab
+        function switchTab(tabName, btn) {
+            // Update tab buttons
+            var buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(function(b) {
+                b.classList.remove('active');
+            });
+            btn.classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(function(content) {
+                content.classList.remove('active');
+            });
+            document.getElementById('tab-' + tabName).classList.add('active');
+        }
+
+        // Update input type label
+        function updateInputType() {
+            var isFolder = document.querySelector('input[name="inputType"]:checked').value === 'folder';
+            document.getElementById('inputLabel').textContent = isFolder ? t('label_select_image_folder') : t('label_select_pdf_file');
+            document.getElementById('inputPath').value = '';
+        }
+
+        // Browse input path
+        async function browseInput() {
+            try {
+                var isFolder = document.querySelector('input[name="inputType"]:checked').value === 'folder';
+                var currentPath = document.getElementById('inputPath').value || '';
+                var path;
+
+                if (isFolder) {
+                    path = await window.pywebview.api.open_directory_chooser(currentPath);
+                } else {
+                    path = await window.pywebview.api.open_file_chooser();
+                }
+
+                if (path) {
+                    document.getElementById('inputPath').value = path;
+                    await saveCurrentPaths();
+                }
+            } catch (e) {
+                alert('Error: ' + e.message + '\npywebview API exists: ' + (window.pywebview !== undefined));
+            }
+        }
+
+        // Browse output path
+        async function browseOutput() {
+            try {
+                var currentPath = document.getElementById('outputPath').value || '';
+                var path = await window.pywebview.api.open_directory_chooser(currentPath);
+                if (path) {
+                    document.getElementById('outputPath').value = path;
+                    await saveCurrentPaths();
+                }
+            } catch (e) {
+                console.error('browseOutput error:', e);
+            }
+        }
+
+        // Browse Tesseract data path
+        async function browseTesseractDataPath() {
+            try {
+                var currentPath = document.getElementById('settingTesseractDataPath').value || '';
+                var path = await window.pywebview.api.open_directory_chooser(currentPath);
+                if (path) {
+                    document.getElementById('settingTesseractDataPath').value = path;
+                }
+            } catch (e) {
+                console.error('browseTesseractDataPath error:', e);
+            }
+        }
+
+        // Browse default output folder
+        async function browseDefaultOutputFolder() {
+            try {
+                var currentPath = document.getElementById('settingDefaultOutputFolder').value || '';
+                var path = await window.pywebview.api.open_directory_chooser(currentPath);
+                if (path) {
+                    document.getElementById('settingDefaultOutputFolder').value = path;
+                }
+            } catch (e) {
+                console.error('browseDefaultOutputFolder error:', e);
+            }
+        }
+
+        // Browse custom font
+        async function browseCustomFont() {
+            try {
+                var path = await window.pywebview.api.open_font_file_chooser();
+                if (path) {
+                    document.getElementById('settingCustomFontPath').value = path;
+                }
+            } catch (e) {
+                console.error('browseCustomFont error:', e);
+            }
+        }
+
+        // Update font mode visibility
+        function updateFontModeVisibility() {
+            var mode = document.getElementById('settingFontMode').value;
+            document.getElementById('customFontPathGroup').style.display = (mode === 'custom') ? 'block' : 'none';
+        }
+
+        // Update opacity value display
+        function updateOpacityValue() {
+            var value = document.getElementById('settingTextOpacity').value;
+            document.getElementById('opacityValue').textContent = parseFloat(value).toFixed(4);
+        }
+
+        // Save current input/output paths to settings
+        async function saveCurrentPaths() {
+            var settings = getSettingsFromUI();
+            settings.inputPath = document.getElementById('inputPath').value;
+            settings.outputPath = document.getElementById('outputPath').value;
+            currentSettings = settings;
+            try {
+                await window.pywebview.api.save_settings(JSON.stringify(settings));
+            } catch (e) { /* ignore */ }
+        }
+
+        // Change UI language
+        async function changeUiLanguage() {
+            var select = document.getElementById('settingUiLanguage');
+            var newLang = select.value;
+            // Map select value to i18n key
+            var langMap = {
+                'zh-TW': 'zh-TW',
+                'zh-CN': 'zh-CN',
+                'en': 'en'
+            };
+            currentUiLanguage = langMap[newLang] || 'zh-TW';
+            applyI18n();
+            // Save settings after language change
+            saveSettings();
+        }
+
+        // Load settings from Python
+        async function loadSettings() {
+            try {
+                // Ensure defaults are loaded from the bundled default.json
+                if (!defaultSettings) {
+                    var defaultsJson = await window.pywebview.api.load_default_settings();
+                    if (defaultsJson && defaultsJson.trim() !== '') {
+                        defaultSettings = JSON.parse(defaultsJson);
+                    } else {
+                        defaultSettings = {};
+                    }
+                }
+                var settingsJson = await window.pywebview.api.load_settings();
+                if (settingsJson && settingsJson.trim() !== '') {
+                    currentSettings = JSON.parse(settingsJson);
+                    applySettings(currentSettings);
+                } else {
+                    applySettings(defaultSettings);
+                    currentSettings = Object.assign({}, defaultSettings);
+                }
+            } catch (e) {
+                console.error('Error loading settings:', e);
+                if (defaultSettings) {
+                    applySettings(defaultSettings);
+                    currentSettings = Object.assign({}, defaultSettings);
+                }
+            }
+        }
+
+        // Apply settings to UI
+        function applySettings(settings) {
+            if (settings.ocrEngine) document.getElementById('settingOcrEngine').value = settings.ocrEngine;
+            if (settings.tesseractDataPath !== undefined) document.getElementById('settingTesseractDataPath').value = settings.tesseractDataPath;
+            if (settings.defaultOutputFolder !== undefined) document.getElementById('settingDefaultOutputFolder').value = settings.defaultOutputFolder;
+            if (settings.filenameFormat) document.getElementById('settingFilenameFormat').value = settings.filenameFormat;
+            if (settings.multiPageMode) document.getElementById('settingMultiPageMode').value = settings.multiPageMode;
+            if (settings.fontMode) document.getElementById('settingFontMode').value = settings.fontMode;
+            if (settings.customFontPath !== undefined) document.getElementById('settingCustomFontPath').value = settings.customFontPath;
+            if (settings.textColor) document.getElementById('settingTextColor').value = settings.textColor;
+            if (settings.textOpacity !== undefined) {
+                document.getElementById('settingTextOpacity').value = settings.textOpacity;
+                document.getElementById('opacityValue').textContent = parseFloat(settings.textOpacity).toFixed(4);
+            }
+            if (settings.chineseConversion) document.getElementById('settingChineseConversion').value = settings.chineseConversion;
+            if (settings.uiLanguage) {
+                document.getElementById('settingUiLanguage').value = settings.uiLanguage;
+                // Apply UI language
+                var langMap = { 'zh-TW': 'zh-TW', 'zh-CN': 'zh-CN', 'en': 'en' };
+                currentUiLanguage = langMap[settings.uiLanguage] || 'zh-TW';
+                applyI18n();
+            }
+            if (settings.notifyOnComplete !== undefined) document.getElementById('settingNotifyOnComplete').checked = settings.notifyOnComplete;
+            if (settings.openFolderOnComplete !== undefined) document.getElementById('settingOpenFolderOnComplete').checked = settings.openFolderOnComplete;
+
+            updateFontModeVisibility();
+            // ?? tab1 ?撓??頛詨頝臬?
+            if (settings.inputPath) document.getElementById('inputPath').value = settings.inputPath;
+            if (settings.outputPath) document.getElementById('outputPath').value = settings.outputPath;
+        }
+
+        // Get current settings from UI
+        function getSettingsFromUI() {
+            return {
+                ocrEngine: document.getElementById('settingOcrEngine').value,
+                tesseractDataPath: document.getElementById('settingTesseractDataPath').value,
+                defaultOutputFolder: document.getElementById('settingDefaultOutputFolder').value,
+                filenameFormat: document.getElementById('settingFilenameFormat').value,
+                multiPageMode: document.getElementById('settingMultiPageMode').value,
+                fontMode: document.getElementById('settingFontMode').value,
+                customFontPath: document.getElementById('settingCustomFontPath').value,
+                textColor: document.getElementById('settingTextColor').value,
+                textOpacity: parseFloat(document.getElementById('settingTextOpacity').value),
+                chineseConversion: document.getElementById('settingChineseConversion').value,
+                uiLanguage: document.getElementById('settingUiLanguage').value,
+                notifyOnComplete: document.getElementById('settingNotifyOnComplete').checked,
+                openFolderOnComplete: document.getElementById('settingOpenFolderOnComplete').checked
+            };
+        }
+
+        // Save settings
+        async function saveSettings() {
+            var settings = getSettingsFromUI();
+            currentSettings = settings;
+            try {
+                await window.pywebview.api.save_settings(JSON.stringify(settings));
+            } catch (e) {
+                console.error('Error auto-saving settings:', e);
+            }
+        }
+
+        // Reset settings to default (Settings tab)
+        async function resetSettings() {
+            if (confirm('蝣箏?閬敺拚?閮剛身摰?嚗n??皜??歇?脣??身摰?)) {
+                if (!defaultSettings) {
+                    var defaultsJson = await window.pywebview.api.load_default_settings();
+                    defaultSettings = defaultsJson ? JSON.parse(defaultsJson) : {};
+                }
+                applySettings(defaultSettings);
+                currentSettings = Object.assign({}, defaultSettings);
+                // Also reset Tab 1 fields
+                resetTab1Fields();
+                // Delete persisted settings file so defaults survive restarts
+                try {
+                    await window.pywebview.api.delete_settings();
+                } catch (e) {
+                    // ignore if file doesn't exist
+                }
+            }
+        }
+
+        // Reset all settings (from Tab 1 button) - resets everything including saved file
+        async function resetAllSettings() {
+            if (confirm('蝣箏?閬敺拇???閮剛身摰?嚗n??皜??歇?脣??身摰?)) {
+                if (!defaultSettings) {
+                    var defaultsJson = await window.pywebview.api.load_default_settings();
+                    defaultSettings = defaultsJson ? JSON.parse(defaultsJson) : {};
+                }
+                applySettings(defaultSettings);
+                currentSettings = Object.assign({}, defaultSettings);
+                resetTab1Fields();
+                // Delete saved settings file
+                try {
+                    await window.pywebview.api.delete_settings();
+                } catch (e) {
+                    // ignore if file doesn't exist
+                }
+            }
+        }
+
+        // Reset Tab 1 form fields to defaults
+        function resetTab1Fields() {
+            // Note: inputPath/outputPath are set by applySettings() from defaults,
+            // so do NOT clear them here ??that was the old broken behavior.
+            document.querySelector('input[name="inputType"][value="folder"]').checked = true;
+            updateInputType();
+            document.getElementById('language').value = 'chinese_cht';
+            document.getElementById('formatPdf').checked = true;
+            document.getElementById('formatOfd').checked = true;
+            document.getElementById('formatTxt').checked = false;
+            document.getElementById('multiPage').checked = false;
+            document.getElementById('progressSection').classList.remove('active');
+            document.getElementById('logArea').innerHTML = '';
+            document.getElementById('successMessage').classList.remove('active');
+            document.getElementById('progressBar').style.width = '0%';
+        }
+
+        // Start conversion
+        async function startConversion() {
+            // Get values
+            var inputType = document.querySelector('input[name="inputType"]:checked').value;
+            var inputPath = document.getElementById('inputPath').value;
+            var outputPath = document.getElementById('outputPath').value;
+            var language = document.getElementById('language').value;
+            var multiPage = document.getElementById('multiPage').checked;
+
+            // Get formats
+            var formats = [];
+            if (document.getElementById('formatPdf').checked) formats.push('pdf');
+            if (document.getElementById('formatOfd').checked) formats.push('ofd');
+            if (document.getElementById('formatTxt').checked) formats.push('txt');
+
+            // Validate
+            if (!inputPath) {
+                alert('隢?撓?亥楝敺?);
+                return;
+            }
+            if (!outputPath) {
+                alert('隢?撓?箄??冗');
+                return;
+            }
+            if (formats.length === 0) {
+                alert('隢撠??蝔株撓?箸撘?);
+                return;
+            }
+
+            // Build config with settings
+            var config = {
+                inputType: inputType,
+                inputPath: inputPath,
+                outputPath: outputPath,
+                language: language,
+                formats: formats.join(','),
+                multiPage: multiPage
+            };
+
+            // Include settings values
+            if (currentSettings.ocrEngine) config.ocrEngine = currentSettings.ocrEngine;
+            if (currentSettings.tesseractDataPath) config.tesseractDataPath = currentSettings.tesseractDataPath;
+            if (currentSettings.fontMode) config.fontMode = currentSettings.fontMode;
+            if (currentSettings.customFontPath) config.customFontPath = currentSettings.customFontPath;
+            if (currentSettings.textColor) config.textColor = currentSettings.textColor;
+            if (currentSettings.textOpacity !== undefined) config.textOpacity = currentSettings.textOpacity;
+            if (currentSettings.chineseConversion && currentSettings.chineseConversion !== 'null') {
+                config.chineseConversion = currentSettings.chineseConversion;
+            }
+
+            // Update UI
+            isProcessing = true;
+            document.getElementById('startBtn').classList.add('hidden');
+            document.getElementById('cancelBtn').classList.remove('hidden');
+            document.getElementById('progressSection').classList.add('active');
+            document.getElementById('successMessage').classList.remove('active');
+            document.getElementById('logArea').innerHTML = '';
+            document.getElementById('progressBar').style.width = '0%';
+            document.getElementById('progressText').textContent = '皞?銝?..';
+
+            // Call Python
+            var configJson = JSON.stringify(config);
+            addLog('??頧?...');
+            addLog('?蔭: ' + configJson);
+
+            try {
+                await window.pywebview.api.start_conversion(configJson);
+            } catch (e) {
+                console.error('Error calling startConversion:', e);
+                addLog('?航炊: ' + e.message, 'error');
+                resetUI();
+            }
+        }
+
+        // Cancel conversion
+        async function cancelConversion() {
+            try {
+                await window.pywebview.api.cancel_conversion();
+            } catch (e) {
+                console.error('Error calling cancelConversion:', e);
+            }
+            resetUI();
+        }
+
+        // Update progress
+        function updateProgress(current, total, message) {
+            var percent = total > 0 ? Math.round((current / total) * 100) : 0;
+            document.getElementById('progressBar').style.width = percent + '%';
+            document.getElementById('progressText').textContent = current + ' / ' + total + ' - ' + (message || '??銝?..');
+            if (message) {
+                addLog(message);
+            }
+        }
+
+        // Add log entry
+        function addLog(message, type) {
+            var logArea = document.getElementById('logArea');
+            var line = document.createElement('div');
+            line.className = 'log-line';
+            if (type) {
+                line.classList.add(type);
+            }
+            var time = new Date().toLocaleTimeString();
+            line.textContent = '[' + time + '] ' + message;
+            logArea.appendChild(line);
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+
+        // Show success
+        function showSuccess(files) {
+            addLog('頧?摰?!', 'success');
+            document.getElementById('progressBar').style.width = '100%';
+            document.getElementById('progressText').textContent = '頧?摰?!';
+
+            var fileList = document.getElementById('fileList');
+            fileList.innerHTML = '';
+            files.forEach(function(file) {
+                var li = document.createElement('li');
+                li.textContent = file;
+                fileList.appendChild(li);
+            });
+
+            document.getElementById('successMessage').classList.add('active');
+            resetUI();
+        }
+
+        // Reset UI
+        function resetUI() {
+            isProcessing = false;
+            document.getElementById('startBtn').classList.remove('hidden');
+            document.getElementById('cancelBtn').classList.add('hidden');
+        }
+
+        // Initialize - pywebview API is available immediately, no polling needed
+        function hideLoadingOverlay() {
+            var overlay = document.getElementById('loadingOverlay');
+            overlay.classList.add('fade-out');
+            setTimeout(function() { overlay.style.display = 'none'; }, 350);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            window.addEventListener('pywebviewready', async function() {
+                console.log('pywebview API ready');
+            addLog(t('msg_interface_loaded'));
+            try {
+                await loadSettings();
+            } catch (e) {
+                console.error('Failed to load settings:', e);
+                document.getElementById('loadingError').style.display = 'block';
+                document.querySelector('.loading-spinner').style.display = 'none';
+                document.querySelector('.loading-text').textContent = 'Initialization failed';
+            }
+            hideLoadingOverlay();
+            });
+        });
+    </script>
+</body>
+</html>

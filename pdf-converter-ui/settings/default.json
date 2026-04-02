@@ -1,0 +1,17 @@
+{
+  "ocrEngine": "auto",
+  "tesseractDataPath": "C:\\OCR\\tessdata",
+  "inputPath": "C:\\OCR\\Sample",
+  "outputPath": "C:\\OCR\\Output",
+  "defaultOutputFolder": "C:\\OCR\\Output",
+  "filenameFormat": "multipage_YYYYMMDD_HHmmss",
+  "multiPageMode": "false",
+  "fontMode": "auto",
+  "customFontPath": "",
+  "textColor": "white",
+  "textOpacity": 0.0001,
+  "chineseConversion": "null",
+  "uiLanguage": "zh-TW",
+  "notifyOnComplete": true,
+  "openFolderOnComplete": true
+}
