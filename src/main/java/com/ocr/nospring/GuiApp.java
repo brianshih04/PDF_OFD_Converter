@@ -60,7 +60,7 @@ public class GuiApp extends Application {
     private WebEngine webEngine;
     private ProcessingService processingService;
     private Config config;
-    private Task<Void> currentTask;
+    private volatile Task<Void> currentTask;
     private Stage primaryStage;
     private static final String PREFS_LAST_DIR = "lastDirectory";
     private File lastDirectory;

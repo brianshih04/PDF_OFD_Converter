@@ -18,7 +18,7 @@ public class OcrService {
     private static final Logger log = LoggerFactory.getLogger(OcrService.class);
     
     private InferenceEngine engine;
-    private boolean initialized = false;
+    private volatile boolean initialized = false;
     
     public OcrService() {
         // 不在構造函數中初始化

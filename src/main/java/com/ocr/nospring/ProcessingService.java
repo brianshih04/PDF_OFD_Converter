@@ -32,7 +32,7 @@ public class ProcessingService {
     private final PdfService pdfService;
     private final TextService textService;
     private final OfdService ofdService;
-    private TesseractOcrService tesseractService;
+    private volatile TesseractOcrService tesseractService;
 
     private volatile boolean cancelled = false;
 
@@ -52,6 +52,17 @@ public class ProcessingService {
      */
     public void cancel() {
         this.cancelled = true;
+    }
+
+    /**
+     * Thread-safe lazy initialization of TesseractOcrService.
+     */
+    private synchronized TesseractOcrService getOrCreateTesseractService(String dataPath, String language) throws Exception {
+        if (tesseractService == null) {
+            tesseractService = new TesseractOcrService(dataPath, language);
+            log.info("  OCR Engine: Tesseract ({})", TesseractLanguageHelper.getTesseractLabel(language));
+        }
+        return tesseractService;
     }
 
     /**
@@ -100,11 +111,8 @@ public class ProcessingService {
                     log.info("  Running OCR...");
                     List<OcrService.TextBlock> textBlocks;
                     if (TesseractLanguageHelper.shouldUseTesseract(ocrEngine, language)) {
-                        if (tesseractService == null) {
-                            tesseractService = new TesseractOcrService(
-                                config.getTesseractDataPath(), TesseractLanguageHelper.getTesseractLanguage(language));
-                            log.info("  OCR Engine: Tesseract ({})", TesseractLanguageHelper.getTesseractLabel(language));
-                        }
+                        tesseractService = getOrCreateTesseractService(
+                            config.getTesseractDataPath(), TesseractLanguageHelper.getTesseractLanguage(language));
                         textBlocks = tesseractService.recognize(image);
                     } else {
                         textBlocks = ocrService.recognize(image, language);
@@ -215,11 +223,8 @@ public class ProcessingService {
                     log.info("  Running OCR...");
                     List<OcrService.TextBlock> textBlocks;
                     if (TesseractLanguageHelper.shouldUseTesseract(ocrEngine, language)) {
-                        if (tesseractService == null) {
-                            tesseractService = new TesseractOcrService(
-                                config.getTesseractDataPath(), TesseractLanguageHelper.getTesseractLanguage(language));
-                            log.info("  OCR Engine: Tesseract ({})", TesseractLanguageHelper.getTesseractLabel(language));
-                        }
+                        tesseractService = getOrCreateTesseractService(
+                            config.getTesseractDataPath(), TesseractLanguageHelper.getTesseractLanguage(language));
                         textBlocks = tesseractService.recognize(image);
                     } else {
                         textBlocks = ocrService.recognize(image, language);
@@ -325,11 +330,8 @@ public class ProcessingService {
                     log.info("  [{}/{}] OCR...", i + 1, pages.size());
                     List<OcrService.TextBlock> textBlocks;
                     if (TesseractLanguageHelper.shouldUseTesseract(ocrEngine, language)) {
-                        if (tesseractService == null) {
-                            tesseractService = new TesseractOcrService(
-                                    config.getTesseractDataPath(),
-                                    TesseractLanguageHelper.getTesseractLanguage(language));
-                        }
+                        tesseractService = getOrCreateTesseractService(
+                            config.getTesseractDataPath(), TesseractLanguageHelper.getTesseractLanguage(language));
                         textBlocks = tesseractService.recognize(pages.get(i));
                         log.info("  OCR Engine: Tesseract ({})", TesseractLanguageHelper.getTesseractLabel(language));
                     } else {
