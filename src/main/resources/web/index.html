@@ -1252,11 +1252,17 @@
 
         // Reset settings to default (Settings tab)
         function resetSettings() {
-            if (confirm('確定要恢復預設設定嗎？')) {
+            if (confirm('確定要恢復預設設定嗎？\n這會清除所有已儲存的設定。')) {
                 applySettings(defaultSettings);
                 currentSettings = defaultSettings;
                 // Also reset Tab 1 fields
                 resetTab1Fields();
+                // Delete persisted settings file so defaults survive restarts
+                try {
+                    window.javaApp.deleteSettings();
+                } catch (e) {
+                    // ignore if file doesn't exist
+                }
             }
         }
 
