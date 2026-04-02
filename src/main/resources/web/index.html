@@ -1053,6 +1053,7 @@
 
         // Browse input path
         function browseInput() {
+            if (!window.javaApp) { console.error('browseInput: javaApp bridge not available'); return; }
             try {
                 var isFolder = document.querySelector('input[name="inputType"]:checked').value === 'folder';
                 var currentPath = document.getElementById('inputPath').value || '';
@@ -1075,37 +1076,57 @@
 
         // Browse output path
         function browseOutput() {
-            var currentPath = document.getElementById('outputPath').value || '';
-            var path = window.javaApp.openDirectoryChooser(currentPath);
-            if (path) {
-                document.getElementById('outputPath').value = path;
-                saveCurrentPaths();
+            if (!window.javaApp) { console.error('browseOutput: javaApp bridge not available'); return; }
+            try {
+                var currentPath = document.getElementById('outputPath').value || '';
+                var path = window.javaApp.openDirectoryChooser(currentPath);
+                if (path) {
+                    document.getElementById('outputPath').value = path;
+                    saveCurrentPaths();
+                }
+            } catch (e) {
+                console.error('browseOutput error:', e);
             }
         }
 
         // Browse Tesseract data path
         function browseTesseractDataPath() {
-            var currentPath = document.getElementById('settingTesseractDataPath').value || '';
-            var path = window.javaApp.openDirectoryChooser(currentPath);
-            if (path) {
-                document.getElementById('settingTesseractDataPath').value = path;
+            if (!window.javaApp) { console.error('browseTesseractDataPath: javaApp bridge not available'); return; }
+            try {
+                var currentPath = document.getElementById('settingTesseractDataPath').value || '';
+                var path = window.javaApp.openDirectoryChooser(currentPath);
+                if (path) {
+                    document.getElementById('settingTesseractDataPath').value = path;
+                }
+            } catch (e) {
+                console.error('browseTesseractDataPath error:', e);
             }
         }
 
         // Browse default output folder
         function browseDefaultOutputFolder() {
-            var currentPath = document.getElementById('settingDefaultOutputFolder').value || '';
-            var path = window.javaApp.openDirectoryChooser(currentPath);
-            if (path) {
-                document.getElementById('settingDefaultOutputFolder').value = path;
+            if (!window.javaApp) { console.error('browseDefaultOutputFolder: javaApp bridge not available'); return; }
+            try {
+                var currentPath = document.getElementById('settingDefaultOutputFolder').value || '';
+                var path = window.javaApp.openDirectoryChooser(currentPath);
+                if (path) {
+                    document.getElementById('settingDefaultOutputFolder').value = path;
+                }
+            } catch (e) {
+                console.error('browseDefaultOutputFolder error:', e);
             }
         }
 
         // Browse custom font
         function browseCustomFont() {
-            var path = window.javaApp.openFontFileChooser();
-            if (path) {
-                document.getElementById('settingCustomFontPath').value = path;
+            if (!window.javaApp) { console.error('browseCustomFont: javaApp bridge not available'); return; }
+            try {
+                var path = window.javaApp.openFontFileChooser();
+                if (path) {
+                    document.getElementById('settingCustomFontPath').value = path;
+                }
+            } catch (e) {
+                console.error('browseCustomFont error:', e);
             }
         }
 

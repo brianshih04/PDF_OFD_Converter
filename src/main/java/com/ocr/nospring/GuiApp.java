@@ -107,6 +107,16 @@ public class GuiApp extends Application {
      * Load HTML from classpath resources.
      */
     private void loadHtmlFromResources() {
+        // Register listener BEFORE loadContent() to avoid race condition.
+        // loadContent() with a string can fire SUCCEEDED synchronously on some
+        // JavaFX versions — if the listener is registered after, it is missed.
+        webEngine.getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue == javafx.concurrent.Worker.State.SUCCEEDED) {
+                log.debug("LoadWorker SUCCEEDED - setting up bridge");
+                setupJavaBridge();
+            }
+        });
+
         try {
             InputStream is = getClass().getResourceAsStream("/web/index.html");
             if (is != null) {
@@ -120,20 +130,13 @@ public class GuiApp extends Application {
             webEngine.loadContent(getFallbackHtml(), "text/html");
         }
 
-        // Primary mechanism: use loadWorker state listener to detect when page is ready
-        webEngine.getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue == javafx.concurrent.Worker.State.SUCCEEDED) {
-                log.debug("LoadWorker SUCCEEDED - setting up bridge");
+        // Fallback: retry bridge setup if the loadWorker listener didn't fire
+        javafx.animation.PauseTransition delay = new javafx.animation.PauseTransition(javafx.util.Duration.millis(1000));
+        delay.setOnFinished(e -> {
+            if (!bridgeInitialized) {
+                log.info("PauseTransition fallback - bridge not yet initialized, retrying");
                 setupJavaBridge();
             }
-        });
-
-        // Fallback: Setup bridge after a short delay as backup (belt and suspenders)
-        // This handles cases where loadWorker might not fire SUCCEEDED consistently
-        javafx.animation.PauseTransition delay = new javafx.animation.PauseTransition(javafx.util.Duration.millis(500));
-        delay.setOnFinished(e -> {
-            log.debug("PauseTransition fallback - setting up bridge");
-            setupJavaBridge();
         });
         delay.play();
     }
@@ -258,6 +261,7 @@ public class GuiApp extends Application {
         }
 
         private String doOpenDirectoryChooser(String currentPath) {
+            log.info("doOpenDirectoryChooser: currentPath={}, primaryStage={}", currentPath, primaryStage != null ? "visible" : "NULL");
             DirectoryChooser chooser = new DirectoryChooser();
             chooser.setTitle("選擇資料夾");
 
@@ -346,12 +350,23 @@ public class GuiApp extends Application {
                     return;
                 }
 
-                File outputDir = new File(parsed.outputPath);
+                // Validate and sanitize paths
+                String safeInputPath;
+                String safeOutputPath;
+                try {
+                    safeInputPath = PathValidator.sanitize(parsed.inputPath).toString();
+                    safeOutputPath = PathValidator.sanitize(parsed.outputPath).toString();
+                } catch (IllegalArgumentException e) {
+                    callJsOnError("路径验证失败: " + e.getMessage());
+                    return;
+                }
+
+                File outputDir = new File(safeOutputPath);
                 if (!outputDir.exists()) {
                     outputDir.mkdirs();
                 }
 
-                List<File> inputFiles = collectInputFiles(parsed.inputType, parsed.inputPath);
+                List<File> inputFiles = collectInputFiles(parsed.inputType, safeInputPath);
                 if (inputFiles.isEmpty()) {
                     callJsOnError("未找到可处理的文件");
                     return;
@@ -359,7 +374,7 @@ public class GuiApp extends Application {
 
                 log.info("Input type: {}", parsed.inputType);
                 log.info("Input files: {}", inputFiles.size());
-                log.info("Output: {}", parsed.outputPath);
+                log.info("Output: {}", safeOutputPath);
                 log.info("Format: {}", parsed.formats);
                 log.info("Language: {}", parsed.language);
                 log.info("MultiPage: {}", parsed.multiPage);
