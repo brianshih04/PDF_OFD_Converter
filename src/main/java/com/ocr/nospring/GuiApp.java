@@ -139,6 +139,7 @@ public class GuiApp extends Application {
 
     /**
      * Setup Java bridge for JavaScript calls.
+     * Only injects the bridge object — JS-side polling handles loadSettings().
      */
     private void setupJavaBridge() {
         if (bridgeInitialized) return;
@@ -148,7 +149,7 @@ public class GuiApp extends Application {
             javaBridge = new JavaBridge();
             window.setMember("javaApp", javaBridge);
             bridgeInitialized = true;
-            log.info("Java bridge initialized");
+            log.info("Java bridge initialized — JS polling will handle loadSettings()");
         } catch (Exception e) {
             log.error("Error setting up Java bridge", e);
             return;
@@ -165,37 +166,6 @@ public class GuiApp extends Application {
             dialogStage.setAlwaysOnTop(true);
             return alert.showAndWait().filter(ButtonType.YES::equals).isPresent();
         });
-
-        // Defer loadSettings() to the next FX pulse so it runs after
-        // loadContent() has fully returned and the page has settled.
-        // Calling executeScript("loadSettings()") synchronously inside the
-        // loadContent → SUCCEEDED callback chain causes re-entrancy: the JS
-        // engine calls back into Java for file I/O while loadContent() is
-        // still on the call stack, which can leave the WebView in an
-        // inconsistent state and break subsequent bridge calls.
-        Platform.runLater(this::deferredLoadSettings);
-    }
-
-    /**
-     * Call JS loadSettings() with a retry if the function isn't ready yet.
-     */
-    private void deferredLoadSettings() {
-        try {
-            webEngine.executeScript("loadSettings()");
-            log.debug("loadSettings() completed successfully");
-        } catch (Exception e) {
-            log.warn("loadSettings() failed, retrying in 500ms: {}", e.getMessage());
-            javafx.animation.PauseTransition retry = new javafx.animation.PauseTransition(javafx.util.Duration.millis(500));
-            retry.setOnFinished(ev -> {
-                try {
-                    webEngine.executeScript("loadSettings()");
-                    log.debug("loadSettings() retry succeeded");
-                } catch (Exception e2) {
-                    log.warn("loadSettings() retry also failed, using JS defaults: {}", e2.getMessage());
-                }
-            });
-            retry.play();
-        }
     }
 
     private static final int MAX_BRIDGE_RETRIES = 3;

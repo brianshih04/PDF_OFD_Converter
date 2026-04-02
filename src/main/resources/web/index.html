@@ -370,9 +370,55 @@
         .settings-buttons .btn {
             min-width: 120px;
         }
+
+        /* Loading overlay */
+        #loadingOverlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #f5f6fa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.3s ease;
+        }
+        #loadingOverlay.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .loading-spinner {
+            width: 36px;
+            height: 36px;
+            border: 4px solid #e0e0e0;
+            border-top-color: #3498db;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .loading-text {
+            margin-top: 14px;
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        .loading-error {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 8px;
+            display: none;
+        }
     </style>
 </head>
 <body>
+    <!-- Loading overlay — shown until Java bridge is ready -->
+    <div id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Initializing...</div>
+        <div class="loading-error" id="loadingError">Bridge initialization failed. Please restart the application.</div>
+    </div>
+
     <div class="container">
         <h1>JPEG2PDF-OFD OCR</h1>
 
@@ -1432,12 +1478,54 @@
             document.getElementById('cancelBtn').classList.add('hidden');
         }
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Page loaded');
-            addLog('界面已載入，請選擇輸入和輸出路徑');
-            loadSettings();
-        });
+        // Initialize — poll for Java bridge readiness instead of relying on timing
+        (function() {
+            var BRIDGE_POLL_INTERVAL = 200;   // ms between polls
+            var BRIDGE_TIMEOUT_MS = 10000;    // 10 seconds max
+            var pollCount = 0;
+            var pollTimerId = null;
+            var timeoutTimerId = null;
+            var bridgeReady = false;
+
+            function onBridgeReady() {
+                if (bridgeReady) return;
+                bridgeReady = true;
+                clearInterval(pollTimerId);
+                clearTimeout(timeoutTimerId);
+                console.log('Java bridge detected — loading settings');
+                loadSettings();
+                hideLoadingOverlay();
+            }
+
+            function onBridgeTimeout() {
+                if (bridgeReady) return;
+                clearInterval(pollTimerId);
+                console.error('Java bridge not available after ' + BRIDGE_TIMEOUT_MS + 'ms');
+                document.getElementById('loadingError').style.display = 'block';
+                document.querySelector('.loading-spinner').style.display = 'none';
+                document.querySelector('.loading-text').textContent = 'Initialization failed';
+            }
+
+            function hideLoadingOverlay() {
+                var overlay = document.getElementById('loadingOverlay');
+                overlay.classList.add('fade-out');
+                setTimeout(function() { overlay.style.display = 'none'; }, 350);
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log('Page loaded — polling for window.javaApp');
+                addLog(t('msg_interface_loaded'));
+
+                pollTimerId = setInterval(function() {
+                    pollCount++;
+                    if (window.javaApp) {
+                        onBridgeReady();
+                    }
+                }, BRIDGE_POLL_INTERVAL);
+
+                timeoutTimerId = setTimeout(onBridgeTimeout, BRIDGE_TIMEOUT_MS);
+            });
+        })();
     </script>
 </body>
 </html>
