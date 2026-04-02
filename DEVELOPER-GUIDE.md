@@ -299,7 +299,7 @@ Python UI 自動偵測 JAR 位置，無需手動配置：
 | **Dev 模式** | `target/jpeg2pdf-ofd-nospring-0.20.jar` | 專案根目錄下的 Maven 建置產出 |
 | **Production 模式** | 內嵌於 PyInstaller EXE | 由 PyInstaller `--add-data` 打包進去 |
 
-> `core/bridge.py` 中的 `find_jar()` 方法負責路徑解析邏輯。
+> `core/bridge.py` 中的 `_resolve_jar()` 方法負責路徑解析邏輯。
 
 ---
 

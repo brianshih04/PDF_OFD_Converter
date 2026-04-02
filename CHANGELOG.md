@@ -16,6 +16,15 @@
 - PLAN_NEW_UI.md: Full architecture migration plan
 - pywebviewready event for proper initialization
 
+### Fixed
+- Bridge subprocess cwd from JAR parent (target/) to project root so Java can find fonts/
+- File dialog None return when user cancels (proper null check)
+- Bridge reads stderr in parallel thread to avoid blocking on Java crashes
+- Java subprocess encoding: add -Dfile.encoding=UTF-8, errors='replace'
+- Use tempfile.mkstemp instead of hardcoded temp config path
+- HTML CJK character encoding corruption (BOM + garbled text)
+- Version renumbering from 3.x to 0.20 across all docs and build files
+
 ---
 
 ## [v0.11] - 2026-04-01

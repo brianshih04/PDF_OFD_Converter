@@ -559,7 +559,7 @@ pyinstaller --onefile --add-data "../ui;ui" ../app.py
 
 - **特殊符號缺字**：GoNotoKurrent 字體不包含 ≤ ≥ △ ℃ μ 等數學/科學符號，OCR 識別正常但 PDF 文字層會跳過這些字元。若需完整符號支援，可在 config.json 的 `fontPath` 指定包含符號的字體（如 Noto Sans CJK）。
 - **Python 版本**：UI 需要 Python 3.13（pythonnet 不支援 3.14）。
-- **字體路徑**：CLI 從 JAR 目錄的相對路徑 `fonts/GoNotoKurrent-Regular.ttf` 載入字體，若 working directory 不在專案根目錄，請在 config.json 設定 `fontPath` 為絕對路徑。
+- **字體路徑**：Bridge 自動設定 cwd 為專案根目錄，Java 可從相對路徑 `fonts/GoNotoKurrent-Regular.ttf` 載入字體。若需自訂字體，在 UI 設定頁或 config.json 設定 `fontPath` 為絕對路徑。
 
 ---
 

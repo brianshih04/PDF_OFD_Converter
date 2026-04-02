@@ -33,10 +33,6 @@
 - **通訊橋接與同步 (Bridge Sync)：** 前端 (JavaScript/DOM) 與後端 (Python) 的雙向通訊必須具備防呆機制。處理非同步回呼 (Callback) 時，確保狀態同步，並妥善處理斷線或超時例外。
 - **優雅關閉 (Graceful Shutdown)：** 必須確保應用程式（或 Webview 視窗）關閉時，Python 背景進程與子執行緒能被徹底且乾淨地回收，嚴防殘留孤兒行程 (Orphan Processes) 在背景持續佔用系統資源。
 
-### D. 桌面端混合架構 (JavaFX + Webview)
-- **執行緒紅線：** 嚴禁在背景執行緒更新 UI。所有涉及介面變動的操作，必須包裝在 `Platform.runLater()` 中。
-- **Bridge 安全性：** 處理前端 Webview 與底層的雙向通訊時，必須採用非同步處理，嚴防 JavaScript 呼叫造成 JavaFX Application Thread 阻塞卡死。
-
-### E. 後端邏輯與數據處理 (Python)
+### D. 後端邏輯與數據處理 (Python)
 - **程式碼風格：** 強制遵守 PEP 8 規範，保持高度可讀性。
 - **併發與效能：** 處理高負載任務時，必須妥善運用 `asyncio` 或多執行緒 (Multi-threading) 進行效能優化，確保極低的執行延遲。

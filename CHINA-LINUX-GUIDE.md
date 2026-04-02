@@ -58,7 +58,7 @@ conveyor make site
 **輸出文件：**
 ```
 output/
-├── JPEG2PDF-OFD-OCR-v0.10-windows-x64.zip       # Windows (便攜版)
+├── JPEG2PDF-OFD-OCR-v0.20-windows-x64.zip       # Windows (便攜版)
 ├── jpeg2pdf-ofd-cli-0.20-linux-amd64.deb       # Linux x86_64 DEB (UOS, Deepin, openEuler)
 ├── jpeg2pdf-ofd-cli-0.20-linux-amd64.rpm       # Linux x86_64 RPM (Kylin)
 ├── jpeg2pdf-ofd-cli-0.20-linux-aarch64.deb     # Linux ARM64 DEB (華為鯤鵬)
