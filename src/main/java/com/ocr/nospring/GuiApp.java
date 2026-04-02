@@ -130,15 +130,9 @@ public class GuiApp extends Application {
             webEngine.loadContent(getFallbackHtml(), "text/html");
         }
 
-        // Fallback: retry bridge setup if the loadWorker listener didn't fire
-        javafx.animation.PauseTransition delay = new javafx.animation.PauseTransition(javafx.util.Duration.millis(1000));
-        delay.setOnFinished(e -> {
-            if (!bridgeInitialized) {
-                log.info("PauseTransition fallback - bridge not yet initialized, retrying");
-                setupJavaBridge();
-            }
-        });
-        delay.play();
+        // Fallback: retry bridge setup if the loadWorker listener didn't fire.
+        // Retry up to 3 times with increasing delay to handle slow WebView init.
+        scheduleBridgeRetry(1);
     }
 
     /**
@@ -153,10 +147,57 @@ public class GuiApp extends Application {
             window.setMember("javaApp", javaBridge);
             bridgeInitialized = true;
             log.info("Java bridge initialized");
-            webEngine.executeScript("loadSettings()");
         } catch (Exception e) {
             log.error("Error setting up Java bridge", e);
+            return;
         }
+
+        // Defer loadSettings() to the next FX pulse so it runs after
+        // loadContent() has fully returned and the page has settled.
+        // Calling executeScript("loadSettings()") synchronously inside the
+        // loadContent → SUCCEEDED callback chain causes re-entrancy: the JS
+        // engine calls back into Java for file I/O while loadContent() is
+        // still on the call stack, which can leave the WebView in an
+        // inconsistent state and break subsequent bridge calls.
+        Platform.runLater(this::deferredLoadSettings);
+    }
+
+    /**
+     * Call JS loadSettings() with a retry if the function isn't ready yet.
+     */
+    private void deferredLoadSettings() {
+        try {
+            webEngine.executeScript("loadSettings()");
+            log.debug("loadSettings() completed successfully");
+        } catch (Exception e) {
+            log.warn("loadSettings() failed, retrying in 500ms: {}", e.getMessage());
+            javafx.animation.PauseTransition retry = new javafx.animation.PauseTransition(javafx.util.Duration.millis(500));
+            retry.setOnFinished(ev -> {
+                try {
+                    webEngine.executeScript("loadSettings()");
+                    log.debug("loadSettings() retry succeeded");
+                } catch (Exception e2) {
+                    log.warn("loadSettings() retry also failed, using JS defaults: {}", e2.getMessage());
+                }
+            });
+            retry.play();
+        }
+    }
+
+    private static final int MAX_BRIDGE_RETRIES = 3;
+
+    private void scheduleBridgeRetry(int attempt) {
+        if (bridgeInitialized || attempt > MAX_BRIDGE_RETRIES) return;
+        long delayMs = 1000L * attempt;  // 1s, 2s, 3s
+        javafx.animation.PauseTransition delay = new javafx.animation.PauseTransition(javafx.util.Duration.millis(delayMs));
+        delay.setOnFinished(e -> {
+            if (!bridgeInitialized) {
+                log.info("Bridge retry {}/{} after {}ms", attempt, MAX_BRIDGE_RETRIES, delayMs);
+                setupJavaBridge();
+                scheduleBridgeRetry(attempt + 1);
+            }
+        });
+        delay.play();
     }
 
     /**
