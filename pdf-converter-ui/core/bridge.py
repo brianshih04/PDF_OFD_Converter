@@ -69,6 +69,9 @@ class ConversionBridge:
     def _run(self, config_json, on_progress, on_complete, on_error, on_log):
         config_path = self._write_temp_config(config_json)
 
+        # cwd must be project root (where fonts/ etc. live), not JAR parent
+        cwd = str(_get_base_path())
+
         try:
             self._process = subprocess.Popen(
                 ['java', '-Dfile.encoding=UTF-8', '-Xmx2G', '-jar',
@@ -79,8 +82,16 @@ class ConversionBridge:
                 encoding='utf-8',
                 errors='replace',
                 bufsize=1,  # Line-buffered
-                cwd=str(self._jar_path.parent),
+                cwd=cwd,
             )
+
+            # Read stderr in a separate thread so it doesn't block stdout
+            stderr_lines = []
+            def _read_stderr():
+                for line in self._process.stderr:
+                    stderr_lines.append(line.strip())
+            stderr_thread = threading.Thread(target=_read_stderr, daemon=True)
+            stderr_thread.start()
 
             output_files = []
             for raw_line in self._process.stdout:
@@ -105,12 +116,13 @@ class ConversionBridge:
                     on_log(line)
 
             returncode = self._process.wait(timeout=30)
+            stderr_thread.join(timeout=5)
 
             if returncode == 0 and output_files:
                 on_complete(output_files)
             elif returncode != 0:
-                stderr = self._process.stderr.read()
-                on_error(f"Process exited with code {returncode}: {stderr.strip()}")
+                stderr = '\n'.join(stderr_lines)
+                on_error(f"Process exited with code {returncode}: {stderr[-500:]}")
             elif not self._cancelled:
                 on_complete([])
 
