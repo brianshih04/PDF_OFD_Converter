@@ -21,3 +21,5 @@
 1. **先審查後修改**：在執行 PM 下達的任務前，先閱讀並檢視當前工作目錄的結構與相關檔案，確保完全理解上下文邏輯。
 2. **自我驗證**：修改完成後，請務必進行本地編譯檢查 (如 `mvn clean package`) 或基礎腳本測試，確認無 Syntax Error 且邏輯正常，再向 PM 回報。
 3. **版控紀律**：若接獲 Commit 或 Push 指令，請務必撰寫清晰、專業且符合常規標準的 Commit Message (例如：使用 `feat:`, `fix:`, `refactor:` 前綴)。
+
+You have MemPalace active via MCP. Use mempalace_status to see the memory protocol. Always search memory before starting complex tasks.
