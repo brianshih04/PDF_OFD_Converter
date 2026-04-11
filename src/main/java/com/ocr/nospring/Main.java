@@ -149,6 +149,7 @@ public class Main {
             float renderDpi = 300f;
             if (inputConfig != null && inputConfig.containsKey("dpi")) {
                 renderDpi = ((Number) inputConfig.get("dpi")).floatValue();
+                config.setDpi((int) renderDpi);
             }
 
             // 獲取 OCR 語言與引擎

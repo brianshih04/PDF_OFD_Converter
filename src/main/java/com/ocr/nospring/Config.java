@@ -29,6 +29,8 @@ public class Config {
     // 文字層透明度 (0.0 - 1.0)
     private double textLayerOpacity = 0.0001;
 
+    private int dpi = 72;
+
     public Config() {
         this.fontPath = getDefaultFontPath();
     }
@@ -115,6 +117,14 @@ public class Config {
 
     public void setTextLayerOpacity(double textLayerOpacity) {
         this.textLayerOpacity = textLayerOpacity;
+    }
+
+    public int getDpi() {
+        return dpi;
+    }
+
+    public void setDpi(int dpi) {
+        this.dpi = dpi;
     }
 
     /**

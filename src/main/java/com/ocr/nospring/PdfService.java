@@ -81,21 +81,17 @@ public class PdfService {
         }
 
         try (PDDocument document = new PDDocument()) {
-            // 載入字體
             PDFont font = loadFont(document);
 
-            // 處理每一頁
             for (int pageIndex = 0; pageIndex < images.size(); pageIndex++) {
                 BufferedImage image = images.get(pageIndex);
                 List<TextBlock> textBlocks = allTextBlocks.get(pageIndex);
 
-                // 建立頁面
                 float width = image.getWidth();
                 float height = image.getHeight();
                 PDPage page = new PDPage(new PDRectangle(width, height));
                 document.addPage(page);
 
-                // 轉換圖片
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 ImageIO.write(image, "PNG", baos);
                 byte[] imageBytes = baos.toByteArray();
@@ -104,22 +100,65 @@ public class PdfService {
                     document, imageBytes, "image"
                 );
 
-                // 繪製內容
                 try (PDPageContentStream contentStream = new PDPageContentStream(
                     document, page,
                     PDPageContentStream.AppendMode.APPEND,
                     true,
                     true
                 )) {
-                    // 1. 繪製圖片
                     contentStream.drawImage(pdImage, 0, 0, width, height);
-
-                    // 2. 繪製透明文字層（使用與 OFD 相同的算法）
                     drawTransparentTextLayer(contentStream, textBlocks, font, width, height);
                 }
             }
 
-            // 保存
+            document.save(outputFile);
+        }
+    }
+
+    public void generateMultiPagePdfFromFiles(List<File> imageFiles, List<List<TextBlock>> allTextBlocks, File outputFile) throws Exception {
+
+        if (imageFiles.size() != allTextBlocks.size()) {
+            throw new IllegalArgumentException("Files and text blocks count mismatch");
+        }
+
+        try (PDDocument document = new PDDocument()) {
+            PDFont font = loadFont(document);
+
+            for (int pageIndex = 0; pageIndex < imageFiles.size(); pageIndex++) {
+                File imageFile = imageFiles.get(pageIndex);
+                List<TextBlock> textBlocks = allTextBlocks.get(pageIndex);
+
+                BufferedImage image = ImageIO.read(imageFile);
+                if (image == null) {
+                    log.warn("  Skipping page {}: cannot read {}", pageIndex + 1, imageFile.getName());
+                    continue;
+                }
+
+                float width = image.getWidth();
+                float height = image.getHeight();
+                PDPage page = new PDPage(new PDRectangle(width, height));
+                document.addPage(page);
+
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                ImageIO.write(image, "PNG", baos);
+                byte[] imageBytes = baos.toByteArray();
+                image.flush();
+
+                PDImageXObject pdImage = PDImageXObject.createFromByteArray(
+                    document, imageBytes, "image"
+                );
+
+                try (PDPageContentStream contentStream = new PDPageContentStream(
+                    document, page,
+                    PDPageContentStream.AppendMode.APPEND,
+                    true,
+                    true
+                )) {
+                    contentStream.drawImage(pdImage, 0, 0, width, height);
+                    drawTransparentTextLayer(contentStream, textBlocks, font, width, height);
+                }
+            }
+
             document.save(outputFile);
         }
     }

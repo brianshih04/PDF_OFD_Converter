@@ -42,26 +42,23 @@ public class OfdService {
             throw new IllegalArgumentException("Images and text blocks count mismatch");
         }
 
-        // 臨時保存所有圖片
         Path tempDir = Files.createTempDirectory("ofd_multipage_");
         List<Path> tempImages = new ArrayList<>();
 
         try {
             try (OFDDoc ofdDoc = new OFDDoc(outputFile.toPath())) {
 
-                // 處理每一頁
                 for (int pageIndex = 0; pageIndex < images.size(); pageIndex++) {
                     BufferedImage image = images.get(pageIndex);
                     List<TextBlock> textBlocks = allTextBlocks.get(pageIndex);
 
-                    // 保存圖片
                     Path tempImage = tempDir.resolve("page_" + pageIndex + ".png");
                     ImageIO.write(image, "PNG", tempImage.toFile());
                     tempImages.add(tempImage);
 
-                    // 轉換坐標：像素 -> mm (假設 DPI = 72)
-                    double widthMm = image.getWidth() * 25.4 / 72.0;
-                    double heightMm = image.getHeight() * 25.4 / 72.0;
+                    double dpi = config.getDpi();
+                    double widthMm = image.getWidth() * 25.4 / dpi;
+                    double heightMm = image.getHeight() * 25.4 / dpi;
 
                     VirtualPage vPage = buildPage(tempImage, textBlocks, widthMm, heightMm, pageIndex);
                     ofdDoc.addVPage(vPage);
@@ -81,6 +78,38 @@ public class OfdService {
     }
 
     /**
+     * 生成多頁 OFD（從檔案逐頁讀取，節省記憶體）
+     */
+    public void generateMultiPageOfdFromFiles(List<File> imageFiles, List<List<TextBlock>> allTextBlocks, File outputFile) throws Exception {
+
+        if (imageFiles.size() != allTextBlocks.size()) {
+            throw new IllegalArgumentException("Files and text blocks count mismatch");
+        }
+
+        try (OFDDoc ofdDoc = new OFDDoc(outputFile.toPath())) {
+
+            for (int pageIndex = 0; pageIndex < imageFiles.size(); pageIndex++) {
+                File imageFile = imageFiles.get(pageIndex);
+                List<TextBlock> textBlocks = allTextBlocks.get(pageIndex);
+
+                BufferedImage image = ImageIO.read(imageFile);
+                if (image == null) {
+                    log.warn("  Skipping page {}: cannot read {}", pageIndex + 1, imageFile.getName());
+                    continue;
+                }
+
+                double dpi = config.getDpi();
+                double widthMm = image.getWidth() * 25.4 / dpi;
+                double heightMm = image.getHeight() * 25.4 / dpi;
+                image.flush();
+
+                VirtualPage vPage = buildPage(imageFile.toPath(), textBlocks, widthMm, heightMm, pageIndex);
+                ofdDoc.addVPage(vPage);
+            }
+        }
+    }
+
+    /**
      * 生成單頁 OFD
      */
     public void generateOfd(BufferedImage image, List<TextBlock> textBlocks, File outputFile) throws Exception {
@@ -92,9 +121,9 @@ public class OfdService {
 
         try (OFDDoc ofdDoc = new OFDDoc(outputFile.toPath())) {
 
-            // 轉換坐標：像素 -> mm (假設 DPI = 72)
-            double widthMm = image.getWidth() * 25.4 / 72.0;
-            double heightMm = image.getHeight() * 25.4 / 72.0;
+            double dpi = config.getDpi();
+            double widthMm = image.getWidth() * 25.4 / dpi;
+            double heightMm = image.getHeight() * 25.4 / dpi;
 
             VirtualPage vPage = buildPage(tempImage, textBlocks, widthMm, heightMm, 0);
             ofdDoc.addVPage(vPage);
@@ -146,13 +175,12 @@ public class OfdService {
                 String text = block.getText().trim();
                 if (text == null || text.isEmpty()) continue;
 
-                // 2. OCR 邊界框
-                double ocrX = block.getX() * 25.4 / 72.0;
-                double ocrY = block.getY() * 25.4 / 72.0;
-                double ocrW = block.getWidth() * 25.4 / 72.0;
-                double ocrH = block.getHeight() * 25.4 / 72.0;
+                double dpi = config.getDpi();
+                double ocrX = block.getX() * 25.4 / dpi;
+                double ocrY = block.getY() * 25.4 / dpi;
+                double ocrW = block.getWidth() * 25.4 / dpi;
+                double ocrH = block.getHeight() * 25.4 / dpi;
 
-                // 3. 字號保持 0.75 完美比例
                 double fontSizeMm = ocrH * 0.75;
                 float fontSizePt = (float) (fontSizeMm * 72.0 / 25.4);
 

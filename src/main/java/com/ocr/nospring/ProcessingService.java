@@ -69,7 +69,7 @@ public class ProcessingService {
     /**
      * 執行 OCR 辨識，自動選擇引擎（thread-safe lazy init for Tesseract）
      */
-    private synchronized List<TextBlock> runOcr(BufferedImage image) throws Exception {
+    private synchronized List<TextBlock> runOcr(BufferedImage image, String language, String ocrEngine) throws Exception {
         List<TextBlock> textBlocks;
         if (TesseractLanguageHelper.shouldUseTesseract(ocrEngine, language)) {
             if (tesseractService == null) {
@@ -104,27 +104,19 @@ public class ProcessingService {
         return LocalDateTime.now().format(TIMESTAMP_FORMATTER);
     }
 
-    // ---- Instance fields used by runOcr() (set per-method-call) ----
-    private String ocrEngine;
-    private String language;
-
     /**
      * Multi-page mode: all images merged into one PDF/OFD.
      */
     public void processMultiPage(List<File> inputFiles, File outputDir, String format,
                                   String language, String ocrEngine, ProgressCallback callback) {
-        this.language = language;
-        this.ocrEngine = ocrEngine;
         List<String> outputFiles = new ArrayList<>();
 
         try {
             log.info("Processing {} images into multi-page document...", inputFiles.size());
 
-            // Store all page data
-            List<BufferedImage> images = new ArrayList<>();
+            List<File> validFiles = new ArrayList<>();
             List<List<TextBlock>> allTextBlocks = new ArrayList<>();
 
-            // Process each image
             for (int i = 0; i < inputFiles.size(); i++) {
                 checkCancelled();
 
@@ -134,7 +126,6 @@ public class ProcessingService {
                 if (callback != null) callback.onProgress(i + 1, inputFiles.size(), msg);
 
                 try {
-                    // Load image
                     BufferedImage image = ImageIO.read(inputFile);
                     if (image == null) {
                         log.error("  ERROR: Cannot read image");
@@ -143,17 +134,16 @@ public class ProcessingService {
 
                     log.info("  Image size: {}x{}", image.getWidth(), image.getHeight());
 
-                    // OCR recognition
                     log.info("  Running OCR...");
-                    List<TextBlock> textBlocks = runOcr(image);
+                    List<TextBlock> textBlocks = runOcr(image, language, ocrEngine);
 
-                    // Text conversion
                     applyTextConversion(textBlocks);
 
                     log.info("  OK: OCR completed ({} blocks)", textBlocks.size());
 
-                    // Save data
-                    images.add(image);
+                    image.flush();
+
+                    validFiles.add(inputFile);
                     allTextBlocks.add(textBlocks);
 
                 } catch (Exception e) {
@@ -161,7 +151,7 @@ public class ProcessingService {
                 }
             }
 
-            if (images.isEmpty()) {
+            if (validFiles.isEmpty()) {
                 String errorMsg = "No valid images processed";
                 log.error("ERROR: {}", errorMsg);
                 if (callback != null) callback.onError(errorMsg);
@@ -170,19 +160,16 @@ public class ProcessingService {
 
             log.info("Generating multi-page output...");
 
-            // Generate output filename
             String outputFilename = "multipage_" + getTimestamp();
 
-            // Generate multi-page PDF
             if (format.contains("pdf") || format.contains("all")) {
                 checkCancelled();
                 File pdfFile = new File(outputDir, outputFilename + ".pdf");
-                pdfService.generateMultiPagePdf(images, allTextBlocks, pdfFile);
+                pdfService.generateMultiPagePdfFromFiles(validFiles, allTextBlocks, pdfFile);
                 log.info("  OK: Multi-page PDF -> {}", pdfFile.getName());
                 outputFiles.add(pdfFile.getAbsolutePath());
             }
 
-            // Generate TXT (all pages text)
             if (format.contains("txt") || format.contains("all")) {
                 checkCancelled();
                 File txtFile = new File(outputDir, outputFilename + ".txt");
@@ -191,16 +178,15 @@ public class ProcessingService {
                 outputFiles.add(txtFile.getAbsolutePath());
             }
 
-            // Generate multi-page OFD
             if (format.contains("ofd") || format.contains("all")) {
                 checkCancelled();
                 File ofdFile = new File(outputDir, outputFilename + ".ofd");
-                ofdService.generateMultiPageOfd(images, allTextBlocks, ofdFile);
+                ofdService.generateMultiPageOfdFromFiles(validFiles, allTextBlocks, ofdFile);
                 log.info("  OK: Multi-page OFD -> {}", ofdFile.getName());
                 outputFiles.add(ofdFile.getAbsolutePath());
             }
 
-            log.info("Total pages: {}", images.size());
+            log.info("Total pages: {}", validFiles.size());
 
             if (callback != null) callback.onComplete(outputFiles);
 
@@ -219,8 +205,6 @@ public class ProcessingService {
      */
     public void processPerPage(List<File> inputFiles, File outputDir, String format,
                                 String language, String ocrEngine, ProgressCallback callback) {
-        this.language = language;
-        this.ocrEngine = ocrEngine;
         List<String> outputFiles = new ArrayList<>();
         int processed = 0;
         int failed = 0;
@@ -248,7 +232,7 @@ public class ProcessingService {
 
                     // OCR recognition
                     log.info("  Running OCR...");
-                    List<TextBlock> textBlocks = runOcr(image);
+                    List<TextBlock> textBlocks = runOcr(image, language, ocrEngine);
 
                     // Text conversion
                     applyTextConversion(textBlocks);
@@ -322,8 +306,6 @@ public class ProcessingService {
     public void processPdfToSearchable(List<File> pdfFiles, File outputDir, String format,
                                         String language, String ocrEngine, float dpi,
                                         ProgressCallback callback) {
-        this.language = language;
-        this.ocrEngine = ocrEngine;
         List<String> outputFiles = new ArrayList<>();
 
         try {
@@ -346,7 +328,7 @@ public class ProcessingService {
                     checkCancelled();
 
                     log.info("  [{}/{}] OCR...", i + 1, pages.size());
-                    List<TextBlock> textBlocks = runOcr(pages.get(i));
+                    List<TextBlock> textBlocks = runOcr(pages.get(i), language, ocrEngine);
 
                     // Text conversion
                     applyTextConversion(textBlocks);

@@ -310,14 +310,14 @@ public class GuiApp extends Application {
                 // Get input path
                 String inputPath = (String) configMap.get("inputPath");
                 if (inputPath == null || inputPath.isEmpty()) {
-                    callJsOnError("请选择输入路径");
+                    callJsOnError("請選擇輸入路徑");
                     return;
                 }
 
                 // Get output path
                 String outputPath = (String) configMap.get("outputPath");
                 if (outputPath == null || outputPath.isEmpty()) {
-                    callJsOnError("请选择输出文件夹");
+                    callJsOnError("請選擇輸出資料夾");
                     return;
                 }
 
@@ -333,7 +333,10 @@ public class GuiApp extends Application {
                 // Get OCR engine
                 String ocrEngine = (String) configMap.getOrDefault("ocrEngine", "auto");
 
-                // Get formats
+                if (configMap.containsKey("dpi")) {
+                    appConfig.setDpi(((Number) configMap.get("dpi")).intValue());
+                }
+
                 String formats = (String) configMap.getOrDefault("formats", "pdf");
 
                 // Get multiPage flag
@@ -354,7 +357,7 @@ public class GuiApp extends Application {
                 }
 
                 if (inputFiles.isEmpty()) {
-                    callJsOnError("未找到可处理的文件");
+                    callJsOnError("未找到可處理的檔案");
                     return;
                 }
 
@@ -416,7 +419,7 @@ public class GuiApp extends Application {
 
             } catch (Exception e) {
                 log.error("Configuration parsing error", e);
-                callJsOnError("配置解析错误: " + e.getMessage());
+                callJsOnError("配置解析錯誤: " + e.getMessage());
             }
         }
 
@@ -431,7 +434,7 @@ public class GuiApp extends Application {
             if (currentTask != null) {
                 currentTask.cancel();
             }
-            callJsOnLog("已取消转换");
+            callJsOnLog("已取消轉換");
         }
 
         /**
