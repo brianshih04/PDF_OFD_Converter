@@ -6,8 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,46 +38,54 @@ public class OcrService {
             initialize();
         }
 
-        // 使用記憶體串流取代暫存檔，避免每次辨識都寫磁碟
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ImageIO.write(image, "PNG", baos);
-        byte[] imageBytes = baos.toByteArray();
-        log.debug("  Image serialized to memory: {} bytes", imageBytes.length);
+        // RapidOCR API only accepts file path (String), not InputStream.
+        // TODO: If a future version supports byte[]/InputStream, switch to in-memory stream.
+        File tempFile = null;
+        try {
+            tempFile = File.createTempFile("ocr_", ".png");
+            ImageIO.write(image, "PNG", tempFile);
+            log.debug("  Temp file for OCR: {} ({} bytes)", tempFile.getAbsolutePath(), tempFile.length());
 
-        // 執行 OCR
-        com.benjaminwan.ocrlibrary.OcrResult rapidResult =
-            engine.runOcr(new ByteArrayInputStream(imageBytes));
+            com.benjaminwan.ocrlibrary.OcrResult rapidResult =
+                engine.runOcr(tempFile.getAbsolutePath());
 
-        List<TextBlock> textBlocks = new ArrayList<>();
+            List<TextBlock> textBlocks = new ArrayList<>();
 
-        java.util.ArrayList<com.benjaminwan.ocrlibrary.TextBlock> blocks = rapidResult.getTextBlocks();
+            java.util.ArrayList<com.benjaminwan.ocrlibrary.TextBlock> blocks = rapidResult.getTextBlocks();
 
-        if (blocks != null && !blocks.isEmpty()) {
-            for (com.benjaminwan.ocrlibrary.TextBlock block : blocks) {
-                String text = block.getText();
-                if (text != null && !text.trim().isEmpty()) {
-                    java.util.ArrayList<com.benjaminwan.ocrlibrary.Point> boxPoints = block.getBoxPoint();
+            if (blocks != null && !blocks.isEmpty()) {
+                for (com.benjaminwan.ocrlibrary.TextBlock block : blocks) {
+                    String text = block.getText();
+                    if (text != null && !text.trim().isEmpty()) {
+                        java.util.ArrayList<com.benjaminwan.ocrlibrary.Point> boxPoints = block.getBoxPoint();
 
-                    double minX = boxPoints.stream().mapToInt(com.benjaminwan.ocrlibrary.Point::getX).min().orElse(0);
-                    double minY = boxPoints.stream().mapToInt(com.benjaminwan.ocrlibrary.Point::getY).min().orElse(0);
-                    double maxX = boxPoints.stream().mapToInt(com.benjaminwan.ocrlibrary.Point::getX).max().orElse(0);
-                    double maxY = boxPoints.stream().mapToInt(com.benjaminwan.ocrlibrary.Point::getY).max().orElse(0);
+                        double minX = boxPoints.stream().mapToInt(com.benjaminwan.ocrlibrary.Point::getX).min().orElse(0);
+                        double minY = boxPoints.stream().mapToInt(com.benjaminwan.ocrlibrary.Point::getY).min().orElse(0);
+                        double maxX = boxPoints.stream().mapToInt(com.benjaminwan.ocrlibrary.Point::getX).max().orElse(0);
+                        double maxY = boxPoints.stream().mapToInt(com.benjaminwan.ocrlibrary.Point::getY).max().orElse(0);
 
-                    TextBlock tb = new TextBlock();
-                    tb.setText(text);
-                    tb.setX(minX);
-                    tb.setY(minY);
-                    tb.setWidth(maxX - minX);
-                    tb.setHeight(maxY - minY);
-                    // 使用 OCR 引擎回傳的真實 confidence
-                    tb.setConfidence(block.getConfidence());
-                    tb.setFontSize(calculateFontSize(tb.getHeight()));
-                    textBlocks.add(tb);
+                        TextBlock tb = new TextBlock();
+                        tb.setText(text);
+                        tb.setX(minX);
+                        tb.setY(minY);
+                        tb.setWidth(maxX - minX);
+                        tb.setHeight(maxY - minY);
+                        // TODO: RapidOCR TextBlock does not expose per-block confidence; using placeholder
+                        tb.setConfidence(0.9);
+                        tb.setFontSize(calculateFontSize(tb.getHeight()));
+                        textBlocks.add(tb);
+                    }
+                }
+            }
+
+            return textBlocks;
+        } finally {
+            if (tempFile != null && tempFile.exists()) {
+                if (!tempFile.delete()) {
+                    log.warn("Failed to delete temp file: {}", tempFile.getAbsolutePath());
                 }
             }
         }
-
-        return textBlocks;
     }
 
     private float calculateFontSize(double height) {
