@@ -36,8 +36,8 @@ public class TesseractOcrService {
         tesseract.setPageSegMode(ITessAPI.TessPageSegMode.PSM_AUTO);
     }
 
-    public List<OcrService.TextBlock> recognize(BufferedImage image) {
-        List<OcrService.TextBlock> textBlocks = new ArrayList<>();
+    public List<TextBlock> recognize(BufferedImage image) {
+        List<TextBlock> textBlocks = new ArrayList<>();
 
         try {
             List<net.sourceforge.tess4j.Word> lines = tesseract.getWords(image,
@@ -52,14 +52,14 @@ public class TesseractOcrService {
                 if (text != null && !text.trim().isEmpty()) {
                     java.awt.Rectangle rect = line.getBoundingBox();
 
-                    OcrService.TextBlock tb = new OcrService.TextBlock();
-                    tb.text = text.trim();
-                    tb.x = rect.getX();
-                    tb.y = rect.getY();
-                    tb.width = rect.getWidth();
-                    tb.height = rect.getHeight();
-                    tb.confidence = line.getConfidence() / 100.0;
-                    tb.fontSize = (float) tb.height;
+                    TextBlock tb = new TextBlock();
+                    tb.setText(text.trim());
+                    tb.setX(rect.getX());
+                    tb.setY(rect.getY());
+                    tb.setWidth(rect.getWidth());
+                    tb.setHeight(rect.getHeight());
+                    tb.setConfidence(line.getConfidence() / 100.0);
+                    tb.setFontSize((float) tb.getHeight());
                     textBlocks.add(tb);
                 }
             }
