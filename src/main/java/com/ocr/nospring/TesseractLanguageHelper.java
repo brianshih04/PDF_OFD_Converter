@@ -1,9 +1,14 @@
 package com.ocr.nospring;
 
+import java.util.Map;
+
 /**
  * Utility class for Tesseract language detection and configuration.
  * Provides static helper methods to determine OCR engine selection
  * and language mapping for various non-Latin scripts.
+ *
+ * Uses a Map-driven architecture instead of individual boolean methods,
+ * making it easy to add new language support with a single entry.
  */
 public final class TesseractLanguageHelper {
 
@@ -11,85 +16,80 @@ public final class TesseractLanguageHelper {
         // Utility class, prevent instantiation
     }
 
-    public static boolean isHebrew(String language) {
-        return "he".equalsIgnoreCase(language) || "hebrew".equalsIgnoreCase(language);
-    }
+    /**
+     * Language mapping record: maps language keys to Tesseract language codes and display names.
+     */
+    private record LanguageMapping(String tessLang, String displayName) {}
 
-    public static boolean isThai(String language) {
-        return "th".equalsIgnoreCase(language) || "tha".equalsIgnoreCase(language) || "thai".equalsIgnoreCase(language);
-    }
-
-    public static boolean isRussian(String language) {
-        return "ru".equalsIgnoreCase(language) || "rus".equalsIgnoreCase(language) || "russian".equalsIgnoreCase(language);
-    }
-
-    public static boolean isPersian(String language) {
-        return "fa".equalsIgnoreCase(language) || "fas".equalsIgnoreCase(language) || "persian".equalsIgnoreCase(language) || "farsi".equalsIgnoreCase(language);
-    }
-
-    public static boolean isArabic(String language) {
-        return "ar".equalsIgnoreCase(language) || "ara".equalsIgnoreCase(language) || "arabic".equalsIgnoreCase(language);
-    }
-
-    public static boolean isUkrainian(String language) {
-        return "uk".equalsIgnoreCase(language) || "ukr".equalsIgnoreCase(language) || "ukrainian".equalsIgnoreCase(language);
-    }
-
-    public static boolean isBulgarian(String language) {
-        return "bg".equalsIgnoreCase(language) || "bul".equalsIgnoreCase(language) || "bulgarian".equalsIgnoreCase(language);
-    }
-
-    public static boolean isSerbian(String language) {
-        return "sr".equalsIgnoreCase(language) || "srp".equalsIgnoreCase(language) || "serbian".equalsIgnoreCase(language);
-    }
-
-    public static boolean isMacedonian(String language) {
-        return "mk".equalsIgnoreCase(language) || "mkd".equalsIgnoreCase(language) || "macedonian".equalsIgnoreCase(language);
-    }
-
-    public static boolean isBelarusian(String language) {
-        return "be".equalsIgnoreCase(language) || "bel".equalsIgnoreCase(language) || "belarusian".equalsIgnoreCase(language);
-    }
-
-    public static boolean isGreek(String language) {
-        return "el".equalsIgnoreCase(language) || "ell".equalsIgnoreCase(language) || "gre".equalsIgnoreCase(language) || "greek".equalsIgnoreCase(language) || "grc".equalsIgnoreCase(language);
-    }
-
-    public static boolean isHindi(String language) {
-        return "hi".equalsIgnoreCase(language) || "hin".equalsIgnoreCase(language) || "hindi".equalsIgnoreCase(language);
-    }
-
-    public static boolean isGujarati(String language) {
-        return "gu".equalsIgnoreCase(language) || "guj".equalsIgnoreCase(language) || "gujarati".equalsIgnoreCase(language);
-    }
-
-    public static boolean isBengali(String language) {
-        return "bn".equalsIgnoreCase(language) || "ben".equalsIgnoreCase(language) || "bengali".equalsIgnoreCase(language);
-    }
-
-    public static boolean isTamil(String language) {
-        return "ta".equalsIgnoreCase(language) || "tam".equalsIgnoreCase(language) || "tamil".equalsIgnoreCase(language);
-    }
-
-    public static boolean isTelugu(String language) {
-        return "te".equalsIgnoreCase(language) || "tel".equalsIgnoreCase(language) || "telugu".equalsIgnoreCase(language);
-    }
-
-    public static boolean isMarathi(String language) {
-        return "mr".equalsIgnoreCase(language) || "mar".equalsIgnoreCase(language) || "marathi".equalsIgnoreCase(language);
-    }
-
-    public static boolean isUrdu(String language) {
-        return "ur".equalsIgnoreCase(language) || "urd".equalsIgnoreCase(language) || "urdu".equalsIgnoreCase(language);
-    }
-
-    public static boolean isPashto(String language) {
-        return "ps".equalsIgnoreCase(language) || "pus".equalsIgnoreCase(language) || "pashto".equalsIgnoreCase(language);
-    }
-
-    public static boolean isAmharic(String language) {
-        return "am".equalsIgnoreCase(language) || "amh".equalsIgnoreCase(language) || "amharic".equalsIgnoreCase(language);
-    }
+    /**
+     * All languages that should use Tesseract (RapidOCR doesn't support them well).
+     * Each entry maps multiple possible language keys (2-letter ISO, 3-letter ISO, full name)
+     * to a single Tesseract language code and display name.
+     */
+    private static final Map<String, LanguageMapping> TESSERACT_LANGUAGES = Map.ofEntries(
+        Map.entry("he", new LanguageMapping("heb+eng", "Hebrew")),
+        Map.entry("hebrew", new LanguageMapping("heb+eng", "Hebrew")),
+        Map.entry("th", new LanguageMapping("tha+eng", "Thai")),
+        Map.entry("tha", new LanguageMapping("tha+eng", "Thai")),
+        Map.entry("thai", new LanguageMapping("tha+eng", "Thai")),
+        Map.entry("ru", new LanguageMapping("rus+eng", "Russian")),
+        Map.entry("rus", new LanguageMapping("rus+eng", "Russian")),
+        Map.entry("russian", new LanguageMapping("rus+eng", "Russian")),
+        Map.entry("fa", new LanguageMapping("fas+eng", "Persian")),
+        Map.entry("fas", new LanguageMapping("fas+eng", "Persian")),
+        Map.entry("farsi", new LanguageMapping("fas+eng", "Persian")),
+        Map.entry("persian", new LanguageMapping("fas+eng", "Persian")),
+        Map.entry("ar", new LanguageMapping("ara+eng", "Arabic")),
+        Map.entry("ara", new LanguageMapping("ara+eng", "Arabic")),
+        Map.entry("arabic", new LanguageMapping("ara+eng", "Arabic")),
+        Map.entry("uk", new LanguageMapping("ukr+eng", "Ukrainian")),
+        Map.entry("ukr", new LanguageMapping("ukr+eng", "Ukrainian")),
+        Map.entry("ukrainian", new LanguageMapping("ukr+eng", "Ukrainian")),
+        Map.entry("bg", new LanguageMapping("bul+eng", "Bulgarian")),
+        Map.entry("bul", new LanguageMapping("bul+eng", "Bulgarian")),
+        Map.entry("bulgarian", new LanguageMapping("bul+eng", "Bulgarian")),
+        Map.entry("sr", new LanguageMapping("srp+eng", "Serbian")),
+        Map.entry("srp", new LanguageMapping("srp+eng", "Serbian")),
+        Map.entry("serbian", new LanguageMapping("srp+eng", "Serbian")),
+        Map.entry("mk", new LanguageMapping("mkd+eng", "Macedonian")),
+        Map.entry("mkd", new LanguageMapping("mkd+eng", "Macedonian")),
+        Map.entry("macedonian", new LanguageMapping("mkd+eng", "Macedonian")),
+        Map.entry("be", new LanguageMapping("bel+eng", "Belarusian")),
+        Map.entry("bel", new LanguageMapping("bel+eng", "Belarusian")),
+        Map.entry("belarusian", new LanguageMapping("bel+eng", "Belarusian")),
+        Map.entry("el", new LanguageMapping("ell+eng", "Greek")),
+        Map.entry("ell", new LanguageMapping("ell+eng", "Greek")),
+        Map.entry("gre", new LanguageMapping("ell+eng", "Greek")),
+        Map.entry("greek", new LanguageMapping("ell+eng", "Greek")),
+        Map.entry("grc", new LanguageMapping("ell+eng", "Greek")),
+        Map.entry("hi", new LanguageMapping("hin+eng", "Hindi")),
+        Map.entry("hin", new LanguageMapping("hin+eng", "Hindi")),
+        Map.entry("hindi", new LanguageMapping("hin+eng", "Hindi")),
+        Map.entry("gu", new LanguageMapping("guj+eng", "Gujarati")),
+        Map.entry("guj", new LanguageMapping("guj+eng", "Gujarati")),
+        Map.entry("gujarati", new LanguageMapping("guj+eng", "Gujarati")),
+        Map.entry("bn", new LanguageMapping("ben+eng", "Bengali")),
+        Map.entry("ben", new LanguageMapping("ben+eng", "Bengali")),
+        Map.entry("bengali", new LanguageMapping("ben+eng", "Bengali")),
+        Map.entry("ta", new LanguageMapping("tam+eng", "Tamil")),
+        Map.entry("tam", new LanguageMapping("tam+eng", "Tamil")),
+        Map.entry("tamil", new LanguageMapping("tam+eng", "Tamil")),
+        Map.entry("te", new LanguageMapping("tel+eng", "Telugu")),
+        Map.entry("tel", new LanguageMapping("tel+eng", "Telugu")),
+        Map.entry("telugu", new LanguageMapping("tel+eng", "Telugu")),
+        Map.entry("mr", new LanguageMapping("mar+eng", "Marathi")),
+        Map.entry("mar", new LanguageMapping("mar+eng", "Marathi")),
+        Map.entry("marathi", new LanguageMapping("mar+eng", "Marathi")),
+        Map.entry("ur", new LanguageMapping("urd+eng", "Urdu")),
+        Map.entry("urd", new LanguageMapping("urd+eng", "Urdu")),
+        Map.entry("urdu", new LanguageMapping("urd+eng", "Urdu")),
+        Map.entry("ps", new LanguageMapping("pus+eng", "Pashto")),
+        Map.entry("pus", new LanguageMapping("pus+eng", "Pashto")),
+        Map.entry("pashto", new LanguageMapping("pus+eng", "Pashto")),
+        Map.entry("am", new LanguageMapping("amh+eng", "Amharic")),
+        Map.entry("amh", new LanguageMapping("amh+eng", "Amharic")),
+        Map.entry("amharic", new LanguageMapping("amh+eng", "Amharic"))
+    );
 
     /**
      * Explicit detection for chi_tra, chi_sim, eng to ensure RapidOCR is used.
@@ -104,63 +104,58 @@ public final class TesseractLanguageHelper {
             || lower.equals("en");
     }
 
-    public static boolean useTesseract(String language) {
-        return isHebrew(language) || isThai(language) || isRussian(language) || isPersian(language) || isArabic(language) || isUkrainian(language) || isBulgarian(language) || isSerbian(language) || isMacedonian(language) || isBelarusian(language) || isGreek(language) || isHindi(language) || isGujarati(language) || isBengali(language) || isTamil(language) || isTelugu(language) || isMarathi(language) || isUrdu(language) || isPashto(language) || isAmharic(language);
+    /**
+     * Resolve a language key to its normalized form for map lookup.
+     */
+    private static String normalizeLanguageKey(String language) {
+        if (language == null) return "";
+        String key = language.toLowerCase().trim();
+        // Direct lookup first
+        if (TESSERACT_LANGUAGES.containsKey(key)) return key;
+        // Try prefix (e.g., "chinese_cht" -> "chinese" won't match, but "fa_anything" -> "fa")
+        int underscoreIdx = key.indexOf('_');
+        if (underscoreIdx > 0) {
+            String prefix = key.substring(0, underscoreIdx);
+            if (TESSERACT_LANGUAGES.containsKey(prefix)) return prefix;
+        }
+        return key;
     }
 
+    /**
+     * Look up the LanguageMapping for a given language key.
+     * Returns null if the language is not in the Tesseract-supported map.
+     */
+    private static LanguageMapping lookupLanguage(String language) {
+        return TESSERACT_LANGUAGES.get(normalizeLanguageKey(language));
+    }
+
+    /**
+     * Determine if Tesseract should be used for a given engine and language.
+     */
     public static boolean shouldUseTesseract(String engine, String language) {
         if ("tesseract".equals(engine)) return true;
         if ("rapidocr".equals(engine)) return false;
         // Explicit RapidOCR detection for chi_tra, chi_sim, eng (per architecture rule)
         if (isChineseOrEnglish(language)) return false;
-        return useTesseract(language);
+        // Auto mode: check if language is in Tesseract map
+        return lookupLanguage(language) != null;
     }
 
+    /**
+     * Get the Tesseract language code for a given language key.
+     * Returns "eng" as default if not found.
+     */
     public static String getTesseractLanguage(String language) {
-        if (isHebrew(language)) return "heb+eng";
-        if (isThai(language)) return "tha+eng";
-        if (isRussian(language)) return "rus+eng";
-        if (isPersian(language)) return "ara+eng";
-        if (isArabic(language)) return "ara+eng";
-        if (isUkrainian(language)) return "ukr+eng";
-        if (isBulgarian(language)) return "bul+eng";
-        if (isSerbian(language)) return "srp+eng";
-        if (isMacedonian(language)) return "mkd+eng";
-        if (isBelarusian(language)) return "bel+eng";
-        if (isGreek(language)) return "ell+eng";
-        if (isHindi(language)) return "hin+eng";
-        if (isGujarati(language)) return "guj+eng";
-        if (isBengali(language)) return "ben+eng";
-        if (isTamil(language)) return "tam+eng";
-        if (isTelugu(language)) return "tel+eng";
-        if (isMarathi(language)) return "mar+eng";
-        if (isUrdu(language)) return "urd+eng";
-        if (isPashto(language)) return "pus+eng";
-        if (isAmharic(language)) return "amh+eng";
-        return "eng";
+        LanguageMapping mapping = lookupLanguage(language);
+        return mapping != null ? mapping.tessLang() : "eng";
     }
 
+    /**
+     * Get the human-readable display name for a given language key.
+     * Returns the raw language string if not found in the map.
+     */
     public static String getTesseractLabel(String language) {
-        if (isHebrew(language)) return "Hebrew";
-        if (isThai(language)) return "Thai";
-        if (isRussian(language)) return "Russian";
-        if (isPersian(language)) return "Persian";
-        if (isArabic(language)) return "Arabic";
-        if (isUkrainian(language)) return "Ukrainian";
-        if (isBulgarian(language)) return "Bulgarian";
-        if (isSerbian(language)) return "Serbian";
-        if (isMacedonian(language)) return "Macedonian";
-        if (isBelarusian(language)) return "Belarusian";
-        if (isGreek(language)) return "Greek";
-        if (isHindi(language)) return "Hindi";
-        if (isGujarati(language)) return "Gujarati";
-        if (isBengali(language)) return "Bengali";
-        if (isTamil(language)) return "Tamil";
-        if (isTelugu(language)) return "Telugu";
-        if (isMarathi(language)) return "Marathi";
-        if (isUrdu(language)) return "Urdu";
-        if (isPashto(language)) return "Pashto";
-        if (isAmharic(language)) return "Amharic";
-        return language;
+        LanguageMapping mapping = lookupLanguage(language);
+        return mapping != null ? mapping.displayName() : language;
     }
 }
