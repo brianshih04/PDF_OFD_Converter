@@ -10,22 +10,40 @@ import org.ofdrw.layout.element.Position;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.imageio.ImageIO;
-import java.awt.Font;
-import java.awt.FontFormatException;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * OFD 服務 - 使用 ofdrw 庫生成 OFD 文檔
+ * OFD 服務 - 無 Spring Boot
  */
 public class OfdService {
 
     private static final Logger log = LoggerFactory.getLogger(OfdService.class);
+
+    /** mm per inch — unit conversion constant for pixel-to-mm conversion */
+    private static final double MM_PER_INCH = 25.4;
+
+    /** assumed screen DPI for pixel-to-mm coordinate conversion */
+    private static final double ASSUMED_DPI = 72.0;
+
+    /** font size as fraction of OCR box height (75% of box height) */
+    private static final double FONT_SIZE_SCALE = 0.75;
+
+    /** Y baseline position ratio within the OCR bounding box */
+    private static final double TEXT_Y_BASELINE_RATIO = 0.72;
+
+    /** fine-tuning offset ratio for Y axis positioning (moves text upward) */
+    private static final double TEXT_Y_OFFSET_RATIO = 0.1;
+
+    /** space character width as fraction of font size (fallback when AWT reports 0 width) */
+    private static final double SPACE_CHAR_WIDTH_RATIO = 0.3;
+
+    /** minimum paragraph width in mm to prevent unwanted line wrapping */
+    private static final double PARAGRAPH_MIN_WIDTH_MM = 10.0;
 
     private final Config config;
 
@@ -34,123 +52,45 @@ public class OfdService {
     }
 
     /**
-     * 生成多頁 OFD
+     * 生成多頁 OFD (batch API — kept for backward compatibility)
      */
     public void generateMultiPageOfd(List<BufferedImage> images, List<List<TextBlock>> allTextBlocks, File outputFile) throws Exception {
-
-        if (images.size() != allTextBlocks.size()) {
-            throw new IllegalArgumentException("Images and text blocks count mismatch");
-        }
-
-        Path tempDir = Files.createTempDirectory("ofd_multipage_");
-        List<Path> tempImages = new ArrayList<>();
-
+        openMultiPage(outputFile);
         try {
-            try (OFDDoc ofdDoc = new OFDDoc(outputFile.toPath())) {
-
-                for (int pageIndex = 0; pageIndex < images.size(); pageIndex++) {
-                    BufferedImage image = images.get(pageIndex);
-                    List<TextBlock> textBlocks = allTextBlocks.get(pageIndex);
-
-                    Path tempImage = tempDir.resolve("page_" + pageIndex + ".png");
-                    ImageIO.write(image, "PNG", tempImage.toFile());
-                    tempImages.add(tempImage);
-
-                    double dpi = config.getDpi();
-                    double widthMm = image.getWidth() * 25.4 / dpi;
-                    double heightMm = image.getHeight() * 25.4 / dpi;
-
-                    VirtualPage vPage = buildPage(tempImage, textBlocks, widthMm, heightMm, pageIndex);
-                    ofdDoc.addVPage(vPage);
-                }
+            for (int i = 0; i < images.size(); i++) {
+                addPage(images.get(i), allTextBlocks.get(i), i + 1);
             }
-
         } finally {
-            for (Path tempImage : tempImages) {
-                if (!Files.deleteIfExists(tempImage)) {
-                    log.warn("Failed to delete temp image: {}", tempImage);
-                }
-            }
-            if (!Files.deleteIfExists(tempDir)) {
-                log.warn("Failed to delete temp directory: {}", tempDir);
-            }
+            closeMultiPage();
         }
     }
 
     /**
-     * 生成多頁 OFD（從檔案逐頁讀取，節省記憶體）
+     * Open a new multi-page OFD document. Caller must call addPage() then closeMultiPage().
      */
-    public void generateMultiPageOfdFromFiles(List<File> imageFiles, List<List<TextBlock>> allTextBlocks, File outputFile) throws Exception {
-
-        if (imageFiles.size() != allTextBlocks.size()) {
-            throw new IllegalArgumentException("Files and text blocks count mismatch");
-        }
-
-        try (OFDDoc ofdDoc = new OFDDoc(outputFile.toPath())) {
-
-            for (int pageIndex = 0; pageIndex < imageFiles.size(); pageIndex++) {
-                File imageFile = imageFiles.get(pageIndex);
-                List<TextBlock> textBlocks = allTextBlocks.get(pageIndex);
-
-                BufferedImage image = ImageIO.read(imageFile);
-                if (image == null) {
-                    log.warn("  Skipping page {}: cannot read {}", pageIndex + 1, imageFile.getName());
-                    continue;
-                }
-
-                double dpi = config.getDpi();
-                double widthMm = image.getWidth() * 25.4 / dpi;
-                double heightMm = image.getHeight() * 25.4 / dpi;
-                image.flush();
-
-                VirtualPage vPage = buildPage(imageFile.toPath(), textBlocks, widthMm, heightMm, pageIndex);
-                ofdDoc.addVPage(vPage);
-            }
-        }
+    public void openMultiPage(File outputFile) throws Exception {
+        this.multiPageTempDir = Files.createTempDirectory("ofd_multipage_");
+        this.multiPageTempImages = new ArrayList<>();
+        this.multiPageOutputFile = outputFile;
+        this.ofdDoc = new OFDDoc(outputFile.toPath());
     }
 
     /**
-     * 生成單頁 OFD
+     * Add a single page (image + OCR text layer) to an open multi-page OFD.
      */
-    public void generateOfd(BufferedImage image, List<TextBlock> textBlocks, File outputFile) throws Exception {
-
-        // 臨時保存圖片
-        Path tempDir = Files.createTempDirectory("ofd_");
-        Path tempImage = tempDir.resolve("page.png");
+    public void addPage(BufferedImage image, List<TextBlock> textBlocks, int pageNumber) throws Exception {
+        Path tempImage = multiPageTempDir.resolve("page_" + (pageNumber - 1) + ".png");
         ImageIO.write(image, "PNG", tempImage.toFile());
+        multiPageTempImages.add(tempImage);
 
-        try (OFDDoc ofdDoc = new OFDDoc(outputFile.toPath())) {
+        double widthMm = image.getWidth() * MM_PER_INCH / ASSUMED_DPI;
+        double heightMm = image.getHeight() * MM_PER_INCH / ASSUMED_DPI;
 
-            double dpi = config.getDpi();
-            double widthMm = image.getWidth() * 25.4 / dpi;
-            double heightMm = image.getHeight() * 25.4 / dpi;
-
-            VirtualPage vPage = buildPage(tempImage, textBlocks, widthMm, heightMm, 0);
-            ofdDoc.addVPage(vPage);
-        }
-
-        // 清理臨時文件
-        if (!Files.deleteIfExists(tempImage)) {
-            log.warn("Failed to delete temp image: {}", tempImage);
-        }
-        if (!Files.deleteIfExists(tempDir)) {
-            log.warn("Failed to delete temp directory: {}", tempDir);
-        }
-    }
-
-    /**
-     * 建立包含背景圖片和文字層的虛擬頁面
-     */
-    private VirtualPage buildPage(Path tempImage, List<TextBlock> textBlocks,
-                                   double widthMm, double heightMm, int pageIndex) throws Exception {
-        // 創建頁面佈局
         PageLayout pageLayout = new PageLayout(widthMm, heightMm);
         pageLayout.setMargin(0d);
 
-        // 創建虛擬頁面
         VirtualPage vPage = new VirtualPage(pageLayout);
 
-        // 添加背景圖片
         Img img = new Img(tempImage);
         img.setPosition(Position.Absolute)
            .setX(0d)
@@ -159,41 +99,125 @@ public class OfdService {
            .setHeight(heightMm);
         vPage.add(img);
 
-        // 添加文字層
-        drawTextLayer(vPage, textBlocks, pageIndex);
+        renderTextBlocks(vPage, textBlocks, String.valueOf(pageNumber));
 
-        return vPage;
+        ofdDoc.addVPage(vPage);
     }
 
     /**
-     * 在虛擬頁面上繪製不可見文字層（逐字符絕對定位 + AWT 字體寬度計算）
+     * Finalize and save a multi-page OFD document, then clean up temp files.
      */
-    private void drawTextLayer(VirtualPage vPage, List<TextBlock> textBlocks, int pageIndex) {
+    public void closeMultiPage() throws Exception {
+        try {
+            if (ofdDoc != null) ofdDoc.close();
+        } finally {
+            // Clean up temp images
+            if (multiPageTempImages != null) {
+                for (Path tempImage : multiPageTempImages) {
+                    if (!Files.deleteIfExists(tempImage)) {
+                        log.warn("Failed to delete temp image: {}", tempImage);
+                    }
+                }
+            }
+            if (multiPageTempDir != null && !Files.deleteIfExists(multiPageTempDir)) {
+                log.warn("Failed to delete temp directory: {}", multiPageTempDir);
+            }
+            ofdDoc = null;
+            multiPageTempDir = null;
+            multiPageTempImages = null;
+            multiPageOutputFile = null;
+        }
+    }
+
+    private OFDDoc ofdDoc;
+    private Path multiPageTempDir;
+    private List<Path> multiPageTempImages;
+    private File multiPageOutputFile;
+
+    public void generateOfd(BufferedImage image, List<TextBlock> textBlocks, File outputFile) throws Exception {
+
+        // 臨時保存圖片
+        Path tempDir = Files.createTempDirectory("ofd_");
+        Path tempImage = tempDir.resolve("page.png");
+
+        try {
+            ImageIO.write(image, "PNG", tempImage.toFile());
+
+            try (OFDDoc ofdDoc = new OFDDoc(outputFile.toPath())) {
+
+                // 轉換坐標：像素 -> mm
+                double widthMm = image.getWidth() * MM_PER_INCH / ASSUMED_DPI;
+                double heightMm = image.getHeight() * MM_PER_INCH / ASSUMED_DPI;
+
+                // 創建頁面佈局
+                PageLayout pageLayout = new PageLayout(widthMm, heightMm);
+                pageLayout.setMargin(0d);
+
+                // 創建虛擬頁面
+                VirtualPage vPage = new VirtualPage(pageLayout);
+
+                // 添加背景圖片
+                Img img = new Img(tempImage);
+                img.setPosition(Position.Absolute)
+                   .setX(0d)
+                   .setY(0d)
+                   .setWidth(widthMm)
+                   .setHeight(heightMm);
+                vPage.add(img);
+
+                // 添加不可見文字層
+                renderTextBlocks(vPage, textBlocks, null);
+
+                // 添加頁面
+                ofdDoc.addVPage(vPage);
+            }
+
+        } finally {
+            // 清理臨時文件
+            if (!Files.deleteIfExists(tempImage)) {
+                log.warn("Failed to delete temp image: {}", tempImage);
+            }
+            if (!Files.deleteIfExists(tempDir)) {
+                log.warn("Failed to delete temp directory: {}", tempDir);
+            }
+        }
+    }
+
+    /**
+     * Render OCR text blocks onto a virtual page using per-character absolute positioning.
+     * Shared by generateOfd() and generateMultiPageOfd().
+     *
+     * @param vPage      the virtual page to render onto
+     * @param textBlocks OCR text blocks with bounding box coordinates (pixels)
+     * @param pageLabel  optional label for error messages (null for single-page mode)
+     */
+    private void renderTextBlocks(VirtualPage vPage, List<TextBlock> textBlocks, String pageLabel) {
         for (TextBlock block : textBlocks) {
             try {
-                // 1. 去除 OCR 文字頭尾的隱形空白
+                // 1. Trim invisible whitespace from OCR text
                 String text = block.getText().trim();
                 if (text == null || text.isEmpty()) continue;
 
-                double dpi = config.getDpi();
-                double ocrX = block.getX() * 25.4 / dpi;
-                double ocrY = block.getY() * 25.4 / dpi;
-                double ocrW = block.getWidth() * 25.4 / dpi;
-                double ocrH = block.getHeight() * 25.4 / dpi;
+                double ocrX = block.getX() * MM_PER_INCH / ASSUMED_DPI;
+                double ocrY = block.getY() * MM_PER_INCH / ASSUMED_DPI;
+                double ocrW = block.getWidth() * MM_PER_INCH / ASSUMED_DPI;
+                double ocrH = block.getHeight() * MM_PER_INCH / ASSUMED_DPI;
 
-                double fontSizeMm = ocrH * 0.75;
-                float fontSizePt = (float) (fontSizeMm * 72.0 / 25.4);
+                // 3. Scale font size relative to OCR box height
+                double fontSizeMm = ocrH * FONT_SIZE_SCALE;
+                float fontSizePt = (float) (fontSizeMm * ASSUMED_DPI / MM_PER_INCH);
 
-                // 4. 使用配置的字型（優先），fallback 到系統 SERIF
-                Font awtFont = loadAwtFont(fontSizePt);
+                // 4. Use SERIF font
+                java.awt.Font awtFont = new java.awt.Font(java.awt.Font.SERIF, java.awt.Font.PLAIN, 1)
+                    .deriveFont(fontSizePt);
                 java.awt.font.FontRenderContext frc = new java.awt.font.FontRenderContext(null, true, true);
 
-                // 5. Y 軸使用精確公式（往上移動 0.1 字高）
+                // 5. Calculate Y position using precise baseline formula
                 double ascentPt = awtFont.getLineMetrics(text, frc).getAscent();
-                double ascentMm = ascentPt * 25.4 / 72.0;
-                double paragraphY = (ocrY + (ocrH * 0.72)) - ascentMm - (ocrH * 0.1);
+                double ascentMm = ascentPt * MM_PER_INCH / ASSUMED_DPI;
+                double paragraphY = (ocrY + (ocrH * TEXT_Y_BASELINE_RATIO)) - ascentMm - (ocrH * TEXT_Y_OFFSET_RATIO);
 
-                // 6. 逐字符絕對定位
+                // 6. Per-character absolute positioning: measure each character width
                 double[] charWidthsMm = new double[text.length()];
                 double totalAwtWidthMm = 0;
 
@@ -201,23 +225,23 @@ public class OfdService {
                     String singleChar = String.valueOf(text.charAt(charIdx));
                     double wPt = awtFont.getStringBounds(singleChar, frc).getWidth();
 
-                    // 處理空白字符
+                    // Handle zero-width space characters
                     if (singleChar.equals(" ") && wPt == 0) {
-                        wPt = fontSizePt * 0.3;
+                        wPt = fontSizePt * SPACE_CHAR_WIDTH_RATIO;
                     }
 
-                    double wMm = wPt * 25.4 / 72.0;
+                    double wMm = wPt * MM_PER_INCH / ASSUMED_DPI;
                     charWidthsMm[charIdx] = wMm;
                     totalAwtWidthMm += wMm;
                 }
 
-                // 7. 計算縮放比例
+                // 7. Calculate horizontal scale factor to fit OCR bounding box
                 double scaleX = 1.0;
                 if (totalAwtWidthMm > 0) {
                     scaleX = ocrW / totalAwtWidthMm;
                 }
 
-                // 8. 逐字符繪製
+                // 8. Draw each character at computed position
                 double currentX = ocrX;
 
                 for (int charIdx = 0; charIdx < text.length(); charIdx++) {
@@ -233,13 +257,10 @@ public class OfdService {
                     p.setMargin(0d);
                     p.setPadding(0d);
                     p.setLineSpace(0d);
-                    p.setWidth(charWidthsMm[charIdx] * scaleX + 10.0); // 確保不換行
+                    p.setWidth(charWidthsMm[charIdx] * scaleX + PARAGRAPH_MIN_WIDTH_MM); // 確保不換行
 
-                    // 強制指定 X 與 Y
                     p.setX(currentX);
                     p.setY(paragraphY);
-
-                    // 從配置讀取透明度
                     p.setOpacity(config.getTextLayerOpacity());
 
                     vPage.add(p);
@@ -249,25 +270,11 @@ public class OfdService {
                 }
 
             } catch (Exception e) {
-                log.error("    Page {} - Error drawing text: {}", pageIndex + 1, e.getMessage());
+                String errMsg = (pageLabel != null)
+                    ? "    Page " + pageLabel + " - Error drawing text: " + e.getMessage()
+                    : "    Error drawing text: " + e.getMessage();
+                log.error(errMsg);
             }
         }
-    }
-
-    /**
-     * 載入 AWT 字型：優先使用 Config 設定的字型，fallback 到系統 SERIF
-     */
-    private Font loadAwtFont(float fontSizePt) {
-        if (config.getFontPath() != null && !config.getFontPath().isEmpty()) {
-            try {
-                Font customFont = Font.createFont(Font.TRUETYPE_FONT, new File(config.getFontPath()));
-                return customFont.deriveFont(fontSizePt);
-            } catch (FontFormatException e) {
-                log.warn("  Failed to load configured font: {}, falling back to SERIF", config.getFontPath());
-            } catch (java.io.IOException e) {
-                log.warn("  Failed to load configured font: {}, falling back to SERIF", config.getFontPath());
-            }
-        }
-        return new Font(Font.SERIF, Font.PLAIN, 1).deriveFont(fontSizePt);
     }
 }

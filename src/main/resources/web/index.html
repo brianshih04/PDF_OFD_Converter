@@ -370,9 +370,55 @@
         .settings-buttons .btn {
             min-width: 120px;
         }
+
+        /* Loading overlay */
+        #loadingOverlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #f5f6fa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.3s ease;
+        }
+        #loadingOverlay.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .loading-spinner {
+            width: 36px;
+            height: 36px;
+            border: 4px solid #e0e0e0;
+            border-top-color: #3498db;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .loading-text {
+            margin-top: 14px;
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        .loading-error {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 8px;
+            display: none;
+        }
     </style>
 </head>
 <body>
+    <!-- Loading overlay — shown until Java bridge is ready -->
+    <div id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Initializing...</div>
+        <div class="loading-error" id="loadingError">Bridge initialization failed. Please restart the application.</div>
+    </div>
+
     <div class="container">
         <h1>JPEG2PDF-OFD OCR</h1>
 
@@ -644,7 +690,6 @@
             <div class="card">
                 <div class="settings-buttons">
                     <button class="btn btn-secondary" onclick="resetSettings()" data-i18n="btn_reset">恢復預設</button>
-                    <button class="btn btn-primary" onclick="saveSettings()" data-i18n="btn_save">儲存設定</button>
                 </div>
             </div>
         </div>
@@ -683,6 +728,13 @@
         // State
         var isProcessing = false;
         var currentSettings = {};
+
+        // Auto-save settings on any Tab 2 input change
+        document.getElementById('tab-settings').addEventListener('change', function(e) {
+            if (e.target.closest('#tab-settings')) {
+                saveSettings();
+            }
+        });
 
         // i18n translations
         var i18n = {
@@ -758,7 +810,6 @@
                 'label_open_folder_on_complete': '完成後自動開啟資料夾',
                 // Settings buttons
                 'btn_reset': '恢復預設',
-                'btn_save': '儲存設定',
                 // Messages
                 'msg_settings_saved': '設定已儲存',
                 'msg_confirm_reset': '確定要恢復預設設定嗎？',
@@ -766,7 +817,6 @@
                 'msg_select_input': '請選擇輸入路徑',
                 'msg_select_output': '請選擇輸出資料夾',
                 'msg_select_format': '請至少選擇一種輸出格式',
-                'msg_save_failed': '儲存設定失敗: ',
                 'msg_start_conversion': '開始轉換...',
                 'msg_config': '配置: ',
                 'msg_error': '錯誤: ',
@@ -848,7 +898,6 @@
                 'label_open_folder_on_complete': '完成后自动打开文件夹',
                 // Settings buttons
                 'btn_reset': '恢复默认',
-                'btn_save': '保存设置',
                 // Messages
                 'msg_settings_saved': '设置已保存',
                 'msg_confirm_reset': '确定要恢复默认设置吗？',
@@ -856,7 +905,6 @@
                 'msg_select_input': '请选择输入路径',
                 'msg_select_output': '请选择输出文件夹',
                 'msg_select_format': '请至少选择一种输出格式',
-                'msg_save_failed': '保存设置失败: ',
                 'msg_start_conversion': '开始转换...',
                 'msg_config': '配置: ',
                 'msg_error': '错误: ',
@@ -938,7 +986,6 @@
                 'label_open_folder_on_complete': 'Open Folder on Complete',
                 // Settings buttons
                 'btn_reset': 'Reset to Default',
-                'btn_save': 'Save Settings',
                 // Messages
                 'msg_settings_saved': 'Settings saved',
                 'msg_confirm_reset': 'Are you sure to reset to default settings?',
@@ -946,7 +993,6 @@
                 'msg_select_input': 'Please select input path',
                 'msg_select_output': 'Please select output folder',
                 'msg_select_format': 'Please select at least one output format',
-                'msg_save_failed': 'Failed to save settings: ',
                 'msg_start_conversion': 'Starting conversion...',
                 'msg_config': 'Config: ',
                 'msg_error': 'Error: ',
@@ -1009,24 +1055,8 @@
             }
         }
 
-        // Default settings
-        var defaultSettings = {
-            ocrEngine: 'auto',
-            tesseractDataPath: 'C:\\OCR\\tessdata',
-            inputPath: 'C:\\OCR\\Sample',
-            outputPath: 'C:\\OCR\\Output',
-            defaultOutputFolder: 'C:\\OCR\\Output',
-            filenameFormat: 'multipage_YYYYMMDD_HHmmss',
-            multiPageMode: 'false',
-            fontMode: 'auto',
-            customFontPath: '',
-            textColor: 'white',
-            textOpacity: 0.0001,
-            chineseConversion: 'null',
-            uiLanguage: 'zh-TW',
-            notifyOnComplete: true,
-            openFolderOnComplete: true
-        };
+        // Default settings — loaded from Java bridge (default.json resource)
+        var defaultSettings = null;
 
         // Switch tab
         function switchTab(tabName, btn) {
@@ -1053,6 +1083,7 @@
 
         // Browse input path
         function browseInput() {
+            if (!window.javaApp) { console.error('browseInput: javaApp bridge not available'); return; }
             try {
                 var isFolder = document.querySelector('input[name="inputType"]:checked').value === 'folder';
                 var currentPath = document.getElementById('inputPath').value || '';
@@ -1075,37 +1106,57 @@
 
         // Browse output path
         function browseOutput() {
-            var currentPath = document.getElementById('outputPath').value || '';
-            var path = window.javaApp.openDirectoryChooser(currentPath);
-            if (path) {
-                document.getElementById('outputPath').value = path;
-                saveCurrentPaths();
+            if (!window.javaApp) { console.error('browseOutput: javaApp bridge not available'); return; }
+            try {
+                var currentPath = document.getElementById('outputPath').value || '';
+                var path = window.javaApp.openDirectoryChooser(currentPath);
+                if (path) {
+                    document.getElementById('outputPath').value = path;
+                    saveCurrentPaths();
+                }
+            } catch (e) {
+                console.error('browseOutput error:', e);
             }
         }
 
         // Browse Tesseract data path
         function browseTesseractDataPath() {
-            var currentPath = document.getElementById('settingTesseractDataPath').value || '';
-            var path = window.javaApp.openDirectoryChooser(currentPath);
-            if (path) {
-                document.getElementById('settingTesseractDataPath').value = path;
+            if (!window.javaApp) { console.error('browseTesseractDataPath: javaApp bridge not available'); return; }
+            try {
+                var currentPath = document.getElementById('settingTesseractDataPath').value || '';
+                var path = window.javaApp.openDirectoryChooser(currentPath);
+                if (path) {
+                    document.getElementById('settingTesseractDataPath').value = path;
+                }
+            } catch (e) {
+                console.error('browseTesseractDataPath error:', e);
             }
         }
 
         // Browse default output folder
         function browseDefaultOutputFolder() {
-            var currentPath = document.getElementById('settingDefaultOutputFolder').value || '';
-            var path = window.javaApp.openDirectoryChooser(currentPath);
-            if (path) {
-                document.getElementById('settingDefaultOutputFolder').value = path;
+            if (!window.javaApp) { console.error('browseDefaultOutputFolder: javaApp bridge not available'); return; }
+            try {
+                var currentPath = document.getElementById('settingDefaultOutputFolder').value || '';
+                var path = window.javaApp.openDirectoryChooser(currentPath);
+                if (path) {
+                    document.getElementById('settingDefaultOutputFolder').value = path;
+                }
+            } catch (e) {
+                console.error('browseDefaultOutputFolder error:', e);
             }
         }
 
         // Browse custom font
         function browseCustomFont() {
-            var path = window.javaApp.openFontFileChooser();
-            if (path) {
-                document.getElementById('settingCustomFontPath').value = path;
+            if (!window.javaApp) { console.error('browseCustomFont: javaApp bridge not available'); return; }
+            try {
+                var path = window.javaApp.openFontFileChooser();
+                if (path) {
+                    document.getElementById('settingCustomFontPath').value = path;
+                }
+            } catch (e) {
+                console.error('browseCustomFont error:', e);
             }
         }
 
@@ -1151,16 +1202,29 @@
         // Load settings from Java
         function loadSettings() {
             try {
+                // Ensure defaults are loaded from the bundled default.json
+                if (!defaultSettings) {
+                    var defaultsJson = window.javaApp.loadDefaultSettings();
+                    if (defaultsJson && defaultsJson.trim() !== '') {
+                        defaultSettings = JSON.parse(defaultsJson);
+                    } else {
+                        defaultSettings = {};
+                    }
+                }
                 var settingsJson = window.javaApp.loadSettings();
                 if (settingsJson && settingsJson.trim() !== '') {
                     currentSettings = JSON.parse(settingsJson);
                     applySettings(currentSettings);
                 } else {
                     applySettings(defaultSettings);
+                    currentSettings = Object.assign({}, defaultSettings);
                 }
             } catch (e) {
                 console.error('Error loading settings:', e);
-                applySettings(defaultSettings);
+                if (defaultSettings) {
+                    applySettings(defaultSettings);
+                    currentSettings = Object.assign({}, defaultSettings);
+                }
             }
         }
 
@@ -1218,32 +1282,42 @@
         function saveSettings() {
             var settings = getSettingsFromUI();
             currentSettings = settings;
-
             try {
-                var settingsJson = JSON.stringify(settings);
-                window.javaApp.saveSettings(settingsJson);
-                addLog('設定已儲存', 'success');
+                window.javaApp.saveSettings(JSON.stringify(settings));
             } catch (e) {
-                console.error('Error saving settings:', e);
-                alert('儲存設定失敗: ' + e.message);
+                console.error('Error auto-saving settings:', e);
             }
         }
 
         // Reset settings to default (Settings tab)
         function resetSettings() {
-            if (confirm('確定要恢復預設設定嗎？')) {
+            if (confirm('確定要恢復預設設定嗎？\n這會清除所有已儲存的設定。')) {
+                if (!defaultSettings) {
+                    var defaultsJson = window.javaApp.loadDefaultSettings();
+                    defaultSettings = defaultsJson ? JSON.parse(defaultsJson) : {};
+                }
                 applySettings(defaultSettings);
-                currentSettings = defaultSettings;
+                currentSettings = Object.assign({}, defaultSettings);
                 // Also reset Tab 1 fields
                 resetTab1Fields();
+                // Delete persisted settings file so defaults survive restarts
+                try {
+                    window.javaApp.deleteSettings();
+                } catch (e) {
+                    // ignore if file doesn't exist
+                }
             }
         }
 
         // Reset all settings (from Tab 1 button) - resets everything including saved file
         function resetAllSettings() {
             if (confirm('確定要恢復所有預設設定嗎？\n這會清除所有已儲存的設定。')) {
+                if (!defaultSettings) {
+                    var defaultsJson = window.javaApp.loadDefaultSettings();
+                    defaultSettings = defaultsJson ? JSON.parse(defaultsJson) : {};
+                }
                 applySettings(defaultSettings);
-                currentSettings = defaultSettings;
+                currentSettings = Object.assign({}, defaultSettings);
                 resetTab1Fields();
                 // Delete saved settings file
                 try {
@@ -1256,8 +1330,8 @@
 
         // Reset Tab 1 form fields to defaults
         function resetTab1Fields() {
-            document.getElementById('inputPath').value = '';
-            document.getElementById('outputPath').value = '';
+            // Note: inputPath/outputPath are set by applySettings() from defaults,
+            // so do NOT clear them here — that was the old broken behavior.
             document.querySelector('input[name="inputType"][value="folder"]').checked = true;
             updateInputType();
             document.getElementById('language').value = 'chinese_cht';
@@ -1404,12 +1478,54 @@
             document.getElementById('cancelBtn').classList.add('hidden');
         }
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Page loaded');
-            addLog('界面已載入，請選擇輸入和輸出路徑');
-            loadSettings();
-        });
+        // Initialize — poll for Java bridge readiness instead of relying on timing
+        (function() {
+            var BRIDGE_POLL_INTERVAL = 200;   // ms between polls
+            var BRIDGE_TIMEOUT_MS = 10000;    // 10 seconds max
+            var pollCount = 0;
+            var pollTimerId = null;
+            var timeoutTimerId = null;
+            var bridgeReady = false;
+
+            function onBridgeReady() {
+                if (bridgeReady) return;
+                bridgeReady = true;
+                clearInterval(pollTimerId);
+                clearTimeout(timeoutTimerId);
+                console.log('Java bridge detected — loading settings');
+                loadSettings();
+                hideLoadingOverlay();
+            }
+
+            function onBridgeTimeout() {
+                if (bridgeReady) return;
+                clearInterval(pollTimerId);
+                console.error('Java bridge not available after ' + BRIDGE_TIMEOUT_MS + 'ms');
+                document.getElementById('loadingError').style.display = 'block';
+                document.querySelector('.loading-spinner').style.display = 'none';
+                document.querySelector('.loading-text').textContent = 'Initialization failed';
+            }
+
+            function hideLoadingOverlay() {
+                var overlay = document.getElementById('loadingOverlay');
+                overlay.classList.add('fade-out');
+                setTimeout(function() { overlay.style.display = 'none'; }, 350);
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log('Page loaded — polling for window.javaApp');
+                addLog(t('msg_interface_loaded'));
+
+                pollTimerId = setInterval(function() {
+                    pollCount++;
+                    if (window.javaApp) {
+                        onBridgeReady();
+                    }
+                }, BRIDGE_POLL_INTERVAL);
+
+                timeoutTimerId = setTimeout(onBridgeTimeout, BRIDGE_TIMEOUT_MS);
+            });
+        })();
     </script>
 </body>
 </html>

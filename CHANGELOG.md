@@ -1,14 +1,29 @@
 # Changelog
 
-## [v0.12] - 2026-04-01
+## [v0.20] - 2026-04-02
 
 ### Changed
-- **exe 名稱固定**：`display-name` 移除版本號，exe 固定為 `JPEG2PDF-OFD-OCR.exe`，避免每次 build 改名
-- **start.bat 更新**：對應新的 exe 名稱，位於 ZIP 根目錄，雙擊即可啟動
-- **自動化 build script**：新增 `scripts/build-conveyor.ps1`，一鍵執行 Maven → Conveyor → 注入 start.bat
+- Removed JavaFX GUI (GuiApp.java), using Python pywebview UI instead
+- Java CLI now outputs structured JSON progress to stdout
+- Removed JavaFX dependencies from pom.xml
+
+### Added
+- Python UI project (pdf-converter-ui/) with pywebview
+- core/config.py: Settings management (compatible with old JavaFX settings)
+- core/bridge.py: Java CLI subprocess bridge with JSON stdout parsing
+- api/js_api.py: JavaScript-Python bridge (replaces JavaBridge)
+- build/: PyInstaller build scripts
+- PLAN_NEW_UI.md: Full architecture migration plan
+- pywebviewready event for proper initialization
 
 ### Fixed
-- 修正 Conveyor jlink 缺少 `java.naming` 模組，導致 logback 初始化失敗（`NoClassDefFoundError: javax/naming/NamingException`）
+- Bridge subprocess cwd from JAR parent (target/) to project root so Java can find fonts/
+- File dialog None return when user cancels (proper null check)
+- Bridge reads stderr in parallel thread to avoid blocking on Java crashes
+- Java subprocess encoding: add -Dfile.encoding=UTF-8, errors='replace'
+- Use tempfile.mkstemp instead of hardcoded temp config path
+- HTML CJK character encoding corruption (BOM + garbled text)
+- Version renumbering from 3.x to 0.20 across all docs and build files
 
 ---
 
@@ -46,7 +61,7 @@
 
 ---
 
-## [3.0.0] - 2026-03-31
+## [0.19] - 2026-03-31
 
 ### Added
 - **JavaFX GUI 模式**：內建 WebView 介面，支援資料夾選擇、格式設定、語言切換、即時處理

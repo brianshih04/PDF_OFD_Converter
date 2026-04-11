@@ -5,7 +5,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * 純 Java SE 主程序 - 無 Spring Boot
@@ -18,7 +20,7 @@ public class Main {
 
     private static final Logger log = LoggerFactory.getLogger(Main.class);
 
-    private static String VERSION = "3.0.0 (No Spring Boot)";
+    private static String VERSION = "0.20";
     private static String APP_NAME = "JPEG2PDF-OFD (No Spring Boot)";
 
     static {
@@ -37,10 +39,10 @@ public class Main {
 
     public static void main(String[] args) {
         try {
-            // GUI mode: no args or --gui
-            if (args.length == 0 || (args.length == 1 && "--gui".equals(args[0]))) {
-                GuiApp.launchGui(args);
-                return;
+            // No args = print usage
+            if (args.length == 0) {
+                printUsage();
+                System.exit(0);
             }
 
             System.setProperty("java.awt.headless", "true");
@@ -60,7 +62,15 @@ public class Main {
 
             // 加載配置文件
             String configFile = args[0];
-            File file = new File(configFile);
+            Path safeConfigPath;
+            try {
+                safeConfigPath = PathValidator.sanitize(configFile);
+            } catch (IllegalArgumentException e) {
+                log.error("ERROR: Invalid config path: {}", e.getMessage());
+                System.exit(1);
+                return;
+            }
+            File file = safeConfigPath.toFile();
             if (!file.exists()) {
                 log.error("ERROR: Config file not found: {}", configFile);
                 log.error("Please check the path or try one of the following .json files in current directory:");
@@ -210,6 +220,15 @@ public class Main {
             String format = getOutputFormat(outputConfig);
             boolean multiPage = getMultiPageMode(outputConfig);
 
+            // Validate output path
+            try {
+                outputFolder = PathValidator.sanitize(outputFolder).toString();
+            } catch (IllegalArgumentException e) {
+                log.error("ERROR: Invalid output path: {}", e.getMessage());
+                System.exit(1);
+                return;
+            }
+
             // 創建輸出目錄
             File outputDir = new File(outputFolder);
             if (!outputDir.exists()) {
@@ -220,14 +239,20 @@ public class Main {
             log.info("Mode: {}", multiPage ? "Multi-Page" : "Per-Page");
 
             // === 委派給 ProcessingService ===
-            ProcessingService processingService = new ProcessingService(config);
+            OcrService ocrService = new OcrService();
+            PdfService pdfService = new PdfService(config);
+            OfdService ofdService = new OfdService(config);
+            TextService textService = new TextService();
+            ProcessingService processingService = new ProcessingService(config, ocrService, pdfService, ofdService, textService);
+
+            ProcessingService.ProgressCallback callback = new CliProgressCallback();
 
             if ("pdf".equals(inputType)) {
-                processingService.processPdfToSearchable(inputFiles, outputDir, format, language, ocrEngine, renderDpi, null);
+                processingService.processPdfToSearchable(inputFiles, outputDir, format, language, ocrEngine, renderDpi, callback);
             } else if (multiPage) {
-                processingService.processMultiPage(inputFiles, outputDir, format, language, ocrEngine, null);
+                processingService.processMultiPage(inputFiles, outputDir, format, language, ocrEngine, callback);
             } else {
-                processingService.processPerPage(inputFiles, outputDir, format, language, ocrEngine, null);
+                processingService.processPerPage(inputFiles, outputDir, format, language, ocrEngine, callback);
             }
 
             log.info("========================================");
@@ -258,7 +283,7 @@ public class Main {
             String folderPath = (String) inputConfig.get("folder");
             String pattern = inputConfig.containsKey("pattern")
                 ? (String) inputConfig.get("pattern")
-                : "*.jpg";
+                : "*.jpg,*.jpeg,*.png,*.bmp,*.tiff,*.tif";
 
             File folder = new File(folderPath);
             if (folder.exists() && folder.isDirectory()) {
@@ -284,6 +309,18 @@ public class Main {
 
     private static boolean matchesPattern(String filename, String pattern) {
         if (pattern.equals("*") || pattern.equals("*.*")) return true;
+        // Support comma-separated patterns: "*.jpg,*.png,*.tiff"
+        if (pattern.contains(",")) {
+            String[] patterns = pattern.split(",");
+            for (String p : patterns) {
+                p = p.trim();
+                if (!p.isEmpty() && p.startsWith("*.")) {
+                    String ext = p.substring(1).toLowerCase();
+                    if (filename.toLowerCase().endsWith(ext)) return true;
+                }
+            }
+            return false;
+        }
         if (pattern.startsWith("*.")) {
             String ext = pattern.substring(1).toLowerCase();
             return filename.toLowerCase().endsWith(ext);
@@ -358,5 +395,52 @@ public class Main {
         log.info("  multiPage: false - Each image generates one PDF/OFD (default)");
         log.info("  multiPage: true  - All images merged into one multi-page PDF/OFD");
         log.info("");
+    }
+
+    /**
+     * CLI progress callback that emits structured JSON lines to stdout.
+     * Python subprocess bridge parses these lines for real-time progress.
+     */
+    private static class CliProgressCallback implements ProcessingService.ProgressCallback {
+        private final ObjectMapper mapper = new ObjectMapper();
+        private final ConcurrentLinkedQueue<String> outputFileQueue = new ConcurrentLinkedQueue<>();
+
+        private void emitJson(Map<String, Object> msg) {
+            try {
+                System.out.println(mapper.writeValueAsString(msg));
+                System.out.flush();
+            } catch (Exception e) {
+                System.err.println("Failed to emit progress: " + e.getMessage());
+            }
+        }
+
+        @Override
+        public void onProgress(int current, int total, String message) {
+            emitJson(Map.of(
+                "type", "progress",
+                "current", current,
+                "total", total,
+                "message", message
+            ));
+        }
+
+        @Override
+        public void onComplete(List<String> outputFiles) {
+            if (outputFiles != null) {
+                outputFileQueue.addAll(outputFiles);
+            }
+            emitJson(Map.of(
+                "type", "complete",
+                "files", List.copyOf(outputFileQueue)
+            ));
+        }
+
+        @Override
+        public void onError(String message) {
+            emitJson(Map.of(
+                "type", "error",
+                "message", message
+            ));
+        }
     }
 }

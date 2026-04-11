@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c ':*)",
+      "Bash(mvn clean:*)",
+      "Bash(JAVA_HOME=\"C:/Program Files/Java/jdk-21.0.10\" \"C:/Program Files/Java/jdk-21.0.10/bin/java\" -version)",
+      "Bash(JAVA_HOME=\"C:/Program Files/Java/jdk-21.0.10\" mvn clean package -DskipTests)",
+      "Bash(xxd \"D:/Projects/pdf_ofd_converter/.gitignore\")",
+      "Bash(JAVA_HOME=\"C:/Program Files/Java/jdk-21.0.10\" mvn clean package -q -DskipTests)",
+      "Bash(ls config-*.json)",
+      "Bash(rm -rf test-fixed test-fixed-v2 test-output)",
+      "Bash(rm -f multipage-test.log)",
+      "Bash(java:*)",
+      "Bash(JAVA_HOME=\"/c/Program Files/Java/jdk-21.0.10\" mvn clean:*)",
+      "Bash(setx JAVA_HOME:*)",
+      "Bash(where conveyor:*)",
+      "Bash(JAVA_HOME=\"/c/Program Files/Java/jdk-21.0.10\" conveyor make:*)",
+      "Bash(unzip -l output/jpeg2pdf-ofd-ocr-3.0.0-windows-amd64.zip)",
+      "Bash(grep -iE \"\\\\.\\(exe|bat|cmd\\)$\")",
+      "Bash(zip -u jpeg2pdf-ofd-ocr-3.0.0-windows-amd64.zip ../start.bat)",
+      "Bash(where jar:*)",
+      "Bash('/c/Program Files/Java/jdk-21.0.10/bin/jar' uf jpeg2pdf-ofd-ocr-3.0.0-windows-amd64.zip -C .. start.bat)",
+      "Bash(ls:*)",
+      "Bash(unzip -o output/jpeg2pdf-ofd-ocr-3.0.0-windows-amd64.zip -d output/test-run)",
+      "Bash(bin/JPEG2PDF-OFD-OCR.exe)",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)",
+      "Bash(git check-ignore:*)",
+      "Bash(git push:*)"
+    ]
+  }
+}

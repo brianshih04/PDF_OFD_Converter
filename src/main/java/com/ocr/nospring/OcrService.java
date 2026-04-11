@@ -11,19 +11,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * OCR 服務 - 使用 RapidOCR (ONNX PaddleOCR v4)
+ * OCR 服務 - 無 Spring Boot
  */
 public class OcrService {
 
     private static final Logger log = LoggerFactory.getLogger(OcrService.class);
 
+    /** default confidence value assigned to OCR text results */
+    private static final double DEFAULT_CONFIDENCE = 0.9;
+
     private InferenceEngine engine;
     private volatile boolean initialized = false;
-
+    
     public OcrService() {
         // 不在構造函數中初始化
     }
-
+    
     public synchronized void initialize() throws Exception {
         if (initialized) return;
 
@@ -32,22 +35,20 @@ public class OcrService {
         initialized = true;
         log.info("  OK: OCR engine initialized");
     }
-
+    
     public List<TextBlock> recognize(BufferedImage image, String language) throws Exception {
         if (!initialized) {
             initialize();
         }
 
-        // RapidOCR API only accepts file path (String), not InputStream.
-        // TODO: If a future version supports byte[]/InputStream, switch to in-memory stream.
         File tempFile = null;
         try {
+            // 保存圖片到臨時文件
             tempFile = File.createTempFile("ocr_", ".png");
             ImageIO.write(image, "PNG", tempFile);
-            log.debug("  Temp file for OCR: {} ({} bytes)", tempFile.getAbsolutePath(), tempFile.length());
 
-            com.benjaminwan.ocrlibrary.OcrResult rapidResult =
-                engine.runOcr(tempFile.getAbsolutePath());
+            // 執行 OCR
+            com.benjaminwan.ocrlibrary.OcrResult rapidResult = engine.runOcr(tempFile.getAbsolutePath());
 
             List<TextBlock> textBlocks = new ArrayList<>();
 
@@ -70,8 +71,7 @@ public class OcrService {
                         tb.setY(minY);
                         tb.setWidth(maxX - minX);
                         tb.setHeight(maxY - minY);
-                        // TODO: RapidOCR TextBlock does not expose per-block confidence; using placeholder
-                        tb.setConfidence(0.9);
+                        tb.setConfidence(DEFAULT_CONFIDENCE);
                         tb.setFontSize(calculateFontSize(tb.getHeight()));
                         textBlocks.add(tb);
                     }
@@ -80,6 +80,7 @@ public class OcrService {
 
             return textBlocks;
         } finally {
+            // 刪除臨時文件
             if (tempFile != null && tempFile.exists()) {
                 if (!tempFile.delete()) {
                     log.warn("Failed to delete temp file: {}", tempFile.getAbsolutePath());
@@ -87,7 +88,7 @@ public class OcrService {
             }
         }
     }
-
+    
     private float calculateFontSize(double height) {
         return (float) (height * 0.8);
     }

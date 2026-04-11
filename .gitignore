@@ -1,73 +1,58 @@
-     1|# Build output
-     2|target/
-     3|output/
-     4|dist-exe/
-     5|
-     6|# Maven shade plugin artifact
-     7|dependency-reduced-pom.xml
-     8|
-     9|# Archive configs (moved from root)
-    10|configs/
-    11|
-    12|# Java
-    13|*.class
-    14|*.jar
-    15|*.msix
-    16|
-    17|# Archives
-    18|*.zip
-    19|*.tar.gz
-    20|*.deb
-    21|*.rpm
-    22|
-    23|# IDE
-    24|.idea/
-    25|*.iml
-    26|.DS_Store
-    27|Thumbs.db
-    28|
-    29|# Test logs
-    30|test-*.json
-    31|test-log*.txt
-    32|*.log
-    33|
-    34|# JPackage runtime (use conveyor or jpackage to rebuild)
-    35|dist-exe/*/runtime/
-    36|
-    37|tessdata/
-    38|zulu-fx-21/
-    39|hs_err_pid*.log
-    40|*.bat
-    41|
-    42|# Code signing certificates
-    43|*.pfx
-    44|*.cer
-    45|*.pem
-    46|*.key
-    47|conveyor.local.conf
-    48|
-    49|# Test build outputs
-    50|dist-test/
-    51|test-fixed/
-    52|test-fixed-v2/
-    53|test-output/
-    54|
-# IDE files
-.classpath
-.project
-.settings/
-
-# Build artifacts
-dependency-reduced-pom.xml
+# Build output
 target/
-
-# Distribution output
 output/
 dist-exe/
 
-# Unrelated data files
-entities.json
-mempalace.yaml
+# Maven shade plugin artifact
+dependency-reduced-pom.xml
 
-# AI agent context
-.claude/
+# Archive configs (moved from root)
+configs/
+
+# Java
+*.class
+*.jar
+*.msix
+
+# Archives
+*.zip
+*.tar.gz
+*.deb
+*.rpm
+
+# IDE
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Test logs
+test-*.json
+test-log*.txt
+*.log
+
+# JPackage runtime (use conveyor or jpackage to rebuild)
+dist-exe/*/runtime/
+
+tessdata/
+zulu-fx-21/
+hs_err_pid*.log
+*.bat
+
+# Code signing certificates
+*.pfx
+*.cer
+*.pem
+*.key
+conveyor.local.conf
+
+# Test build outputs
+dist-test/
+test-fixed/
+test-fixed-v2/
+test-output/
+
+# Python
+__pycache__/
+*.pyc
+pdf-converter-ui/.venv/

@@ -10,64 +10,83 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
- * 文本服務 - 生成 TXT 輸出
+ * 文本服務 - 無 Spring Boot
  */
 public class TextService {
 
     private static final Logger log = LoggerFactory.getLogger(TextService.class);
-
+    
     /**
-     * 生成多頁 TXT
+     * 生成多頁 TXT (batch API — kept for backward compatibility)
      */
     public void generateMultiPageTxt(List<List<TextBlock>> allTextBlocks, File outputFile) throws Exception {
-
-        try (BufferedWriter writer = new BufferedWriter(
-                new OutputStreamWriter(new FileOutputStream(outputFile), StandardCharsets.UTF_8))) {
-            for (int pageIndex = 0; pageIndex < allTextBlocks.size(); pageIndex++) {
-                List<TextBlock> textBlocks = allTextBlocks.get(pageIndex);
-
-                // 添加頁面分隔符
-                if (pageIndex > 0) {
-                    writer.newLine();
-                    writer.write("========================================");
-                    writer.newLine();
-                    writer.write("Page " + (pageIndex + 1));
-                    writer.newLine();
-                    writer.write("========================================");
-                    writer.newLine();
-                    writer.newLine();
-                } else {
-                    writer.write("Page " + (pageIndex + 1));
-                    writer.newLine();
-                    writer.newLine();
-                }
-
-                // 寫入文字
-                writeTextBlocks(writer, textBlocks);
+        openMultiPage(outputFile);
+        try {
+            for (int i = 0; i < allTextBlocks.size(); i++) {
+                addPage(allTextBlocks.get(i), i + 1);
             }
+        } finally {
+            closeMultiPage();
         }
     }
 
     /**
-     * 生成單頁 TXT
+     * Open a new multi-page TXT. Caller must call addPage() then closeMultiPage().
      */
-    public void generateTxt(List<TextBlock> textBlocks, File outputFile) throws Exception {
-
-        try (BufferedWriter writer = new BufferedWriter(
-                new OutputStreamWriter(new FileOutputStream(outputFile), StandardCharsets.UTF_8))) {
-            writeTextBlocks(writer, textBlocks);
-        }
+    public void openMultiPage(File outputFile) throws Exception {
+        this.multiPageWriter = new BufferedWriter(new OutputStreamWriter(
+            new FileOutputStream(outputFile), StandardCharsets.UTF_8));
+        this.multiPageCount = 0;
     }
 
     /**
-     * 共用文字寫入方法
+     * Add text blocks for one page to an open multi-page TXT.
      */
-    private void writeTextBlocks(BufferedWriter writer, List<TextBlock> textBlocks) throws java.io.IOException {
+    public void addPage(List<TextBlock> textBlocks, int pageNumber) throws Exception {
+        if (multiPageWriter == null) throw new IllegalStateException("Multi-page TXT not open");
+
+        if (multiPageCount > 0) {
+            multiPageWriter.newLine();
+            multiPageWriter.write("========================================");
+            multiPageWriter.newLine();
+        }
+        multiPageWriter.write("Page " + pageNumber);
+        multiPageWriter.newLine();
+        multiPageWriter.newLine();
+
         for (TextBlock block : textBlocks) {
             String text = block.getText();
             if (text != null && !text.trim().isEmpty()) {
-                writer.write(text);
-                writer.newLine();
+                multiPageWriter.write(text);
+                multiPageWriter.newLine();
+            }
+        }
+        multiPageCount++;
+    }
+
+    /**
+     * Finalize and save a multi-page TXT.
+     */
+    public void closeMultiPage() throws Exception {
+        if (multiPageWriter != null) {
+            multiPageWriter.close();
+            multiPageWriter = null;
+        }
+    }
+
+    private BufferedWriter multiPageWriter;
+    private int multiPageCount;
+    
+    public void generateTxt(List<TextBlock> textBlocks, File outputFile) throws Exception {
+        
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
+                new FileOutputStream(outputFile), StandardCharsets.UTF_8))) {
+            for (TextBlock block : textBlocks) {
+                String text = block.getText();
+                if (text != null && !text.trim().isEmpty()) {
+                    writer.write(text);
+                    writer.newLine();
+                }
             }
         }
     }

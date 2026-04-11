@@ -10,6 +10,9 @@ public class Config {
 
     private static final Logger log = LoggerFactory.getLogger(Config.class);
 
+    /** default text layer opacity — nearly invisible for searchable output */
+    private static final double DEFAULT_TEXT_LAYER_OPACITY = 0.0001;
+
     // 簡繁轉換：null(不轉換), "s2t"(簡→繁), "t2s"(繁→簡)
     private String textConvert;
 
@@ -27,7 +30,7 @@ public class Config {
     private int textLayerBlue = 255;
 
     // 文字層透明度 (0.0 - 1.0)
-    private double textLayerOpacity = 0.0001;
+    private double textLayerOpacity = DEFAULT_TEXT_LAYER_OPACITY;
 
     private int dpi = 72;
 

@@ -15,6 +15,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,6 +25,12 @@ import java.util.List;
 public class PdfService {
 
     private static final Logger log = LoggerFactory.getLogger(PdfService.class);
+
+    /** fine-tuning offset ratio for Y axis text positioning */
+    private static final double TEXT_Y_OFFSET_RATIO = 0.1;
+
+    /** aspect ratio threshold (height/width) above which text is considered vertical */
+    private static final double VERTICAL_TEXT_RATIO = 1.5;
 
     private final Config config;
 
@@ -72,96 +79,72 @@ public class PdfService {
     }
 
     /**
-     * 生成多頁 PDF
+     * 生成多頁 PDF (batch API — kept for backward compatibility)
      */
     public void generateMultiPagePdf(List<BufferedImage> images, List<List<TextBlock>> allTextBlocks, File outputFile) throws Exception {
-
-        if (images.size() != allTextBlocks.size()) {
-            throw new IllegalArgumentException("Images and text blocks count mismatch");
-        }
-
-        try (PDDocument document = new PDDocument()) {
-            PDFont font = loadFont(document);
-
-            for (int pageIndex = 0; pageIndex < images.size(); pageIndex++) {
-                BufferedImage image = images.get(pageIndex);
-                List<TextBlock> textBlocks = allTextBlocks.get(pageIndex);
-
-                float width = image.getWidth();
-                float height = image.getHeight();
-                PDPage page = new PDPage(new PDRectangle(width, height));
-                document.addPage(page);
-
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                ImageIO.write(image, "PNG", baos);
-                byte[] imageBytes = baos.toByteArray();
-
-                PDImageXObject pdImage = PDImageXObject.createFromByteArray(
-                    document, imageBytes, "image"
-                );
-
-                try (PDPageContentStream contentStream = new PDPageContentStream(
-                    document, page,
-                    PDPageContentStream.AppendMode.APPEND,
-                    true,
-                    true
-                )) {
-                    contentStream.drawImage(pdImage, 0, 0, width, height);
-                    drawTransparentTextLayer(contentStream, textBlocks, font, width, height);
-                }
+        PDDocument doc = openMultiPage(outputFile);
+        try {
+            for (int i = 0; i < images.size(); i++) {
+                addPage(doc, images.get(i), allTextBlocks.get(i));
             }
-
-            document.save(outputFile);
+        } finally {
+            closeMultiPage(doc);
         }
     }
 
-    public void generateMultiPagePdfFromFiles(List<File> imageFiles, List<List<TextBlock>> allTextBlocks, File outputFile) throws Exception {
+    /**
+     * Open a new multi-page PDF document. Caller must call addPage() then closeMultiPage().
+     */
+    public PDDocument openMultiPage(File outputFile) throws Exception {
+        this.multiPageOutputFile = outputFile;
+        PDDocument doc = new PDDocument();
+        this.multiPageFont = loadFont(doc);
+        return doc;
+    }
 
-        if (imageFiles.size() != allTextBlocks.size()) {
-            throw new IllegalArgumentException("Files and text blocks count mismatch");
-        }
+    /**
+     * Add a single page (image + OCR text layer) to an open multi-page PDF.
+     */
+    public void addPage(PDDocument document, BufferedImage image, List<TextBlock> textBlocks) throws Exception {
+        PDFont font = this.multiPageFont;
 
-        try (PDDocument document = new PDDocument()) {
-            PDFont font = loadFont(document);
+        float width = image.getWidth();
+        float height = image.getHeight();
+        PDPage page = new PDPage(new PDRectangle(width, height));
+        document.addPage(page);
 
-            for (int pageIndex = 0; pageIndex < imageFiles.size(); pageIndex++) {
-                File imageFile = imageFiles.get(pageIndex);
-                List<TextBlock> textBlocks = allTextBlocks.get(pageIndex);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(image, "PNG", baos);
+        byte[] imageBytes = baos.toByteArray();
 
-                BufferedImage image = ImageIO.read(imageFile);
-                if (image == null) {
-                    log.warn("  Skipping page {}: cannot read {}", pageIndex + 1, imageFile.getName());
-                    continue;
-                }
+        PDImageXObject pdImage = PDImageXObject.createFromByteArray(document, imageBytes, "image");
 
-                float width = image.getWidth();
-                float height = image.getHeight();
-                PDPage page = new PDPage(new PDRectangle(width, height));
-                document.addPage(page);
-
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                ImageIO.write(image, "PNG", baos);
-                byte[] imageBytes = baos.toByteArray();
-                image.flush();
-
-                PDImageXObject pdImage = PDImageXObject.createFromByteArray(
-                    document, imageBytes, "image"
-                );
-
-                try (PDPageContentStream contentStream = new PDPageContentStream(
-                    document, page,
-                    PDPageContentStream.AppendMode.APPEND,
-                    true,
-                    true
-                )) {
-                    contentStream.drawImage(pdImage, 0, 0, width, height);
-                    drawTransparentTextLayer(contentStream, textBlocks, font, width, height);
-                }
-            }
-
-            document.save(outputFile);
+        try (PDPageContentStream contentStream = new PDPageContentStream(
+            document, page,
+            PDPageContentStream.AppendMode.APPEND,
+            true,
+            true
+        )) {
+            contentStream.drawImage(pdImage, 0, 0, width, height);
+            drawTransparentTextLayer(contentStream, textBlocks, font, width, height);
         }
     }
+
+    /**
+     * Finalize and save a multi-page PDF document.
+     */
+    public void closeMultiPage(PDDocument document) throws Exception {
+        try {
+            document.save(this.multiPageOutputFile);
+        } finally {
+            document.close();
+            this.multiPageFont = null;
+            this.multiPageOutputFile = null;
+        }
+    }
+
+    private PDFont multiPageFont;
+    private File multiPageOutputFile;
 
     /**
      * 繪製透明文字層（整段定位，不用逐字/scaleX）
@@ -203,10 +186,10 @@ public class PdfService {
                 }
 
                 // Y: 文字底部往上抬一點（約 0.1 * fontSize）
-                float pdfY = (float) (height - ocrY - ocrH + ocrH * 0.1);
+                float pdfY = (float) (height - ocrY - ocrH + ocrH * TEXT_Y_OFFSET_RATIO);
 
                 // 判斷直列文字
-                boolean isVertical = ocrH > ocrW * 1.5;
+                boolean isVertical = ocrH > ocrW * VERTICAL_TEXT_RATIO;
 
                 if (isVertical) {
                     // 直列：逐字從上到下
@@ -308,7 +291,23 @@ public class PdfService {
             }
         }
 
-        // 5. 最後使用默認字體（僅支持英文）
+        // 5. Classpath resource fallback (bundled in JAR)
+        String[] classpathFonts = {
+            "/fonts/GoNotoKurrent-Regular.ttf",
+        };
+        for (String resourcePath : classpathFonts) {
+            try (InputStream is = PdfService.class.getResourceAsStream(resourcePath)) {
+                if (is != null) {
+                    PDFont font = PDType0Font.load(document, is);
+                    log.info("    Loaded font (classpath): {}", resourcePath);
+                    return font;
+                }
+            } catch (Exception e) {
+                log.warn("    Warning: Cannot load classpath font {}: {}", resourcePath, e.getMessage());
+            }
+        }
+
+        // 6. 最後使用默認字體（僅支持英文）
         log.warn("    Warning: Using default Helvetica font (English only)");
         return org.apache.pdfbox.pdmodel.font.PDType1Font.HELVETICA;
     }

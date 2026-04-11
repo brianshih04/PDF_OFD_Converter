@@ -8,16 +8,18 @@
 
 | 工具 | 版本 | 用途 | 安裝方式 |
 |------|------|------|---------|
-| **JDK 21** (Azul Zulu FX) | 21+ | 編譯與打包 | [Azul 下載](https://www.azul.com/downloads/?version=java-21-lts&os=windows&architecture=x86_64&package=jdk-fx) |
+| **JDK 21** (Azul Zulu FX) | 21+ | 編譯 Java CLI 引擎 | [Azul 下載](https://www.azul.com/downloads/?version=java-21-lts&os=windows&architecture=x86_64&package=jdk-fx) |
+| **Python** | **3.13** | UI 開發與執行 | [Python 下載](https://www.python.org/downloads/) |
 | **Maven** | 3.9+ | 建置工具 | [Maven 下載](https://maven.apache.org/download.cgi) |
-| **Conveyor** | 22.0+ | 應用程式打包 | `choco install conveyor` 或手動下載 |
 | **Git** | 最新版 | 版本控制 | `winget install Git.Git` |
 | **Tesseract OCR** | 5.x (選用) | 測試 Tesseract 語言 | [GitHub Releases](https://github.com/tesseract-ocr/tesseract/releases) |
 | **IDE** | - | 開發環境 | IntelliJ IDEA (推薦) / VS Code |
 
 > **主要開發平台**：Windows 10/11 x64
 >
-> **注意**：pom.xml 中 `java.version` 設為 21，Conveyor 打包同樣使用 JDK 21 (Azul Zulu FX)。
+> **重要**：Python 版本必須是 3.13，pythonnet 目前不支援 3.14。
+>
+> **注意**：pom.xml 中 `java.version` 設為 21。JavaFX GUI 已移除，Java 專案現在僅為 CLI 引擎。
 
 ---
 
@@ -58,41 +60,39 @@ choco install maven
 mvn -version   # 應顯示 3.9.x
 ```
 
-### 2.3 Conveyor 安裝
+### 2.3 Python 環境設定
 
-**Windows**：
+> **Python 3.13 是必要的**：pythonnet 不支援 3.14，請勿使用更新版本。
 
 ```powershell
-# 方式 1：Chocolatey（推薦）
-choco install conveyor
+# 建立 Python 3.13 虛擬環境
+py -3.13 -m venv .venv
 
-# 方式 2：winget
-winget install Hydraulic.Conveyor
+# 啟動虛擬環境
+.\.venv\Scripts\Activate.ps1    # PowerShell
+# 或
+.\.venv\Scripts\activate.bat    # CMD
 
-# 方式 3：手動下載
-# 前往 https://www.hydraulic.software/download
-
-# 驗證
-conveyor --version
+# 安裝依賴
+pip install pywebview
 ```
 
-**macOS**：
+### 2.4 啟動 Python UI (Dev 模式)
 
 ```bash
-# 使用 Homebrew
-brew install --cask conveyor
+# 先確保 Java JAR 已建置
+mvn clean package -DskipTests
+
+# 啟動 Python UI
+cd pdf-converter-ui
+python app.py
 ```
 
-**Linux**：
+Python UI 會自動偵測 JAR 位置：
+- **Dev 模式**：在專案根目錄尋找 `target/jpeg2pdf-ofd-nospring-0.20.jar`
+- **Production 模式**（PyInstaller 打包後）：使用內嵌的 JAR
 
-```bash
-# 下載並安裝
-wget https://downloads.hydraulic.dev/conveyor/head/Conveyor%20Head.tar
-tar xf Conveyor\ Head.tar
-sudo ./conveyor/bin/install-conveyor.sh
-```
-
-### 2.4 Tesseract OCR 安裝（選用）
+### 2.5 Tesseract OCR 安裝（選用）
 
 僅測試泰文、俄文、阿拉伯文等 Tesseract 語言時需要。
 
@@ -247,7 +247,7 @@ mvn clean package
 
 ### 5.2 建置輸出
 
-- **JAR 位置**：`target/jpeg2pdf-ofd-nospring-3.0.0.jar`（~82 MB）
+- **JAR 位置**：`target/jpeg2pdf-ofd-nospring-0.20.jar`（~82 MB）
 - **Main Class**：`com.ocr.nospring.Main`
 - **打包方式**：Maven Shade Plugin（所有依賴打包進單一 JAR）
 - **JavaFX 除外**：Shade Plugin 排除 JavaFX（由 Conveyor 打包的 JVM 提供）
@@ -262,138 +262,44 @@ mvn clean package -DskipTests
 
 ## 6. 打包流程 (Packaging)
 
-使用 Conveyor 將 JAR 打包為 Windows 便攜版 ZIP（含自包含 JDK + JavaFX）。
+使用 PyInstaller 將 Python UI + Java JAR 打包為單一 EXE。
 
 ### 6.1 完整打包流程
 
 ```bash
-# Step 1: 建置 JAR
+# Step 1: 建置 Java JAR
 mvn clean package -DskipTests
 
-# Step 2: 驗證 Conveyor 配置
-conveyor validate
-
-# Step 3: Conveyor 打包為 Windows ZIP
-conveyor make windows-amd64
-
-# Step 4: 重新封裝為便攜版（重新命名 exe、加入 start.bat）
-powershell -File repack-into-zip.ps1
+# Step 2: PyInstaller 打包
+cd pdf-converter-ui/build
+pyinstaller pdf-converter.spec
 ```
 
 ### 6.2 輸出檔案
 
 | 步驟 | 檔案 | 說明 |
 |------|------|------|
-| Conveyor 輸出 | `output/jpeg2pdf-ofd-ocr-3.0.0.x64.zip` | 原始 Conveyor ZIP |
-| repack 輸出 | `output/JPEG2PDF-OFD-OCR-v0.10-windows-x64.zip` | 最終便攜版 |
+| Maven 輸出 | `target/jpeg2pdf-ofd-nospring-0.20.jar` | Java CLI 引擎 JAR |
+| PyInstaller 輸出 | `pdf-converter-ui/dist/app.exe` | 含 Python UI + 內嵌 JAR 的便攜版 |
 
 ### 6.3 本地快速測試
 
 ```bash
-# repack-into-zip.ps1 會自動解壓到 dist-test/
-# 直接執行：
-cd dist-test
-.\start.bat
+# Dev 模式測試（不需要打包）
+cd pdf-converter-ui
+python app.py
 ```
 
-### 6.4 Conveyor 設定檔
+### 6.4 JAR 路徑解析
 
-關鍵設定位於 `conveyor.conf`：
+Python UI 自動偵測 JAR 位置，無需手動配置：
 
-```hocon
-app {
-    display-name = "JPEG2PDF-OFD-OCR v0.10"    # 版本號在此更新
-    fsname = "jpeg2pdf-ofd-ocr"
-    inputs += "target/jpeg2pdf-ofd-nospring-3.0.0.jar"
-    machines = [ windows.amd64 ]                # 目前僅 Windows
-}
-app.windows {
-    sign = false    # 禁用簽章，僅生成 ZIP
-}
-```
+| 模式 | JAR 來源 | 說明 |
+|------|---------|------|
+| **Dev 模式** | `target/jpeg2pdf-ofd-nospring-0.20.jar` | 專案根目錄下的 Maven 建置產出 |
+| **Production 模式** | 內嵌於 PyInstaller EXE | 由 PyInstaller `--add-data` 打包進去 |
 
-#### 重要參數
-
-| 參數 | 說明 |
-|------|------|
-| `display-name` | 用戶看到的名稱 |
-| `fsname` | 安裝目錄名稱（無空格） |
-| `jvm.gui.main-class` | Main Class 完整路徑 |
-| `site.base-url` | 自動更新伺服器 URL |
-| `jvm.options` | JVM 選項（如 `-Xmx2G`） |
-
-### 6.5 進階 Conveyor 配置
-
-#### JVM 選項
-
-```hocon
-app {
-    jvm.options = [
-        "-Xmx4G",                        // 最大堆內存 4GB
-        "-Djava.awt.headless=true",     // 無頭模式
-        "-Dfile.encoding=UTF-8"         // 編碼
-    ]
-}
-```
-
-#### 命令行別名
-
-```hocon
-app {
-    cli {
-        jpeg2pdf = ${app.jvm.gui.main-class}
-        ocr-tool = ${app.jvm.gui.main-class}
-    }
-}
-```
-
-安裝後，用戶可以輸入：
-```bash
-jpeg2pdf config.json
-ocr-tool config.json
-```
-
-#### 數位簽章
-
-目前專案使用自簽名憑證，測試安裝沒問題，但發布給他人會出現安全警告。若需正式簽章：
-
-```hocon
-app.windows {
-    signing-certificate = "path/to/cert.pfx"
-    signing-password = "YOUR_PASSWORD"
-}
-```
-
-> Windows 需購買 EV Code Signing Certificate；macOS 需 Apple Developer Program。
-
-#### 授權
-
-- **開源專案**：✅ 免費使用 Conveyor
-- **商業專案**：需購買商業授權，查詢 https://www.hydraulic.software/pricing
-
-### 6.6 工作目錄注意事項
-
-CLI 工具可能從任何目錄執行，必須確保使用絕對路徑：
-
-```java
-// ✅ 正確：使用絕對路徑
-Path configPath = Paths.get(configPathString).toAbsolutePath();
-
-// ❌ 錯誤：相對於 jar 位置
-Path configPath = Paths.get("config.json");  // 可能找不到
-```
-
-### 6.7 Conveyor 快取
-
-首次運行需要下載 JDK，Conveyor 會緩存：
-
-```bash
-# 查看緩存
-conveyor cache list
-
-# 清理緩存（重新下載）
-conveyor cache purge
-```
+> `core/bridge.py` 中的 `_resolve_jar()` 方法負責路徑解析邏輯。
 
 ---
 
@@ -401,9 +307,8 @@ conveyor cache purge
 
 ```
 PDF_OFD_Converter/
-├── src/main/java/com/ocr/nospring/    # Java 原始碼
-│   ├── Main.java                      # CLI 進入點
-│   ├── GuiApp.java                    # JavaFX GUI 進入點
+├── src/main/java/com/ocr/nospring/    # Java CLI 引擎原始碼
+│   ├── Main.java                      # CLI 進入點（JSON stdout 進度）
 │   ├── Config.java                    # JSON 配置解析
 │   ├── OcrService.java                # RapidOCR 服務
 │   ├── TesseractOcrService.java       # Tesseract OCR 服務
@@ -414,13 +319,20 @@ PDF_OFD_Converter/
 │   ├── TextService.java               # 純文字輸出
 │   └── ProcessingService.java         # 處理流程與進度回呼
 ├── src/main/resources/                # 資源檔案（字體、logback 設定）
+├── pdf-converter-ui/                  # Python UI 專案 (NEW)
+│   ├── app.py                         # 進入點：建立 pywebview 視窗
+│   ├── core/
+│   │   ├── config.py                  # 設定管理（相容舊 JavaFX 設定）
+│   │   └── bridge.py                  # Java CLI 子程序橋接（JSON stdout 解析）
+│   ├── api/
+│   │   └── js_api.py                  # JavaScript↔Python 橋接（取代 JavaBridge）
+│   ├── ui/
+│   │   └── index.html                 # 前端 UI 頁面
+│   └── build/                         # PyInstaller 打包腳本
 ├── dist/                              # 範例配置檔
-├── dist-test/                         # 本地快速測試目錄
-├── output/                            # Conveyor 打包輸出
 ├── target/                            # Maven 建置輸出
-├── conveyor.conf                      # Conveyor 打包設定
-├── repack-into-zip.ps1                # 便攜版重新封裝腳本
-├── pom.xml                            # Maven 專案設定
+├── pom.xml                            # Maven 專案設定（已移除 JavaFX 依賴）
+├── PLAN_NEW_UI.md                     # 新 UI 架構遷移計畫
 └── CLAUDE.md                          # 開發規範（開發者必讀）
 ```
 
@@ -428,10 +340,11 @@ PDF_OFD_Converter/
 
 ## 8. 核心模組說明 (Core Modules)
 
+### Java CLI 引擎
+
 | 檔案 | 說明 |
 |------|------|
-| **Main.java** | CLI 進入點。解析命令列參數（config.json 路徑或 `--gui`），支援 perPage/multiPage 兩種輸出模式 |
-| **GuiApp.java** | JavaFX GUI 應用程式。使用 WebView 載入前端 UI，提供圖形化操作介面 |
+| **Main.java** | CLI 進入點。解析命令列參數（config.json 路徑），輸出結構化 JSON 進度到 stdout |
 | **Config.java** | JSON 配置解析類。讀取並驗證 `config.json` 中的所有設定項（input、output、ocr、font 等） |
 | **OcrService.java** | RapidOCR 服務。使用 ONNX Runtime 執行 OCR，支援 80+ 種語言（CJK、拉丁語系等） |
 | **TesseractOcrService.java** | Tesseract OCR 服務。處理 RapidOCR 不支援的語言（泰文、希伯來文、阿拉伯文等） |
@@ -442,7 +355,19 @@ PDF_OFD_Converter/
 | **TextService.java** | 純文字輸出服務。將 OCR 結果匯出為 TXT 檔案 |
 | **ProcessingService.java** | 處理流程服務。提取處理邏輯並支援進度回呼（Progress Callback） |
 
+### Python UI Shell (pdf-converter-ui/)
+
+| 檔案 | 說明 |
+|------|------|
+| **app.py** | pywebview 進入點。建立桌面視窗、載入 UI 頁面、暴露 JS API |
+| **core/config.py** | 設定管理。讀寫 JSON 設定檔，相容舊 JavaFX 設定格式 |
+| **core/bridge.py** | Java CLI 子程序橋接。以 subprocess 執行 JAR，即時解析 JSON stdout 進度 |
+| **api/js_api.py** | JavaScript-Python 橋接。透過 pywebview 的 `expose` 暴露方法給前端 JS 呼叫（取代舊 JavaBridge） |
+| **ui/index.html** | 前端 UI 頁面。HTML/CSS/JS 構成的操作介面 |
+
 ### 主要依賴
+
+#### Java CLI 引擎
 
 | 依賴 | 版本 | 用途 |
 |------|------|------|
@@ -453,7 +378,12 @@ PDF_OFD_Converter/
 | OpenCC4j | 1.14.0 | 簡繁中文轉換 |
 | Jackson | 2.15.3 | JSON 解析 |
 | SLF4J + Logback | 2.0.9 / 1.4.11 | 日誌框架 |
-| JavaFX | 21.0.2 | GUI 介面（由 Conveyor 提供） |
+
+#### Python UI Shell
+
+| 依賴 | 版本 | 用途 |
+|------|------|------|
+| pywebview | latest | 跨平台原生桌面視窗（取代 JavaFX） |
 
 ---
 
@@ -463,21 +393,21 @@ PDF_OFD_Converter/
 
 ```bash
 # 使用範例配置檔
-java -jar target/jpeg2pdf-ofd-nospring-3.0.0.jar dist/config-test.json
+java -jar target/jpeg2pdf-ofd-nospring-0.20.jar dist/config-test.json
 
 # 指定自訂配置
-java -jar target/jpeg2pdf-ofd-nospring-3.0.0.jar path/to/your-config.json
+java -jar target/jpeg2pdf-ofd-nospring-0.20.jar path/to/your-config.json
 ```
 
 ### 9.2 GUI 測試
 
 ```bash
-# 方式 1：命令列啟動
-java -jar target/jpeg2pdf-ofd-nospring-3.0.0.jar --gui
+# 確保 Java JAR 已建置
+mvn clean package -DskipTests
 
-# 方式 2：使用 dist-test/ 快速測試
-cd dist-test
-.\start.bat
+# 啟動 Python UI
+cd pdf-converter-ui
+python app.py
 ```
 
 ### 9.3 Debug 模式
@@ -506,9 +436,9 @@ cd dist-test
 
 | 版本類型 | 位置 | 目前值 | 說明 |
 |---------|------|--------|------|
-| **Build 版本** | `conveyor.conf` → `display-name` | `v0.10` | 每次打包 +0.01 |
-| **Maven 版本** | `pom.xml` → `<version>` | `3.0.0` | Java 套件版本 |
-| **JAR 名稱** | `conveyor.conf` → `inputs` | `jpeg2pdf-ofd-nospring-3.0.0.jar` | 需與 Maven 版本一致 |
+| **Maven 版本** | `pom.xml` → `<version>` | `0.20` | Java 套件版本 |
+| **JAR 名稱** | `target/` | `jpeg2pdf-ofd-nospring-0.20.jar` | 需與 Maven 版本一致 |
+| **應用版本** | `README.md` | `v0.20` | UI 專案版本（含 Python UI） |
 
 ### 10.2 分支策略
 
@@ -554,53 +484,33 @@ git push origin gh-pages
 
 ## 附錄 B：常見問題
 
-### Conveyor 相關
+### Python UI 相關
 
-**Q1: Conveyor 找不到 JAR？**
+**Q1: Python 版本錯誤？**
 
-```bash
-mvn clean package
-ls target/*.jar
-```
-
-**Q2: 首次生成速度慢？**
-
-Conveyor 首次運行需下載 JDK，後續會使用緩存。見 [6.7 節](#67-conveyor-快取)。
-
-**Q3: Windows 安裝失敗（SmartScreen 阻擋）？**
-
+pythonnet 不支援 Python 3.14+，必須使用 Python 3.13：
 ```powershell
-# 臨時關閉 SmartScreen（僅測試用）
-Set-MpPreference -EnableControlledFolderAccess Disabled
+py -3.13 -m venv .venv
 ```
 
-**Q4: macOS Gatekeeper 阻擋？**
+**Q2: JAR 找不到？**
 
-```bash
-xattr -cr jpeg2pdf-ofd-cli.app
-```
+確保先執行 `mvn clean package`，JAR 會產出在 `target/` 目錄。Dev 模式下 Python UI 會自動在專案根目錄搜尋 JAR。
 
-**Q5: Linux 套件安裝問題？**
+**Q3: pywebview 視窗空白？**
 
-```bash
-# DEB 套件
-sudo dpkg -i jpeg2pdf-ofd-cli_*.deb
-sudo apt-get install -f
-
-# RPM 套件
-sudo rpm -i jpeg2pdf-ofd-cli-*.rpm
-```
+確保安裝了 pywebview：`pip install pywebview`。某些 Linux 發行版可能需要額外安裝 GTK/WebKit 依賴。
 
 ### 字體相關
 
-**Q6: 某些中文字符無法顯示？**
+**Q4: 某些中文字符無法顯示？**
 
 字體不包含該字符。解決方案：
 1. 使用 GoNotoKurrent（覆蓋 80+ 文字系統）
 2. 使用支持完整 CJK 的字體（如 Noto Sans CJK）
 3. 檢查字體是否正確加載（查看日誌中的警告）
 
-**Q7: TTC 格式字體不支援？**
+**Q5: TTC 格式字體不支援？**
 
 PDFBox 目前不完全支持 TTC 格式。請使用 TTF 格式的字體。
 
@@ -612,15 +522,16 @@ PDFBox 目前不完全支持 TTC 格式。請使用 TTF 格式的字體。
 # 完整開發流程
 git clone https://github.com/brianshih04/PDF_OFD_Converter.git
 cd PDF_OFD_Converter
-mvn clean package
-java -jar target/jpeg2pdf-ofd-nospring-3.0.0.jar --gui
+mvn clean package -DskipTests
+cd pdf-converter-ui
+python app.py
 
 # 完整打包流程
 mvn clean package -DskipTests
-conveyor make windows-amd64
-powershell -File repack-into-zip.ps1
+cd pdf-converter-ui/build
+pyinstaller pdf-converter.spec
 ```
 
 ---
 
-**更新時間**：2026-04-01
+**更新時間**：2026-04-02
