@@ -1,5 +1,29 @@
 # Changelog
 
+## [v0.21] - 2026-04-11
+
+### Changed
+- 合併 `main_new_ui` 分支的 Python pywebview GUI 到 `her_dev`
+- 移除 `GuiApp.java`（JavaFX WebView）及 `conveyor.conf`
+- 多頁處理改為串流架構（open/add/close pattern），記憶體使用量大幅降低
+- GUI 錯誤訊息統一為繁體中文
+
+### Fixed
+- **P0 Race Condition**：`ProcessingService` 的 `ocrEngine`/`language` 從 instance field 改為方法參數，消除併發風險
+- **P0 DPI 硬編碼**：OFD 像素→mm 轉換從硬編碼 72 DPI 改為可配置 `config.getDpi()`
+- **P0 記憶體暴增**：多頁模式 OCR 後立即 `image.flush()`，PDF/OFD 生成採逐頁讀取
+- `OcrService` 移除 inner `TextBlock` class，統一使用 top-level `TextBlock`（getter/setter API）
+- Python GUI 啟動需 Python 3.12+（pythonnet 不支援 3.14）
+
+### Added
+- `Config.getDpi()` / `Config.setDpi()` — DPI 可從 `input.dpi` 配置讀取
+- `PdfService.generateMultiPagePdfFromFiles()` — 從檔案路徑逐頁生成 PDF
+- `OfdService.generateMultiPageOfdFromFiles()` — 從檔案路徑逐頁生成 OFD
+- `PathValidator.java` + 單元測試
+- `ProcessingService` 記憶體壓力偵測（`checkMemoryPressure()`）
+
+---
+
 ## [v0.20] - 2026-04-02
 
 ### Changed

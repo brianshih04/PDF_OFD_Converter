@@ -7,7 +7,7 @@
 [![GitHub](https://img.shields.io/badge/GitHub-brianshih04%2FPDF_OFD_Converter-blue)](https://github.com/brianshih04/PDF_OFD_Converter)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 [![Java](https://img.shields.io/badge/Java-21+-orange)](https://adoptium.net/)
-[![Python](https://img.shields.io/badge/Python-3.13-blue)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/Python-3.12+-blue)](https://www.python.org/)
 [![Version](https://img.shields.io/badge/Version-v0.20-blue)]()
 
 ---
@@ -58,7 +58,7 @@
 |------|------|------|------|------|
 | **PyInstaller EXE (GUI)** | **~350 MB** | **無需 Java/Python** | **Windows x64** | **便攜版，解壓即用** |
 | **JAR (CLI only)** | **82 MB** | **Java 17+** | 所有平台 | 純命令行模式 |
-| **Dev 模式 (GUI)** | - | **Python 3.13 + Java 21** | 所有平台 | `python app.py` |
+| **Dev 模式 (GUI)** | - | **Python 3.12+ + Java 21** | 所有平台 | `python app.py` |
 
 ---
 
@@ -516,7 +516,7 @@ WPS 搜索：可搜索
 
 - JDK 21+（編譯 Java CLI 引擎）
 - Maven 3.6+
-- Python 3.13（UI 開發，pythonnet 不支援 3.14）
+- Python 3.12+（UI 開發，pythonnet 不支援 3.14，建議用 3.12）
 - pywebview（`pip install pywebview`）
 
 ### Dev 模式啟動
@@ -525,9 +525,14 @@ WPS 搜索：可搜索
 # 1. 建置 Java JAR
 mvn clean package -DskipTests
 
-# 2. 啟動 Python UI（自動橋接 Java CLI）
+# 2. 建立 Python 虛擬環境（推薦 3.12，pythonnet 不支援 3.14）
 cd pdf-converter-ui
-python app.py
+uv venv -p 3.12 .venv
+uv pip install pywebview
+
+# 3. 啟動 Python UI（自動橋接 Java CLI）
+.venv\Scripts\python app.py   # Windows
+# source .venv/bin/activate && python app.py  # Linux/macOS
 ```
 
 ### 建置 JAR
@@ -558,7 +563,7 @@ pyinstaller --onefile --add-data "../ui;ui" ../app.py
 ## 已知限制
 
 - **特殊符號缺字**：GoNotoKurrent 字體不包含 ≤ ≥ △ ℃ μ 等數學/科學符號，OCR 識別正常但 PDF 文字層會跳過這些字元。若需完整符號支援，可在 config.json 的 `fontPath` 指定包含符號的字體（如 Noto Sans CJK）。
-- **Python 版本**：UI 需要 Python 3.13（pythonnet 不支援 3.14）。
+- **Python 版本**：GUI 需要 Python 3.12+（pythonnet 不支援 3.14，建議使用 `uv venv -p 3.12`）。
 - **字體路徑**：Bridge 自動設定 cwd 為專案根目錄，Java 可從相對路徑 `fonts/GoNotoKurrent-Regular.ttf` 載入字體。若需自訂字體，在 UI 設定頁或 config.json 設定 `fontPath` 為絕對路徑。
 
 ---
