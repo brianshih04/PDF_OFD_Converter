@@ -113,7 +113,7 @@ public class OfdService {
      * 建立包含背景圖片和文字層的虛擬頁面
      */
     private VirtualPage buildPage(Path tempImage, List<TextBlock> textBlocks,
-                                   double widthMm, double heightMm, int pageIndex) {
+                                   double widthMm, double heightMm, int pageIndex) throws Exception {
         // 創建頁面佈局
         PageLayout pageLayout = new PageLayout(widthMm, heightMm);
         pageLayout.setMargin(0d);
@@ -234,7 +234,9 @@ public class OfdService {
             try {
                 Font customFont = Font.createFont(Font.TRUETYPE_FONT, new File(config.getFontPath()));
                 return customFont.deriveFont(fontSizePt);
-            } catch (FontFormatException | IOException e) {
+            } catch (FontFormatException e) {
+                log.warn("  Failed to load configured font: {}, falling back to SERIF", config.getFontPath());
+            } catch (java.io.IOException e) {
                 log.warn("  Failed to load configured font: {}, falling back to SERIF", config.getFontPath());
             }
         }
