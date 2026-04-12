@@ -129,6 +129,20 @@ public class OfdService {
         }
     }
 
+    private java.awt.Font loadAwtFont(float fontSizePt) {
+        String fontPath = config.getFontPath();
+        if (fontPath != null && !fontPath.isEmpty()) {
+            try {
+                java.awt.Font customFont = java.awt.Font.createFont(
+                    java.awt.Font.TRUETYPE_FONT, new File(fontPath));
+                return customFont.deriveFont(fontSizePt);
+            } catch (Exception e) {
+                log.warn("    Failed to load configured font for OFD: {}, falling back to SERIF", fontPath);
+            }
+        }
+        return new java.awt.Font(java.awt.Font.SERIF, java.awt.Font.PLAIN, 1).deriveFont(fontSizePt);
+    }
+
     private OFDDoc ofdDoc;
     private Path multiPageTempDir;
     private List<Path> multiPageTempImages;
@@ -207,9 +221,8 @@ public class OfdService {
                 double fontSizeMm = ocrH * FONT_SIZE_SCALE;
                 float fontSizePt = (float) (fontSizeMm * ASSUMED_DPI / MM_PER_INCH);
 
-                // 4. Use SERIF font
-                java.awt.Font awtFont = new java.awt.Font(java.awt.Font.SERIF, java.awt.Font.PLAIN, 1)
-                    .deriveFont(fontSizePt);
+                // 4. Load font (prefer config font, fallback to SERIF)
+                java.awt.Font awtFont = loadAwtFont(fontSizePt);
                 java.awt.font.FontRenderContext frc = new java.awt.font.FontRenderContext(null, true, true);
 
                 // 5. Calculate Y position using precise baseline formula

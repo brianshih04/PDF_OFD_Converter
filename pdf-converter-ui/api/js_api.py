@@ -22,9 +22,16 @@ class JsApi:
     # File Dialogs
     # ================================================================
 
+    def _get_window(self):
+        windows = webview.windows
+        return windows[0] if windows else None
+
     def open_directory_chooser(self, current_path: str = "") -> str:
         """Open native directory picker dialog."""
-        folder = webview.windows[0].create_file_dialog(
+        win = self._get_window()
+        if not win:
+            return ""
+        folder = win.create_file_dialog(
             dialog_type=webview.FOLDER_DIALOG,
             directory=current_path or os.path.expanduser("~"),
         )
@@ -32,7 +39,10 @@ class JsApi:
 
     def open_file_chooser(self) -> str:
         """Open native file picker for PDF files."""
-        result = webview.windows[0].create_file_dialog(
+        win = self._get_window()
+        if not win:
+            return ""
+        result = win.create_file_dialog(
             dialog_type=webview.OPEN_DIALOG,
             file_types=("PDF Files (*.pdf)",),
         )
@@ -40,7 +50,10 @@ class JsApi:
 
     def open_font_file_chooser(self) -> str:
         """Open native file picker for TTF font files."""
-        result = webview.windows[0].create_file_dialog(
+        win = self._get_window()
+        if not win:
+            return ""
+        result = win.create_file_dialog(
             dialog_type=webview.OPEN_DIALOG,
             file_types=("Font Files (*.ttf;*.ttc)",),
         )
@@ -92,26 +105,34 @@ class JsApi:
     # ================================================================
 
     def _on_progress(self, current, total, message):
-        window = webview.windows[0]
-        window.evaluate_js(
+        win = self._get_window()
+        if not win:
+            return
+        win.evaluate_js(
             f"window.pythonBridge.onProgress({current},{total},"
             f"{json.dumps(message, ensure_ascii=False)})"
         )
 
     def _on_complete(self, files):
-        window = webview.windows[0]
-        window.evaluate_js(
+        win = self._get_window()
+        if not win:
+            return
+        win.evaluate_js(
             f"window.pythonBridge.onComplete({json.dumps(files, ensure_ascii=False)})"
         )
 
     def _on_error(self, message):
-        window = webview.windows[0]
-        window.evaluate_js(
+        win = self._get_window()
+        if not win:
+            return
+        win.evaluate_js(
             f"window.pythonBridge.onError({json.dumps(message, ensure_ascii=False)})"
         )
 
     def _on_log(self, message):
-        window = webview.windows[0]
-        window.evaluate_js(
+        win = self._get_window()
+        if not win:
+            return
+        win.evaluate_js(
             f"window.pythonBridge.onLog({json.dumps(message, ensure_ascii=False)})"
         )

@@ -8,7 +8,6 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -78,6 +77,9 @@ public class ProcessingService {
 
     private static final long LOW_MEMORY_THRESHOLD_BYTES = 50 * 1024 * 1024; // 50 MB
 
+    private static final java.time.format.DateTimeFormatter TIMESTAMP_FORMATTER =
+        java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
+
     /**
      * Multi-page mode: all images merged into one PDF/OFD.
      * Uses streaming approach — only one image in memory at a time.
@@ -97,7 +99,7 @@ public class ProcessingService {
             log.info("Processing {} images into multi-page document...", inputFiles.size());
 
             // Generate output filename
-            String timestamp = new java.text.SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+            String timestamp = java.time.LocalDateTime.now().format(TIMESTAMP_FORMATTER);
             String outputFilename = "multipage_" + timestamp;
 
             // Pre-create output files so we can stream into them
@@ -297,7 +299,7 @@ public class ProcessingService {
                     log.info("  OK: OCR completed ({} blocks)", textBlocks.size());
 
                     // Generate output
-                    String timestamp = new java.text.SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+                    String timestamp = java.time.LocalDateTime.now().format(TIMESTAMP_FORMATTER);
                     String baseName = getBaseName(inputFile.getName());
                     String outputFilename = baseName + "_" + timestamp;
 
@@ -386,7 +388,7 @@ public class ProcessingService {
 
                 // Pre-create output files
                 String baseName = pdfFile.getName().replaceAll("(?i)\\.pdf$", "");
-                String timestamp = new java.text.SimpleDateFormat("yyyyMMdd_HHmmss").format(new java.util.Date());
+                String timestamp = java.time.LocalDateTime.now().format(TIMESTAMP_FORMATTER);
 
                 File outFile = (format.contains("pdf") || format.contains("all"))
                     ? new File(outputDir, baseName + "_searchable_" + timestamp + ".pdf") : null;

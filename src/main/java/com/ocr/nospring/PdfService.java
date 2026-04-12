@@ -252,7 +252,7 @@ public class PdfService {
                             log.info("    Loaded font (RTL): {}", fontFile.getAbsolutePath());
                             return font;
                         } catch (Exception e) {
-                            // skip unsupported font format
+                            log.warn("    Skip unsupported RTL font format: {}", fontFile.getName());
                         }
                     }
                 }
@@ -271,6 +271,7 @@ public class PdfService {
                     log.info("    Loaded font (GoNotoKurrent): {}", path);
                     return font;
                 } catch (Exception e) {
+                    log.warn("    Warning: Cannot load font {}: {}", path, e.getMessage());
                 }
             }
         }
@@ -287,6 +288,7 @@ public class PdfService {
                     log.info("    Loaded font (wqy-ZenHei fallback): {}", path);
                     return font;
                 } catch (Exception e) {
+                    log.warn("    Warning: Cannot load font {}: {}", path, e.getMessage());
                 }
             }
         }
