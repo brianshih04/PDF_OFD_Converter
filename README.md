@@ -8,7 +8,7 @@
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 [![Java](https://img.shields.io/badge/Java-21+-orange)](https://adoptium.net/)
 [![Python](https://img.shields.io/badge/Python-3.12+-blue)](https://www.python.org/)
-[![Version](https://img.shields.io/badge/Version-v0.20-blue)]()
+[![Version](https://img.shields.io/badge/Version-v0.21-blue)]()
 
 ---
 
@@ -66,12 +66,12 @@
 
 ### Windows（推薦）
 
-1. 下載 `JPEG2PDF-OFD-OCR-v0.20-windows-x64.zip`
+1. 下載 `JPEG2PDF-OFD-OCR-v0.21-windows-x64.zip`
 2. 解壓縮到任意資料夾
 3. **GUI 模式**：雙擊 `start.bat` 或 `JPEG2PDF-OFD-OCR.exe`
 4. **CLI 模式**：開啟命令提示字元，執行：
    ```powershell
-   java -jar jpeg2pdf-ofd-nospring-0.20.jar config.json
+   java -jar jpeg2pdf-ofd-nospring-0.21.jar config.json
    ```
 
 ### CLI (JAR) — 跨平台
@@ -81,7 +81,7 @@
 mvn clean package
 
 # 執行
-java -jar target/jpeg2pdf-ofd-nospring-0.20.jar config.json
+java -jar target/jpeg2pdf-ofd-nospring-0.21.jar config.json
 ```
 
 ---
@@ -541,7 +541,7 @@ uv pip install pywebview
 mvn clean package
 ```
 
-輸出：`target/jpeg2pdf-ofd-nospring-0.20.jar`
+輸出：`target/jpeg2pdf-ofd-nospring-0.21.jar`
 
 ### 建置 Windows 便攜版 (ZIP)
 

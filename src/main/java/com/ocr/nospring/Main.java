@@ -20,7 +20,7 @@ public class Main {
 
     private static final Logger log = LoggerFactory.getLogger(Main.class);
 
-    private static String VERSION = "0.20";
+    private static String VERSION = "0.21";
     private static String APP_NAME = "JPEG2PDF-OFD (No Spring Boot)";
 
     static {

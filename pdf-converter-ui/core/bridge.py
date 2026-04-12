@@ -17,15 +17,15 @@ from typing import Callable, Optional
 
 def _get_base_path() -> Path:
     """Return the project root, accounting for PyInstaller bundling."""
-    if getattr(sys, 'frozen', False):
+    if getattr(sys, "frozen", False):
         # Packaged (PyInstaller): base dir is next to the EXE
         return Path(sys.executable).parent
     # Dev mode: project root is two levels up from this file
     return Path(__file__).parent.parent.parent
 
 
-JAR_NAME = 'jpeg2pdf-ofd-nospring-0.20.jar'
-JAR_DEV_PATH = _get_base_path() / 'target' / JAR_NAME
+JAR_NAME = "jpeg2pdf-ofd-nospring-0.21.jar"
+JAR_DEV_PATH = _get_base_path() / "target" / JAR_NAME
 JAR_PACKAGED_PATH = _get_base_path() / JAR_NAME
 
 
@@ -74,22 +74,30 @@ class ConversionBridge:
 
         try:
             self._process = subprocess.Popen(
-                ['java', '-Dfile.encoding=UTF-8', '-Xmx2G', '-jar',
-                 str(self._jar_path), str(config_path)],
+                [
+                    "java",
+                    "-Dfile.encoding=UTF-8",
+                    "-Xmx2G",
+                    "-jar",
+                    str(self._jar_path),
+                    str(config_path),
+                ],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                encoding='utf-8',
-                errors='replace',
+                encoding="utf-8",
+                errors="replace",
                 bufsize=1,  # Line-buffered
                 cwd=cwd,
             )
 
             # Read stderr in a separate thread so it doesn't block stdout
             stderr_lines = []
+
             def _read_stderr():
                 for line in self._process.stderr:
                     stderr_lines.append(line.strip())
+
             stderr_thread = threading.Thread(target=_read_stderr, daemon=True)
             stderr_thread.start()
 
@@ -101,14 +109,14 @@ class ConversionBridge:
 
                 try:
                     msg = json.loads(line)
-                    msg_type = msg.get('type', '')
+                    msg_type = msg.get("type", "")
 
-                    if msg_type == 'progress':
-                        on_progress(msg['current'], msg['total'], msg['message'])
-                    elif msg_type == 'complete':
-                        output_files = msg.get('files', [])
-                    elif msg_type == 'error':
-                        on_error(msg['message'])
+                    if msg_type == "progress":
+                        on_progress(msg["current"], msg["total"], msg["message"])
+                    elif msg_type == "complete":
+                        output_files = msg.get("files", [])
+                    elif msg_type == "error":
+                        on_error(msg["message"])
                         return
                     else:
                         on_log(line)
@@ -121,7 +129,7 @@ class ConversionBridge:
             if returncode == 0 and output_files:
                 on_complete(output_files)
             elif returncode != 0:
-                stderr = '\n'.join(stderr_lines)
+                stderr = "\n".join(stderr_lines)
                 on_error(f"Process exited with code {returncode}: {stderr[-500:]}")
             elif not self._cancelled:
                 on_complete([])
@@ -150,8 +158,8 @@ class ConversionBridge:
         config = json.loads(config_json)
         java_config = self.transform_config(config)
 
-        fd, tmp = tempfile.mkstemp(suffix='.json', prefix='jpeg2pdf_cfg_')
-        with os.fdopen(fd, 'w', encoding='utf-8') as f:
+        fd, tmp = tempfile.mkstemp(suffix=".json", prefix="jpeg2pdf_cfg_")
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
             json.dump(java_config, f, ensure_ascii=False, indent=2)
         return Path(tmp)
 
@@ -171,57 +179,57 @@ class ConversionBridge:
         """
         # --- input ---
         input_section: dict = {}
-        if frontend_config.get('inputType') == 'pdf':
-            input_section['type'] = 'pdf'
-            input_section['file'] = frontend_config.get('inputPath')
+        if frontend_config.get("inputType") == "pdf":
+            input_section["type"] = "pdf"
+            input_section["file"] = frontend_config.get("inputPath")
         else:
-            input_section['type'] = 'image'
-            input_section['folder'] = frontend_config.get('inputPath')
+            input_section["type"] = "image"
+            input_section["folder"] = frontend_config.get("inputPath")
 
         # --- output ---
         output_section = {
-            'folder': frontend_config.get('outputPath'),
-            'format': frontend_config.get('formats', 'pdf'),
-            'multiPage': str(frontend_config.get('multiPage', False)).lower() == 'true'
-                if isinstance(frontend_config.get('multiPage'), str)
-                else bool(frontend_config.get('multiPage', False)),
+            "folder": frontend_config.get("outputPath"),
+            "format": frontend_config.get("formats", "pdf"),
+            "multiPage": str(frontend_config.get("multiPage", False)).lower() == "true"
+            if isinstance(frontend_config.get("multiPage"), str)
+            else bool(frontend_config.get("multiPage", False)),
         }
 
         # --- ocr ---
         ocr_section: dict = {
-            'language': frontend_config.get('language', 'chinese_cht'),
-            'engine': frontend_config.get('ocrEngine', 'auto'),
+            "language": frontend_config.get("language", "chinese_cht"),
+            "engine": frontend_config.get("ocrEngine", "auto"),
         }
-        tesseract_data = frontend_config.get('tesseractDataPath')
+        tesseract_data = frontend_config.get("tesseractDataPath")
         if tesseract_data:
-            ocr_section['tesseractDataPath'] = tesseract_data
+            ocr_section["tesseractDataPath"] = tesseract_data
 
         java_config: dict = {
-            'input': input_section,
-            'output': output_section,
-            'ocr': ocr_section,
+            "input": input_section,
+            "output": output_section,
+            "ocr": ocr_section,
         }
 
         # --- optional: font ---
-        font_mode = frontend_config.get('fontMode', 'auto')
-        if font_mode == 'custom' and frontend_config.get('customFontPath'):
-            java_config['font'] = {'path': frontend_config['customFontPath']}
+        font_mode = frontend_config.get("fontMode", "auto")
+        if font_mode == "custom" and frontend_config.get("customFontPath"):
+            java_config["font"] = {"path": frontend_config["customFontPath"]}
 
         # --- optional: textLayer ---
-        text_color = frontend_config.get('textColor')
-        text_opacity = frontend_config.get('textOpacity')
+        text_color = frontend_config.get("textColor")
+        text_opacity = frontend_config.get("textOpacity")
 
         if text_color or text_opacity is not None:
             text_layer: dict = {}
             if text_color:
-                text_layer['color'] = text_color
+                text_layer["color"] = text_color
             if text_opacity is not None:
-                text_layer['opacity'] = text_opacity
-            java_config['textLayer'] = text_layer
+                text_layer["opacity"] = text_opacity
+            java_config["textLayer"] = text_layer
 
         # --- optional: textConvert (s2t / t2s) ---
-        chinese_conversion = frontend_config.get('chineseConversion')
-        if chinese_conversion and chinese_conversion not in ('null', ''):
-            java_config['textConvert'] = chinese_conversion
+        chinese_conversion = frontend_config.get("chineseConversion")
+        if chinese_conversion and chinese_conversion not in ("null", ""):
+            java_config["textConvert"] = chinese_conversion
 
         return java_config

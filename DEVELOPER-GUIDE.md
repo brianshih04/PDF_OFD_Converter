@@ -9,7 +9,7 @@
 | 工具 | 版本 | 用途 | 安裝方式 |
 |------|------|------|---------|
 | **JDK 21** (Azul Zulu FX) | 21+ | 編譯 Java CLI 引擎 | [Azul 下載](https://www.azul.com/downloads/?version=java-21-lts&os=windows&architecture=x86_64&package=jdk-fx) |
-| **Python** | **3.13** | UI 開發與執行 | [Python 下載](https://www.python.org/downloads/) |
+| **Python** | **3.12+** | UI 開發與執行 | [Python 下載](https://www.python.org/downloads/) |
 | **Maven** | 3.9+ | 建置工具 | [Maven 下載](https://maven.apache.org/download.cgi) |
 | **Git** | 最新版 | 版本控制 | `winget install Git.Git` |
 | **Tesseract OCR** | 5.x (選用) | 測試 Tesseract 語言 | [GitHub Releases](https://github.com/tesseract-ocr/tesseract/releases) |
@@ -17,7 +17,7 @@
 
 > **主要開發平台**：Windows 10/11 x64
 >
-> **重要**：Python 版本必須是 3.13，pythonnet 目前不支援 3.14。
+> **重要**：Python 版本建議 3.12+（pythonnet 不支援 3.14，推薦使用 `uv venv -p 3.12`）。
 >
 > **注意**：pom.xml 中 `java.version` 設為 21。JavaFX GUI 已移除，Java 專案現在僅為 CLI 引擎。
 
@@ -62,11 +62,11 @@ mvn -version   # 應顯示 3.9.x
 
 ### 2.3 Python 環境設定
 
-> **Python 3.13 是必要的**：pythonnet 不支援 3.14，請勿使用更新版本。
+> **Python 3.12+ 是必要的**：pythonnet 不支援 3.14，建議使用 `uv venv -p 3.12`。
 
 ```powershell
-# 建立 Python 3.13 虛擬環境
-py -3.13 -m venv .venv
+# 建立 Python 虛擬環境（推薦使用 uv）
+uv venv -p 3.12 .venv
 
 # 啟動虛擬環境
 .\.venv\Scripts\Activate.ps1    # PowerShell
@@ -89,7 +89,7 @@ python app.py
 ```
 
 Python UI 會自動偵測 JAR 位置：
-- **Dev 模式**：在專案根目錄尋找 `target/jpeg2pdf-ofd-nospring-0.20.jar`
+- **Dev 模式**：在專案根目錄尋找 `target/jpeg2pdf-ofd-nospring-0.21.jar`
 - **Production 模式**（PyInstaller 打包後）：使用內嵌的 JAR
 
 ### 2.5 Tesseract OCR 安裝（選用）
@@ -247,7 +247,7 @@ mvn clean package
 
 ### 5.2 建置輸出
 
-- **JAR 位置**：`target/jpeg2pdf-ofd-nospring-0.20.jar`（~82 MB）
+- **JAR 位置**：`target/jpeg2pdf-ofd-nospring-0.21.jar`（~82 MB）
 - **Main Class**：`com.ocr.nospring.Main`
 - **打包方式**：Maven Shade Plugin（所有依賴打包進單一 JAR）
 - **JavaFX 除外**：Shade Plugin 排除 JavaFX（由 Conveyor 打包的 JVM 提供）
@@ -279,7 +279,7 @@ pyinstaller pdf-converter.spec
 
 | 步驟 | 檔案 | 說明 |
 |------|------|------|
-| Maven 輸出 | `target/jpeg2pdf-ofd-nospring-0.20.jar` | Java CLI 引擎 JAR |
+| Maven 輸出 | `target/jpeg2pdf-ofd-nospring-0.21.jar` | Java CLI 引擎 JAR |
 | PyInstaller 輸出 | `pdf-converter-ui/dist/app.exe` | 含 Python UI + 內嵌 JAR 的便攜版 |
 
 ### 6.3 本地快速測試
@@ -296,7 +296,7 @@ Python UI 自動偵測 JAR 位置，無需手動配置：
 
 | 模式 | JAR 來源 | 說明 |
 |------|---------|------|
-| **Dev 模式** | `target/jpeg2pdf-ofd-nospring-0.20.jar` | 專案根目錄下的 Maven 建置產出 |
+| **Dev 模式** | `target/jpeg2pdf-ofd-nospring-0.21.jar` | 專案根目錄下的 Maven 建置產出 |
 | **Production 模式** | 內嵌於 PyInstaller EXE | 由 PyInstaller `--add-data` 打包進去 |
 
 > `core/bridge.py` 中的 `_resolve_jar()` 方法負責路徑解析邏輯。
@@ -371,13 +371,13 @@ PDF_OFD_Converter/
 
 | 依賴 | 版本 | 用途 |
 |------|------|------|
-| PDFBox | 2.0.29 | PDF 產生與操作 |
+| PDFBox | 2.0.32 | PDF 產生與操作 |
 | ofdrw | 2.3.8 | OFD 格式產生 |
 | RapidOCR-Java | 0.0.7 | OCR 引擎（ONNX） |
-| Tess4j | 5.13.0 | Tesseract OCR 橋接 |
+| Tess4j | 5.16.0 | Tesseract OCR 橋接 |
 | OpenCC4j | 1.14.0 | 簡繁中文轉換 |
-| Jackson | 2.15.3 | JSON 解析 |
-| SLF4J + Logback | 2.0.9 / 1.4.11 | 日誌框架 |
+| Jackson | 2.17.3 | JSON 解析 |
+| SLF4J + Logback | 2.0.16 / 1.5.16 | 日誌框架 |
 
 #### Python UI Shell
 
@@ -393,10 +393,10 @@ PDF_OFD_Converter/
 
 ```bash
 # 使用範例配置檔
-java -jar target/jpeg2pdf-ofd-nospring-0.20.jar dist/config-test.json
+java -jar target/jpeg2pdf-ofd-nospring-0.21.jar dist/config-test.json
 
 # 指定自訂配置
-java -jar target/jpeg2pdf-ofd-nospring-0.20.jar path/to/your-config.json
+java -jar target/jpeg2pdf-ofd-nospring-0.21.jar path/to/your-config.json
 ```
 
 ### 9.2 GUI 測試
@@ -436,9 +436,9 @@ python app.py
 
 | 版本類型 | 位置 | 目前值 | 說明 |
 |---------|------|--------|------|
-| **Maven 版本** | `pom.xml` → `<version>` | `0.20` | Java 套件版本 |
-| **JAR 名稱** | `target/` | `jpeg2pdf-ofd-nospring-0.20.jar` | 需與 Maven 版本一致 |
-| **應用版本** | `README.md` | `v0.20` | UI 專案版本（含 Python UI） |
+| **Maven 版本** | `pom.xml` → `<version>` | `0.21` | Java 套件版本 |
+| **JAR 名稱** | `target/` | `jpeg2pdf-ofd-nospring-0.21.jar` | 需與 Maven 版本一致 |
+| **應用版本** | `README.md` | `v0.21` | UI 專案版本（含 Python UI） |
 
 ### 10.2 分支策略
 
@@ -488,9 +488,9 @@ git push origin gh-pages
 
 **Q1: Python 版本錯誤？**
 
-pythonnet 不支援 Python 3.14+，必須使用 Python 3.13：
+pythonnet 不支援 Python 3.14+，建議使用 Python 3.12：
 ```powershell
-py -3.13 -m venv .venv
+uv venv -p 3.12 .venv
 ```
 
 **Q2: JAR 找不到？**
