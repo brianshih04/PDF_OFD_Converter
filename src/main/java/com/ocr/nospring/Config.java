@@ -18,55 +18,40 @@ public class Config {
 
     private String fontPath;
 
-    // OCR 語言（從 config 讀取）
+    public Config() {
+    }
+
+    public String getFontPath() {
+        if (fontPath == null) {
+            fontPath = detectDefaultFontPath();
+        }
+        return fontPath;
+    }
+
+    private static String detectDefaultFontPath() {
+        String[] candidates = {
+            "fonts/GoNotoKurrent-Regular.ttf",
+            "fonts/wqy-ZenHei.ttf",
+        };
+        for (String path : candidates) {
+            if (new java.io.File(path).exists()) {
+                return path;
+            }
+        }
+        return null;
+    }
+
     private String ocrLanguage;
 
-    // Tesseract tessdata 路徑
     private String tesseractDataPath;
 
-    // 文字層顏色 (RGB)
     private int textLayerRed = 255;
     private int textLayerGreen = 255;
     private int textLayerBlue = 255;
 
-    // 文字層透明度 (0.0 - 1.0)
     private double textLayerOpacity = DEFAULT_TEXT_LAYER_OPACITY;
 
     private int dpi = 72;
-
-    public Config() {
-        this.fontPath = getDefaultFontPath();
-    }
-
-    private String getDefaultFontPath() {
-        // Primary: GoNotoKurrent-Regular.ttf (per architecture rule)
-        String[] primaryFonts = {
-            "fonts/GoNotoKurrent-Regular.ttf",
-        };
-        for (String font : primaryFonts) {
-            java.io.File fontFile = new java.io.File(font);
-            if (fontFile.exists()) {
-                return font;
-            }
-        }
-
-        // Fallback: wqy-ZenHei.ttf (per architecture rule)
-        String[] fallbackFonts = {
-            "fonts/wqy-ZenHei.ttf",
-        };
-        for (String font : fallbackFonts) {
-            java.io.File fontFile = new java.io.File(font);
-            if (fontFile.exists()) {
-                return font;
-            }
-        }
-
-        return null;
-    }
-
-    public String getFontPath() {
-        return fontPath;
-    }
 
     public String getOcrLanguage() { return ocrLanguage; }
 

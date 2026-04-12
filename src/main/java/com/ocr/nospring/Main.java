@@ -24,7 +24,6 @@ public class Main {
     private static String APP_NAME = "JPEG2PDF-OFD (No Spring Boot)";
 
     static {
-        // Load version from properties file
         try (InputStream is = Main.class.getClassLoader().getResourceAsStream("version.properties")) {
             if (is != null) {
                 Properties props = new Properties();
@@ -39,7 +38,6 @@ public class Main {
 
     public static void main(String[] args) {
         try {
-            // No args = print usage
             if (args.length == 0) {
                 printUsage();
                 System.exit(0);
@@ -57,10 +55,7 @@ public class Main {
                 System.exit(0);
             }
 
-            // 創建配置
-            Config config = new Config();
-
-            // 加載配置文件
+            // Validate config file path
             String configFile = args[0];
             Path safeConfigPath;
             try {
@@ -90,94 +85,23 @@ public class Main {
                 System.exit(1);
             }
 
-            ObjectMapper mapper = new ObjectMapper();
-            Map<String, Object> configMap = mapper.readValue(file, Map.class);
-
             log.info("========================================");
             log.info("  {} v{}", APP_NAME, VERSION);
             log.info("========================================");
             log.info("Config: {}", configFile);
             log.info("OK: Config loaded");
 
-            // === 讀取所有配置到 Config 物件 ===
+            // === Load config via ConfigLoader ===
+            Map<String, Object> configMap = ConfigLoader.loadRaw(file);
+            Config config = ConfigLoader.load(file);
 
-            // 讀取字體配置 (NPE-safe cast)
-            Object fontRaw = configMap.get("font");
-            if (fontRaw instanceof Map) {
-                @SuppressWarnings("unchecked")
-                Map<String, Object> fontConfig = (Map<String, Object>) fontRaw;
-                if (fontConfig.containsKey("path")) {
-                    config.setFontPath((String) fontConfig.get("path"));
-                    log.info("Font: {}", config.getFontPath());
-                }
-            }
-
-            // 讀取文字層配置 (NPE-safe cast)
-            Object textLayerRaw = configMap.get("textLayer");
-            if (textLayerRaw instanceof Map) {
-                @SuppressWarnings("unchecked")
-                Map<String, Object> textLayerConfig = (Map<String, Object>) textLayerRaw;
-                if (textLayerConfig.containsKey("color")) {
-                    config.setTextLayerColor((String) textLayerConfig.get("color"));
-                }
-                if (textLayerConfig.containsKey("red")) {
-                    config.setTextLayerRed(((Number) textLayerConfig.get("red")).intValue());
-                }
-                if (textLayerConfig.containsKey("green")) {
-                    config.setTextLayerGreen(((Number) textLayerConfig.get("green")).intValue());
-                }
-                if (textLayerConfig.containsKey("blue")) {
-                    config.setTextLayerBlue(((Number) textLayerConfig.get("blue")).intValue());
-                }
-                if (textLayerConfig.containsKey("opacity")) {
-                    config.setTextLayerOpacity(((Number) textLayerConfig.get("opacity")).doubleValue());
-                }
-            }
-
-            // 讀取簡繁轉換配置
-            if (configMap.containsKey("textConvert")) {
-                String textConvert = (String) configMap.get("textConvert");
-                config.setTextConvert(textConvert);
-                log.info("Text Convert: {}", textConvert);
-            }
-
-            // 讀取輸入配置
-            @SuppressWarnings("unchecked")
-            Map<String, Object> inputConfig = (Map<String, Object>) configMap.get("input");
-            @SuppressWarnings("unchecked")
-            Map<String, Object> outputConfig = (Map<String, Object>) configMap.get("output");
-            @SuppressWarnings("unchecked")
-            Map<String, Object> ocrConfig = (Map<String, Object>) configMap.get("ocr");
-
-            // 獲取輸入類型
-            String inputType = "image";
-            if (inputConfig != null && inputConfig.containsKey("type")) {
-                inputType = ((String) inputConfig.get("type")).toLowerCase();
-            }
-
-            // 獲取 DPI（PDF 渲染用，預設 300）
-            float renderDpi = 300f;
-            if (inputConfig != null && inputConfig.containsKey("dpi")) {
-                renderDpi = ((Number) inputConfig.get("dpi")).floatValue();
-                config.setDpi((int) renderDpi);
-            }
-
-            // 獲取 OCR 語言與引擎
-            String language = getOcrLanguage(ocrConfig);
-            config.setOcrLanguage(language);
-
-            String ocrEngine = "auto";
-            if (ocrConfig != null && ocrConfig.containsKey("engine")) {
-                ocrEngine = ((String) ocrConfig.get("engine")).toLowerCase();
-            }
+            String inputType = ConfigLoader.getInputType(configMap);
+            float renderDpi = ConfigLoader.getRenderDpi(configMap);
+            String language = config.getOcrLanguage() != null ? config.getOcrLanguage() : "chinese_cht";
+            String ocrEngine = ConfigLoader.getOcrEngine(configMap);
             log.info("OCR Engine: {}", ocrEngine);
 
-            // 讀取 Tesseract tessdata 路徑
-            if (ocrConfig != null && ocrConfig.containsKey("tesseractDataPath")) {
-                config.setTesseractDataPath((String) ocrConfig.get("tesseractDataPath"));
-            }
-
-            // === 驗證配置（所有設定讀取完畢後） ===
+            // === Validate config ===
             try {
                 config.validate();
                 log.info("OK: Config validated");
@@ -188,7 +112,9 @@ public class Main {
 
             log.info("Configuration loaded and validated from: {}", configFile);
 
-            // === 獲取輸入檔案 ===
+            // === Get input files ===
+            @SuppressWarnings("unchecked")
+            Map<String, Object> inputConfig = (Map<String, Object>) configMap.get("input");
             List<File> inputFiles = getInputFiles(inputConfig);
 
             if ("pdf".equals(inputType)) {
@@ -215,12 +141,13 @@ public class Main {
                 return;
             }
 
-            // === 獲取輸出配置 ===
+            // === Get output config ===
+            @SuppressWarnings("unchecked")
+            Map<String, Object> outputConfig = (Map<String, Object>) configMap.get("output");
             String outputFolder = getOutputFolder(outputConfig);
             String format = getOutputFormat(outputConfig);
             boolean multiPage = getMultiPageMode(outputConfig);
 
-            // Validate output path
             try {
                 outputFolder = PathValidator.sanitize(outputFolder).toString();
             } catch (IllegalArgumentException e) {
@@ -229,7 +156,6 @@ public class Main {
                 return;
             }
 
-            // 創建輸出目錄
             File outputDir = new File(outputFolder);
             if (!outputDir.exists()) {
                 outputDir.mkdirs();
@@ -238,7 +164,7 @@ public class Main {
             log.info("Output: {}", outputFolder);
             log.info("Mode: {}", multiPage ? "Multi-Page" : "Per-Page");
 
-            // === 委派給 ProcessingService ===
+            // === Delegate to ProcessingService ===
             OcrService ocrService = new OcrService();
             PdfService pdfService = new PdfService(config);
             OfdService ofdService = new OfdService(config);
@@ -309,7 +235,6 @@ public class Main {
 
     private static boolean matchesPattern(String filename, String pattern) {
         if (pattern.equals("*") || pattern.equals("*.*")) return true;
-        // Support comma-separated patterns: "*.jpg,*.png,*.tiff"
         if (pattern.contains(",")) {
             String[] patterns = pattern.split(",");
             for (String p : patterns) {
@@ -337,7 +262,6 @@ public class Main {
 
     private static String getOutputFormat(Map<String, Object> outputConfig) {
         if (outputConfig != null) {
-            // 支持 "formats" 或 "format" 鍵
             Object format = null;
             if (outputConfig.containsKey("formats")) {
                 format = outputConfig.get("formats");
@@ -353,17 +277,6 @@ public class Main {
         return "pdf";
     }
 
-    private static String getOcrLanguage(Map<String, Object> ocrConfig) {
-        if (ocrConfig != null && ocrConfig.containsKey("language")) {
-            return (String) ocrConfig.get("language");
-        }
-        return "chinese_cht";
-    }
-
-    /**
-     * 獲取多頁模式配置
-     * 默認為 false（單頁模式）
-     */
     private static boolean getMultiPageMode(Map<String, Object> outputConfig) {
         if (outputConfig != null && outputConfig.containsKey("multiPage")) {
             Object multiPage = outputConfig.get("multiPage");
@@ -374,7 +287,7 @@ public class Main {
                 return Boolean.parseBoolean((String) multiPage);
             }
         }
-        return false; // 默認為單頁模式
+        return false;
     }
 
     private static void printUsage() {
@@ -397,10 +310,6 @@ public class Main {
         log.info("");
     }
 
-    /**
-     * CLI progress callback that emits structured JSON lines to stdout.
-     * Python subprocess bridge parses these lines for real-time progress.
-     */
     private static class CliProgressCallback implements ProcessingService.ProgressCallback {
         private final ObjectMapper mapper = new ObjectMapper();
         private final ConcurrentLinkedQueue<String> outputFileQueue = new ConcurrentLinkedQueue<>();

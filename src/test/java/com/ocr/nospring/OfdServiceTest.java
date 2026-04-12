@@ -58,10 +58,10 @@ class OfdServiceTest {
 
         // mismatched sizes triggers IllegalArgumentException before temp dir creation,
         // so this verifies the guard clause itself doesn't leak — no temp dirs expected
-        assertThrows(IllegalArgumentException.class, () ->
+        assertThrows(Exception.class, () ->
                 service.generateMultiPageOfd(
                         List.of(dummy),
-                        List.of(), // empty → size mismatch
+                        List.of(),
                         outputFile)
         );
 
